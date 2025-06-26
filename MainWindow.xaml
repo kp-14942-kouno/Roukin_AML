@@ -1,0 +1,73 @@
+﻿<Window x:Class="MyTemplate.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MyTemplate"
+        xmlns:cc="clr-namespace:MyTemplate.Class"
+        mc:Ignorable="d"
+        Loaded="Window_Loaded"
+        Title="MainWindow" Height="600" Width="800" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="196"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="AUTO"/>
+            <RowDefinition Height="48"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical">
+            <Button x:Name="bt_CreataTable" Content="テーブル作成" Margin="5" Height="24" Click="bt_CreataTable_Click"/>
+            <Button x:Name="bt_FileLoadText" Content="ファイル読込み（TEXT）" Margin="5" Height="24" Click="bt_FileLoadText_Click"/>
+            <Button x:Name="bt_FileLoadExcel" Content="ファイル読込み（EXCEL）" Margin="5" Height="24" Click="bt_FileLoadExcel_Click"/>
+            <Button x:Name="bt_FileImportText" Content="ファイル取込み（TEXT）" Margin="5" Height="24" Click="bt_FileImportText_Click"/>
+            <Button x:Name="bt_FileLoadTextFromImport" Content="ファイル読込（TEXT）⇒取込" Margin="5" Height="24" Click="bt_FileLoadTextFromImport_Click"/>
+            <Button x:Name="bt_InputBoxTest" Content="入力ボックステスト" Margin="5" Height="24" Click="bt_InputBoxTest_Click"/>
+            <Button x:Name="bt_UserRegist" Content="ユーザー登録" Margin="5" Height="24" Click="bt_UserRegist_Click"/>
+            <Button x:Name="bt_UserView" Content="ユーザー登録情報" Margin="5" Height="24" Click="bt_UserView_Click"/>
+            <TextBlock x:Name="tb_Time" Margin="5"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="1">
+            <Grid Grid.Row="0" Grid.Column="1" Width="256" Height="32" HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="192"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="cmb_TableList" Grid.Column="0" FontSize="11" Margin="3" HorizontalContentAlignment="Center"/>
+                <Button x:Name="bt_TableSelect" Grid.Column="1" Content="選択" Margin="3" Click="bt_TableSelect_Click"/>
+            </Grid>
+        </StackPanel>
+
+        <DataGrid x:Name="dg_Viewer" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5" IsReadOnly="True"/>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"  HorizontalAlignment="Right">
+            <Button x:Name="bt_Logout" Grid.Row="2" Grid.Column="1" Content="Logout" Width="160" Height="32" Margin="5" Click="bt_Logout_Click"/>
+            <Button x:Name="bt_Close" Grid.Row="2" Grid.Column="1" Content="Close" Width="160" Height="32" Margin="5" Click="bt_Close_Click"/>
+        </StackPanel>
+
+        <Grid Grid.Row="0" Grid.Column="2" Grid.RowSpan="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="2"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <GridSplitter Grid.Row="1" Height="2" HorizontalAlignment="Stretch" Background="Gray" ShowsPreview="True"/>
+
+            <ScrollViewer Grid.Row="0">
+                <TextBox Background="AliceBlue" AcceptsReturn="True" TextWrapping="Wrap"/>
+            </ScrollViewer>
+
+            <ScrollViewer Grid.Row="2">
+                <TextBox Background="LightGoldenrodYellow" AcceptsReturn="True" TextWrapping="Wrap"/>
+            </ScrollViewer>
+            
+        </Grid>
+        
+    </Grid>
+</Window>

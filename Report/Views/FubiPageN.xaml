@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="MyTemplate.Report.Views.FubiPageN"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MyTemplate.Report.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="1123" d:DesignWidth="795">
+    <Grid Margin="0.5cm">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1.5cm"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="1.5cm"/>
+        </Grid.RowDefinitions>
+
+        <Image Source="{Binding Item.Qr}" Width="30" Height="30" HorizontalAlignment="Right"/>
+
+        <Border Grid.Row="1" BorderThickness="1" BorderBrush="Black">
+            <TextBlock Text="{Binding Item.fubi}" Margin="0.3cm"/>
+        </Border>
+
+        <TextBlock Grid.Row="2" Text="{Binding Item.pages}" HorizontalAlignment="Right" Background="White" Margin="0,0.5cm,0,0"/>
+
+    </Grid>
+</UserControl>

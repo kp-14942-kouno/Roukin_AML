@@ -1,0 +1,55 @@
+﻿#入力説明
+#シングルクォートで囲まれた部分はエスケープせずに記入可能
+
+#プロジェクト設定（削除禁止）
+projectSettings:
+    projectName: "MyTemplate"
+    projectVersion: "1.0.0"
+    login_id: 1
+
+#システム設定（削除禁止）
+systeSetting:
+    searchLimit: 10000 #データ検索の1ページのレコード数
+
+#権限（削除禁止）
+authority:
+    operator: 0 #オペレーター権限
+    leader: 1 #リーダー権限
+    supervisor: 2 #スーパーバイザー権限
+    administrator: 9 #管理者権限
+
+#JavaScript
+script:
+    dir: "scripts"
+    load: "file_load.js" 
+    imp: "file_import.js"
+
+#データベース設定
+# Schema + _connection
+# provider Accdb, Accdb2019, SqlServer, Sqllite, MySql
+
+db_Connection:
+    provider: "Sqlite"
+    host: ""
+    dataBaseName: '.\db\db.sqlite'
+    port: ""
+    userId: ""
+    password: ""
+
+setting_Connection:
+    provider: "Sqlite"
+    host: ""
+    dataBaseName: '.\db\setting.sqlite'
+    port: ""
+    userId: ""
+    password: ""
+
+user_Connection:
+    provider: "Sqlite"
+    host: ""
+    dataBaseName: '.\db\user.sqlite'
+    port: ""
+    userId: ""
+    password: ""
+
+

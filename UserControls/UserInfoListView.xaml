@@ -1,0 +1,112 @@
+﻿<!-- 
+    UserInfoListViewのXAML定義。固定列と内容列を2つのListViewで構成し
+    左右のスクロール動作を同期させる仕組み
+-->
+<UserControl x:Class="MyTemplate.UserControls.UserInfoListView"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+            xmlns:local="clr-namespace:MyTemplate.UserControls"
+            mc:Ignorable="d" 
+            x:Name="rootControl"
+            d:DesignHeight="450" d:DesignWidth="800">
+    <!-- 2列構成のメインレイアウト。左列は固定幅130、右列は自動拡大 -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="130"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- 左 ListView（項目名列）。IsHitTestVisibleをFalseにしてユーザー操作を受け付けない -->
+        <ListView x:Name="LeftListView"
+                  ItemsSource="{Binding ElementName=rootControl, Path=ItemsSource}"
+                  ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                  ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                  BorderThickness="0"
+                  IsHitTestVisible="False">
+
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <!-- 各アイテムのコンテンツを水平方向に伸ばす -->
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView>
+                    <!-- ヘッダーを非表示 -->
+                    <GridView.ColumnHeaderContainerStyle>
+                        <Style TargetType="GridViewColumnHeader">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </Style>
+                    </GridView.ColumnHeaderContainerStyle>
+                    
+                    <!-- 左ListViewのヘッダーはFixedColumnHeaderをバインド -->
+                    <GridViewColumn Header="{Binding ElementName=rootControl, Path=FixedColumnHeader}" Width="120">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <!-- 名前情報を表示 -->
+                                <TextBlock Text="{Binding [Name]}"
+                                            Background="DarkTurquoise"
+                                            Foreground="White"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Center"
+                                            TextAlignment="Right"/>
+                   
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                                    
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <!-- 右 ListView（内容列）。ユーザーが縦スクロールを操作可能 -->
+        <ListView x:Name="RightListView"
+                  Grid.Column="1"
+                  ItemsSource="{Binding ElementName=rootControl, Path=ItemsSource}"
+                  BorderThickness="0"
+                  ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  AlternationCount="2">
+
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <!-- アイテムのコンテンツを水平方向に伸ばす -->
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Style.Triggers>
+                        <!-- Indexが1の行は背景をWhiteSmokeにする（交互行による見やすさ向上） -->
+                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                            <Setter Property="Background" Value="WhiteSmoke"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
+                　
+            <ListView.View>
+                <GridView>
+                    <!-- ヘッダーを非表示 -->
+                    <GridView.ColumnHeaderContainerStyle>
+                        <Style TargetType="GridViewColumnHeader">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </Style>
+                    </GridView.ColumnHeaderContainerStyle>
+                    
+                    <!-- 右ListViewのヘッダーはContentColumnHeaderをバインド -->
+                    <GridViewColumn Header="{Binding ElementName=rootControl, Path=ContentColumnHeader}" Width="Auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <!-- 下線付きのBorderで囲み、DataTemplateに表示する内容をTextBlockへバインド -->
+                                <Border BorderThickness="0,0,0,1" BorderBrush="Black" Padding="2" SnapsToDevicePixels="True">
+                                    <TextBlock Text="{Binding [Content]}"/>
+                                </Border>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    
+                </GridView>
+
+            </ListView.View>
+        </ListView>
+    </Grid>
+</UserControl>

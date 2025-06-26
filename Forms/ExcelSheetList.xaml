@@ -1,0 +1,26 @@
+﻿<Window x:Class="MyTemplate.Forms.ExcelSheetList"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MyTemplate.Forms"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterOwner"
+        Title="Excel Sheet選択" Height="450" Width="360">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="29"/>
+
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="150"/>
+        </Grid.ColumnDefinitions>
+
+        <ListBox x:Name="lst_Sheet" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" MouseDoubleClick="lst_Sheeet_DoubleClick" Background="WhiteSmoke"/>
+        <Button x:Name="bt_OK" Content="OK" Grid.Row="1" Grid.Column="1" Margin="3" Click="bt_OK_Click"/>
+        <Button x:Name="bt_CANCEL" Content="CANCEL" Grid.Row="2" Grid.Column="1" Margin="3" Click="bt_Cancel_Click"/>
+    </Grid>
+</Window>
