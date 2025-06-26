@@ -18,8 +18,8 @@ namespace MyTemplate.Report.Helpers
             var document = new FixedDocument();
             var size = ParperSize.A4.ToSSize(); // 用紙サイズを指定
 
-            const int firstPageLimit = 30; // 1ページ目の上限
-            const int otherPageLimit = 57; // 2ページ目以降の上限
+            const int firstPageLimit = 29; // 1ページ目の上限
+            const int otherPageLimit = 56; // 2ページ目以降の上限
 
             foreach (DataRow row in dataTable.Rows)
             {
