@@ -116,7 +116,7 @@ namespace MyTemplate
                 {
 
                     dv_Report.Document = docment;
-                    FixedDocumentAsJpeg(docment);
+                    //FixedDocumentAsJpeg(docment);
 
 
                     /*
