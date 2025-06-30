@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.Win32;
 using MyLibrary;
 using MyLibrary.MyClass;
@@ -11,12 +12,15 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Printing;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Xps;
 using YamlDotNet.RepresentationModel;
 
 namespace MyTemplate
@@ -77,6 +81,64 @@ namespace MyTemplate
             using MyDbData db = new MyDbData("setting");
             var table = db.ExecuteQuery("select * from t_table_setting where search_flg=1 order by table_id");
             combobox.ItemsSource = table.DefaultView;
+        }
+
+        /// <summary>
+        /// プリンターの一覧をコンボボックスにセット
+        /// </summary>
+        /// <param name="combobox"></param>
+        public static void SetPrinterList(ComboBox combobox)
+        {
+            combobox.Items.Clear();
+
+            // LocalPrintServerを使用してローカルプリンターの一覧を取得
+            var server = new LocalPrintServer();
+            var queues = server.GetPrintQueues(new[] { EnumeratedPrintQueueTypes.Local, EnumeratedPrintQueueTypes.Connections });
+            // PrintQueueのリストを取得
+            combobox.ItemsSource = queues;
+            
+            // 既定のプリンターを取得し設定する
+            var defaultPrinter = new System.Drawing.Printing.PrinterSettings().PrinterName;
+            if (queues.Any(q => q.Name == defaultPrinter))
+            {
+                combobox.SelectedItem = queues.First(q => q.Name == defaultPrinter);
+            }
+            else
+            {
+                // デフォルトプリンターがリストにない場合は最初のプリンターを選択
+                combobox.SelectedIndex = 0;
+            }
+        }
+
+        /// <summary>
+        /// FixedDocumentをプリンターで印刷
+        /// </summary>
+        /// <param name="document"></param>
+        /// <param name="printer"></param>
+        /// <param name="size"></param>
+        /// <param name="orientation"></param>
+        /// <param name="duplexing"></param>
+        /// <param name="inputBin"></param>
+        public static void FixedDocumentPrint(FixedDocument document, PrintQueue printer, Report.ParperSize size = Report.ParperSize.A4, 
+                                           PageOrientation orientation = PageOrientation.Portrait, Duplexing duplexing = Duplexing.OneSided,
+                                                InputBin inputBin = InputBin.AutoSelect)
+        {
+            // 印刷チケットの作成
+            var ticket = new PrintTicket
+            {
+                // 用紙サイズ
+                PageMediaSize = Report.ParperSizeHelper.PageMediaSize(size),
+                // 印刷方向
+                PageOrientation = orientation,
+                // 片面・両面印刷設定
+                Duplexing = duplexing,
+                // 給紙方法
+                InputBin = inputBin
+            };
+
+            // 印刷実行
+            XpsDocumentWriter writer = PrintQueue.CreateXpsDocumentWriter(printer);
+            writer.Write(document, ticket);
         }
 
         /// <summary>

@@ -2,6 +2,8 @@
 using MyLibrary;
 using MyLibrary.MyModules;
 using MyTemplate.ImportClass;
+using MyTemplate.Report;
+using MyTemplate.Report.Models;
 using MyTemplate.Report.ViewModels;
 using MyTemplate.Report.Views;
 using System;
@@ -89,6 +91,11 @@ namespace MyTemplate
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            var form = new FubiPrint();
+            form.ShowDialog();
+
+            return;
+
             var defectDic = new Dictionary<string, string>();
 
             using (MyDbData db = new MyDbData("setting"))
@@ -115,8 +122,12 @@ namespace MyTemplate
                 if (docment.Pages.Count != 0)
                 {
 
-                    dv_Report.Document = docment;
+                    //dv_Report.Document = docment;
                     //FixedDocumentAsJpeg(docment);
+
+                    var preview = new ReportPreivew(docment);
+                    preview.ShowDialog();
+
 
 
                     /*

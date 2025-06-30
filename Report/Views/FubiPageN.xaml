@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:MyTemplate.Report.Views"
              mc:Ignorable="d" 
              d:DesignHeight="1123" d:DesignWidth="795">
-    <Grid Margin="0.5cm">
+    <Grid Margin="1cm">
         <Grid.RowDefinitions>
             <RowDefinition Height="1.5cm"/>
             <RowDefinition Height="*"/>

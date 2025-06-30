@@ -22,8 +22,12 @@ namespace MyTemplate.Report.Helpers
             using var qrCode = new QRCode(qrData);
             using Bitmap qrBitmap = qrCode.GetGraphic(pixelsPerModule);
 
+            using Bitmap mono = qrBitmap.Clone(
+                new Rectangle(0, 0, qrBitmap.Width, qrBitmap.Height),
+                System.Drawing.Imaging.PixelFormat.Format1bppIndexed);
+
             using var ms = new MemoryStream();
-            qrBitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            qrBitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Tiff);
             ms.Position = 0;
 
             var image = new BitmapImage();

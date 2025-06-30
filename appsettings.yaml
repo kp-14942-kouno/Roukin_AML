@@ -1,6 +1,15 @@
 ﻿#入力説明
 #シングルクォートで囲まれた部分はエスケープせずに記入可能
 
+# @ymd@ ⇒ 西暦
+# @year@ ⇒ 年（西暦）
+# @month@ ⇒ 月
+# @day@ ⇒ 日
+# @hms@ ⇒ 時分秒
+# @path@ ⇒ ルートパス
+# @#@ ⇒ 数値の置換え　#の数分の桁数にする（10桁まで）
+
+
 #プロジェクト設定（削除禁止）
 projectSettings:
     projectName: "MyTemplate"
@@ -51,5 +60,12 @@ user_Connection:
     port: ""
     userId: ""
     password: ""
+
+#ろうきんAML案件設定
+roukin_setting:
+    img_root_path: 'D:\04.VisualStudio\ろうきん\img'
+    exp_root_path: 'D:\04.VisualStudio\ろうきん'
+    fubi_print_name: "10_不備状印刷_@ymd@_@hms@.txt"
+
 
 

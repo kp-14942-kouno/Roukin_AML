@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="1123" d:DesignWidth="795">
 
-    <Grid Margin="0.5cm">
+    <Grid Margin="1cm">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -23,7 +23,7 @@
                     <TextBlock Text="問い合わせ番号："/>
                     <TextBlock Text="{Binding Person.qr_code}"/>
                 </StackPanel>
-                <TextBlock Text="{Binding Person.post_num_fix}"/>
+                <TextBlock Text="{Binding Person.post_num}"/>
                 <TextBlock Text="{Binding Person.addr}" Width="8cm" HorizontalAlignment="Left" TextWrapping="Wrap" Margin="0,0.5cm,0,0"/>
                 <TextBlock Text="{Binding Person.name}" Margin="0,0.5cm,0,0"/>
                 <Image Source="{Binding Item.Qr}" Width="30" Height="30"/>
@@ -32,8 +32,16 @@
 
         <Grid Grid.Row="1" Height="4cm" Background="White">
             <StackPanel Orientation="Vertical">
-                <TextBlock Text="{Binding Person.title}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-                <TextBlock Text="{Binding Person.caption}" LineHeight="0.5cm" Margin="0,0.5cm,0,0"/>
+                <TextBlock Text="お取引目的等の確認書" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                <TextBlock LineHeight="0.5cm" Margin="0,0.5cm,0,0">
+                    　　　平素は格別のお引き立てを賜り、厚くお礼を申しあげます。
+                    <LineBreak/>    
+                    　　　さて、このたびはお取引目的等の確認書をご送付いただき、ありがとうございました。
+                    <LineBreak/> 
+                    　　　ご送付いただきましたお取引目的等の確認書のご記入内容に一部不足等がございましたので、一旦ご返却させていただきます。
+                    <LineBreak/> 
+                    　　　恐れ入りますが、以下の不足内容等をご確認のうえ追加記入・訂正等をいただき、同封の返信用封筒にてご返送をお願いいたします。
+                </TextBlock>
             </StackPanel>
         </Grid>
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Printing;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,9 +21,9 @@ namespace MyTemplate.Report
     }
 
     /// <summary>
-    /// 用紙サイズ（mm）をピクセルに変換する拡張メソッド
+    /// 用紙サイズ
     /// </summary>
-    public static class ParperSizeExtensions
+    public static class ParperSizeHelper
     {
         public static System.Windows.Size ToSSize(this ParperSize size)
         {
@@ -38,5 +39,21 @@ namespace MyTemplate.Report
                 _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
             };
         }
+
+        public static PageMediaSize PageMediaSize(this ParperSize size)
+        {
+            // 用紙サイズをPageMediaSizeに変換
+            return size switch
+            {
+                ParperSize.A3 => new PageMediaSize(PageMediaSizeName.ISOA3),
+                ParperSize.A4 => new PageMediaSize(PageMediaSizeName.ISOA4),
+                ParperSize.A5 => new PageMediaSize(PageMediaSizeName.ISOA5),
+                ParperSize.B3 => new PageMediaSize(PageMediaSizeName.ISOB3),
+                ParperSize.B4 => new PageMediaSize(PageMediaSizeName.ISOB4),
+                ParperSize.B5 => new PageMediaSize(176 / 25.4 * 96, 250 / 25.4 * 96),
+                _ => throw new ArgumentOutOfRangeException(nameof(size), size, null)
+            };
+        }
     }
+
 }
