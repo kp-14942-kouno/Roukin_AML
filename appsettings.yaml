@@ -33,6 +33,7 @@ script:
     load: "file_load.js" 
     imp: "file_import.js"
 
+
 #データベース設定
 # Schema + _connection
 # provider Accdb, Accdb2019, SqlServer, Sqllite, MySql
@@ -57,6 +58,22 @@ user_Connection:
     provider: "Sqlite"
     host: ""
     dataBaseName: '.\db\user.sqlite'
+    port: ""
+    userId: ""
+    password: ""
+
+beatle_Connection:
+    provider: "SqlServer"
+    host: '10.0.0.2\SQLEXPRESS'
+    dataBaseName: 'Beatle01DB'
+    port: ""
+    userId: "bea01mgr"
+    password: "bea01mgr"
+
+code_Connectin:
+    provider: "Sqlite"
+    host: ""
+    dataBaseName: '.\db\roukin_code.sqlite'
     port: ""
     userId: ""
     password: ""

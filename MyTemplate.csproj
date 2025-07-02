@@ -35,6 +35,9 @@
     <None Update="db\db.sqlite">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="db\roukin_code.sqlite">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="db\setting.sqlite">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

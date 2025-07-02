@@ -348,7 +348,7 @@ namespace MyTemplate
             try
             {
                 // 不備文言データを取得
-                using (MyDbData db = new MyDbData("setting"))
+                using (MyDbData db = new MyDbData("code"))
                 {
                     using (DbDataReader reader = db.ExecuteReader("select * from t_fubi_code order by fubi_code"))
                     {
