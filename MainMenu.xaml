@@ -17,6 +17,7 @@
             <Button Content="不備状" Width="164" Height="32" Click="Button_Click"/>
             <Button Content="団体・パンチデータ読込み" Width="164" Height="32" Margin="0,5,0,0" Click="Button_Click_1"/>
             <Button Content="機能チェック" Width="164" Height="32" Margin="0,5,0,0" Click="Button_Click_2"/>
+            <Button Content="WEBCASデータ読込み" Width="164" Height="32" Margin="0,5,0,0" Click="Button_Click_3"/>
         </StackPanel>
 
         <DataGrid x:Name="dg_View" Grid.Row="1" AutoGenerateColumns="True" IsReadOnly="True" CanUserAddRows="False"/>

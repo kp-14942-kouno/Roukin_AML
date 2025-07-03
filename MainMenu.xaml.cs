@@ -12,6 +12,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -56,12 +57,33 @@ namespace MyTemplate
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            string date = "20231031";
+            //string value = "ABCD0123456ＥＦＧ７８９０あいうえおｱｲｳｴｵアイウエオｬｭｮゃゅょャュョ亜居鵜江尾";
+            //string value = "ｱｲｳｴｵﾔﾕﾖｬｭｮ㎝";
+            string value = "ＥＦＧ７８９０あいうえおアイウエオ亜居鵜江尾∑";
 
-            DateTime? formatterDate = MyLibrary.MyModules.MyUtilityModules.ParseDateString(date, "yyyyMMdd", MyEnum.CalenderType.Western);
-            
-            MessageBox.Show(formatterDate?.ToString("yyyy/MM/dd") ?? "日付の変換に失敗しました。", "日付変換結果", MessageBoxButton.OK, MessageBoxImage.Information);
+            var result = RoukinModule.GetInvalidMixedChars(value);
 
+            MessageBox.Show(result ?? "全て範囲内", "文字チェック結果", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            //string date = "20231031";
+
+            //DateTime? formatterDate = MyLibrary.MyModules.MyUtilityModules.ParseDateString(date, "yyyyMMdd", MyEnum.CalenderType.Western);
+
+            //MessageBox.Show(formatterDate?.ToString("yyyy/MM/dd") ?? "日付の変換に失敗しました。", "日付変換結果", MessageBoxButton.OK, MessageBoxImage.Information);
+
+        }
+
+        private void Button_Click_3(object sender, RoutedEventArgs e)
+        {
+            using (var load = new ImportClass.FileLoadProperties())
+            {
+                // ファイル読込み設定取得
+                if (!FileLoadClass.GetFileLoadSetting(10, load)) return;
+                // ファイル読込み処理
+                if (FileLoadClass.FileLoad(this, load) != MyEnum.MyResult.Ok) return;
+
+                dg_View.ItemsSource = load.LoadData.DefaultView;
+            }
         }
     }
 }

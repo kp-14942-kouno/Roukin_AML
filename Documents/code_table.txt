@@ -1,0 +1,8 @@
+業種コード_個人：t_industry_code_person
+在留資格コード_個人：t_residual_code_person
+取引目的コード：t_transactions_code
+職業事業内容コード_個人：t_business_code_person
+職業事業内容コード_団体：t_business_code_organization
+国コード：t_country_code
+都道府県コード：t_zip_code
+
