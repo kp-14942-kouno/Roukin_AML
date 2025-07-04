@@ -51,6 +51,9 @@ namespace MyTemplate.ImportClass
         public byte moji_code { get; set; }                             // 文字コード
         public byte delimiter { get; set; }                             // 区切り文字
         public byte separator { get; set; }                             // 囲み文字
+        public string jis_range_1byte { get; set; } = string.Empty;     // 1バイト文字の範囲
+        public string jis_range_2byte { get; set; } = string.Empty;     // 2バイト文字の範囲
+        public string unicode_range { get; set; } = string.Empty;       // Unicode文字の範囲
         public int start_record { get; set; }                           // 開始レコード
         public byte select_type { get; set; }                           // 選択種別
         public string file_path { get; set; } = string.Empty;           // ファイルパス
@@ -121,6 +124,9 @@ namespace MyTemplate.ImportClass
         public byte import_type { get; set; }                       // 取込種別
         public string where { get; set; } = string.Empty;           // 条件文
         public string js_node_key { get; set; } = string.Empty;     // JavaScriptのファイル名のKEY
+        public string jis_range_1byte { get; set; } = string.Empty; // 1バイト文字の範囲
+        public string jis_range_2byte { get; set; } = string.Empty; // 2バイト文字の範囲
+        public string unicode_range { get; set; } = string.Empty;   // Unicode文字の範囲
     }
 
     /// <summary>

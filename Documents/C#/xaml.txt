@@ -1,0 +1,4 @@
+■ Window
+
+　・SizeToContent：Windowサイズの自動調整
+

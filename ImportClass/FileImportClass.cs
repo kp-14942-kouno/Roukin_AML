@@ -482,7 +482,7 @@ namespace MyTemplate.ImportClass
         /// <param name="fileName"></param>
         /// <param name="recordNum"></param>
         /// <returns></returns>
-        public static bool ValidateItemData(FileImportProperties import, MyStandardCheck check, Dictionary<string, string> row, string fileName, int recordNum)
+        public static bool ValidateItemData(FileImportProperties import, MyStandardCheck check, CharValidator validator, Dictionary<string, string> row, string fileName, int recordNum)
         {
             // チェック前のエラーログ件数
             int errCount = import.ErrorLog.Count;
@@ -491,13 +491,59 @@ namespace MyTemplate.ImportClass
             foreach (ImportFields field in import.ImportFields)
             {
                 // エラーチェック
+                if (field.check != 0)
+                {
+                    var chk = check.GetResult(row[field.column_name].ToString(), field.data_type, field.data_length, field.null_flg, field.fix_flg, field.regpattern);
+
+                    if (chk.Item1 != 0)
+                    {
+                        import.ErrorLog.AddErrorLog(import.FileSetting.process_name, fileName, recordNum, $"項番:{field.num} [{field.field_caption}] {chk.Item2}", (byte)chk.Item1);
+                    }
+                }
+
+                string? result = null;
+
+                // 文字コード範囲チェック 1byte
                 if (field.check == 1)
                 {
-                    var result = check.GetResult(row[field.column_name].ToString(), field.data_type, field.data_length, field.null_flg, field.fix_flg, field.regpattern);
+                    result = validator.GetInvalid1ByteChars(row[field.column_name].ToString());
 
-                    if (result.Item1 != 0)
+                    if (!string.IsNullOrEmpty(result))
                     {
-                        import.ErrorLog.AddErrorLog(import.FileSetting.process_name, fileName, recordNum, $"項番:{field.num} [{field.field_caption}] {result.Item2}", (byte)result.Item1);
+                        import.ErrorLog.AddErrorLog(import.FileSetting.process_name, fileName, recordNum, $"項番:{field.num} [{field.field_caption}]指定文字コード範囲外[{result}]", 54);
+                    }
+                }
+
+                // 文字コード範囲チェック 2byte
+                if (field.check == 2)
+                {
+                    result = validator.GetInvalid2ByteChars(row[field.column_name].ToString());
+
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        import.ErrorLog.AddErrorLog(import.FileSetting.process_name, fileName, recordNum, $"項番:{field.num} [{field.field_caption}]指定文字コード範囲外[{result}]", 54);
+                    }
+                }
+
+                // 文字コード範囲チェック 混在
+                if (field.check == 3)
+                {
+                    result = validator.GetInvalidMixedChars(row[field.column_name].ToString());
+
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        import.ErrorLog.AddErrorLog(import.FileSetting.process_name, fileName, recordNum, $"項番:{field.num} [{field.field_caption}]指定文字コード範囲外[{result}]", 54);
+                    }
+                }
+
+                // 文字コード範囲チェック Unicode
+                if (field.check == 4)
+                {
+                    result = validator.GetInvalidUnicodeChars(row[field.column_name].ToString());
+
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        import.ErrorLog.AddErrorLog(import.FileSetting.process_name, fileName, recordNum, $"項番:{field.num} [{field.field_caption}]指定文字コード範囲外[{result}]", 54);
                     }
                 }
             }
@@ -800,6 +846,7 @@ namespace MyTemplate.ImportClass
         private DataTable _table = new DataTable();
         private DbDataReader _reader;
         private int _recordCount = 0;
+        private CharValidator _validator;
 
         /// <summary>
         /// コンストラクタ
@@ -836,6 +883,10 @@ namespace MyTemplate.ImportClass
         {
             try
             {
+                // 文字コード範囲チェッククラス
+                _validator = new CharValidator(_import.ImportSetting.jis_range_1byte,
+                                                _import.ImportSetting.jis_range_2byte,
+                                                _import.ImportSetting.unicode_range);
                 // コマンド作成
                 CreateCommands(_db, _import);
 
@@ -950,7 +1001,7 @@ namespace MyTemplate.ImportClass
                     var recordRow = FileImportClass.SetRecordRow(_import, accessor, fileName, recordNum, totalRecord, sirials);
 
                     // 項目チェック
-                    if (!FileImportClass.ValidateItemData(_import, _check, recordRow, fileName, ProgressValue)) continue;
+                    if (!FileImportClass.ValidateItemData(_import, _check, _validator, recordRow, fileName, ProgressValue)) continue;
                     // 登録情報チェック
 
                     _import.LoadData.Clear();
@@ -1015,7 +1066,7 @@ namespace MyTemplate.ImportClass
                     var recordRow = FileImportClass.SetRecordRow(_import, accessor, fileName, ProgressValue, totalRecord, sirials, excel);
 
                     // 項目チェック
-                    if (!FileImportClass.ValidateItemData(_import, _check, recordRow, fileName, rowCount)) continue;
+                    if (!FileImportClass.ValidateItemData(_import, _check, _validator, recordRow, fileName, rowCount)) continue;
                     // 登録情報チェック
                     if (!ValidateRegistrationInfo(_db, _import, primaryFields, recordRow, fileName, primaryKeyHash, rowCount)) continue;
                     // 登録先テーブルのスキーマ情報を取得したDataTableに値をセット
@@ -1069,7 +1120,7 @@ namespace MyTemplate.ImportClass
                 var recordRow = FileImportClass.SetRecordRow(_import, accessor, dataName, ProgressValue, totalRecord, sirials);
 
                 // 項目チェック
-                if (!FileImportClass.ValidateItemData(_import, _check, recordRow, dataName, recordNum)) continue;
+                if (!FileImportClass.ValidateItemData(_import, _check,_validator, recordRow, dataName, recordNum)) continue;
                 // 登録情報チェック
                 if (!ValidateRegistrationInfo(_db, _import, primaryFields, recordRow, dataName, primaryKeyHash, recordNum)) continue;
                 // 登録先テーブルのスキーマ情報を取得したDataTableに値をセット
@@ -1122,7 +1173,7 @@ namespace MyTemplate.ImportClass
                 var recordRow = FileImportClass.SetRecordRow(_import, accessor, dataName, ProgressValue, totalRecord, sirials);
 
                 // 項目チェック
-                if (!FileImportClass.ValidateItemData(_import, _check, recordRow, dataName, recordNum)) continue;
+                if (!FileImportClass.ValidateItemData(_import, _check, _validator, recordRow, dataName, recordNum)) continue;
                 // 登録情報チェック
                 if (!ValidateRegistrationInfo(_db, _import, primaryFields, recordRow, dataName, primaryKeyHash, recordNum)) continue;
                 // 登録先テーブルのスキーマ情報を取得したDataTableに値をセット
@@ -1395,6 +1446,7 @@ namespace MyTemplate.ImportClass
         private DbDataReader _reader;
         private int _recordCount = 0;
         const int _bulkCopyBatchSize = 10000; // バッチサイズ
+        private CharValidator _validator;
 
         /// <summary>
         /// コンストラクタ File
@@ -1444,6 +1496,11 @@ namespace MyTemplate.ImportClass
         {
             try
             {
+                // 文字コード範囲チェッククラス
+                _validator = new CharValidator(_import.ImportSetting.jis_range_1byte,
+                                                _import.ImportSetting.jis_range_2byte,
+                                                _import.ImportSetting.unicode_range);
+
                 // 取込先テーブルの初期化
                 FileImportClass.InitialDeleteTable(_db, _import);
                 Run();
@@ -1590,7 +1647,7 @@ namespace MyTemplate.ImportClass
                         var recordRow = FileImportClass.SetRecordRow(_import, accessor, fileName, ProgressValue, totalRecord, sirials);
 
                         // 項目チェック
-                        if (FileImportClass.ValidateItemData(_import, _check, recordRow, fileName, ProgressValue))
+                        if (FileImportClass.ValidateItemData(_import, _check, _validator, recordRow, fileName, ProgressValue))
                         {
                             // 登録先テーブルのスキーマ情報を取得したDataTableに値をセット
                             AddRowData(_import, recordRow, bulkTable, fileName, ProgressValue);
@@ -1656,7 +1713,7 @@ namespace MyTemplate.ImportClass
                     var recordRow = FileImportClass.SetRecordRow(_import, accessor, fileName, ProgressValue, totalRecord, sirials, excel);
 
                     // 項目チェック
-                    if (FileImportClass.ValidateItemData(_import, _check, recordRow, fileName, rowCount))
+                    if (FileImportClass.ValidateItemData(_import, _check, _validator, recordRow, fileName, rowCount))
                     {
                         // 登録先テーブルのスキーマ情報を取得したDataTableに値をセット
                         AddRowData(_import, recordRow, bulkTable, fileName, ProgressValue);
@@ -1709,7 +1766,7 @@ namespace MyTemplate.ImportClass
                 var recordRow = FileImportClass.SetRecordRow(_import, accessor, dataName, ProgressValue, totalRecord, sirials);
 
                 // 項目チェック
-                if (FileImportClass.ValidateItemData(_import, _check, recordRow, dataName, ProgressValue))
+                if (FileImportClass.ValidateItemData(_import, _check, _validator, recordRow, dataName, ProgressValue))
                 {
                     // 登録先テーブルのスキーマ情報を取得したDataTableに値をセット
                     AddRowData(_import, recordRow, bulkTable, dataName, ProgressValue);
@@ -1763,7 +1820,7 @@ namespace MyTemplate.ImportClass
                 var recordRow = FileImportClass.SetRecordRow(_import, accessor, dataName, ProgressValue, totalRecord, sirials);
 
                 // 項目チェック
-                if (FileImportClass.ValidateItemData(_import, _check, recordRow, dataName, ProgressValue))
+                if (FileImportClass.ValidateItemData(_import, _check, _validator, recordRow, dataName, ProgressValue))
                 {
                     // 登録先テーブルのスキーマ情報を取得したDataTableに値をセット
                     AddRowData(_import, recordRow, bulkTable, dataName, ProgressValue);
@@ -1883,6 +1940,7 @@ namespace MyTemplate.ImportClass
         private DbDataReader _reader;
         private int _recordCount = 0;
         const int _bulkCopyBatchSize = 500; // バッチサイズ
+        private CharValidator _validator;
 
         /// <summary>
         /// コンストラクタ File
@@ -1932,6 +1990,11 @@ namespace MyTemplate.ImportClass
         {
             try
             {
+                // 文字コード範囲チェッククラス
+                _validator = new CharValidator(_import.ImportSetting.jis_range_1byte,
+                                                _import.ImportSetting.jis_range_2byte,
+                                                _import.ImportSetting.unicode_range);
+
                 // 取込先テーブルの初期化
                 FileImportClass.InitialDeleteTable(_db, _import);
                 Run();
@@ -2073,7 +2136,7 @@ namespace MyTemplate.ImportClass
                         var recordRow = FileImportClass.SetRecordRow(_import, accessor, fileName, ProgressValue, totalRecord, sirials);
 
                         // 項目チェック
-                        if (FileImportClass.ValidateItemData(_import, _check, recordRow, fileName, ProgressValue))
+                        if (FileImportClass.ValidateItemData(_import, _check, _validator, recordRow, fileName, ProgressValue))
                         {
                             bulkNum++;
                             // 複数insert用のValueを追加
@@ -2146,7 +2209,7 @@ namespace MyTemplate.ImportClass
                     var recordRow = FileImportClass.SetRecordRow(_import, accessor, fileName, ProgressValue, totalRecord, sirials, excel);
 
                     // 項目チェック
-                    if (FileImportClass.ValidateItemData(_import, _check, recordRow, fileName, rowCount))
+                    if (FileImportClass.ValidateItemData(_import, _check, _validator, recordRow, fileName, rowCount))
                     {
                         bulkNum++;
                         // 複数insert用のValueを追加
@@ -2207,7 +2270,7 @@ namespace MyTemplate.ImportClass
                 var recordRow = FileImportClass.SetRecordRow(_import, accessor, dataName, ProgressValue, totalRecord, sirials);
 
                 // 項目チェック
-                if (FileImportClass.ValidateItemData(_import, _check, recordRow, dataName, ProgressValue))
+                if (FileImportClass.ValidateItemData(_import, _check, _validator, recordRow, dataName, ProgressValue))
                 {
                     bulkNum++;
                     // 複数insert用のValueを追加
@@ -2267,7 +2330,7 @@ namespace MyTemplate.ImportClass
                 var recordRow = FileImportClass.SetRecordRow(_import, accessor, dataName, ProgressValue, totalRecord, sirials);
 
                 // 項目チェック
-                if (FileImportClass.ValidateItemData(_import, _check, recordRow, dataName, ProgressValue))
+                if (FileImportClass.ValidateItemData(_import, _check, _validator, recordRow, dataName, ProgressValue))
                 {
                     bulkNum++;
                     // 複数insert用のValueを追加

@@ -37,21 +37,14 @@ namespace MyTemplate.Class
         {
             try
             {
-                OpenFileDialog dlg = new OpenFileDialog
-                {
-                    Title = "ファイル選択",
-                    InitialDirectory = initialPath,
-                    Filter = extensions != null ? string.Join("|", extensions.Select(ext => $"{ext.ToUpper()}|*.{ext.ToLower()}")) + "|All Files|*.*" : "All Files|*.*",
-                    Multiselect = false,
-                };
+                // ファイル選択ダイアログを表示
+                string file = MyTemplate.Modules.MyFileDialog(initialPath, extensions);
 
-                if(dlg.ShowDialog() != true)
+                // 戻り値が空はキャンセル
+                if (string.IsNullOrEmpty(file))
                 {
                     return MyEnum.MyResult.Cancel;
                 }
-
-                // 選択されたファイル名を取得
-                string file = dlg.FileName.ToString();
 
                 // 正規表現チェック
                 if (regPatterns != null)
@@ -60,7 +53,7 @@ namespace MyTemplate.Class
                     {
                         if (System.Text.RegularExpressions.Regex.IsMatch(System.IO.Path.GetFileName(file), reg))
                         {
-                            _filePaths = new List<string> { dlg.FileName };
+                            _filePaths = new List<string> { file };
                             break;
                         }
                         else
@@ -72,7 +65,7 @@ namespace MyTemplate.Class
                 }
                 else
                 {
-                    _filePaths = new List<string> { dlg.FileName };
+                    _filePaths = new List<string> { file };
                 }
                 return MyEnum.MyResult.Ok;
             }

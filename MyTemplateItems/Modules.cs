@@ -52,8 +52,12 @@ namespace MyTemplate
         /// </summary>
         /// <param name="initialPath"></param>
         /// <returns></returns>
-        public static string MyFolderDialog(string initialPath = null)
+        public static string MyFolderDialog(string? initialPath = null, bool isInitialRetern = true)
         {
+            // 初期パスが存在すればそのまま返す
+            if(isInitialRetern && System.IO.Path.Exists(initialPath) == true) return initialPath;
+
+            // OpenFolderDialogのインスタンスを作成
             var dlg = new OpenFolderDialog()
             {
                 Title = "フォルダ選択",
@@ -61,12 +65,40 @@ namespace MyTemplate
                 ShowHiddenItems=false
             };
 
-            if(dlg.ShowDialog() != true)
+            // ダイアログを表示し、ユーザーがフォルダを選択したかどうかを確認
+            if (dlg.ShowDialog() != true)
             {
+                // ユーザーがキャンセルした場合は空文字列を返す
                 return string.Empty;
             }
 
+            // 選択されたフォルダのフルパスを返す
             return Path.GetFullPath(dlg.FolderName);
+        }
+
+        /// <summary>
+        /// ファイル選択ダイアログ
+        /// </summary>
+        /// <param name="initialPath"></param>
+        /// <param name="extensions"></param>
+        /// <returns></returns>
+        public static string MyFileDialog(string? initialPath = null, string[] extensions = null)
+        {
+            OpenFileDialog dlg = new OpenFileDialog
+            {
+                Title = "ファイル選択",
+                InitialDirectory = initialPath,
+                Filter = extensions != null ? string.Join("|", extensions.Select(ext => $"{ext.ToUpper()}|*.{ext.ToLower()}")) + "|All Files|*.*" : "All Files|*.*",
+                Multiselect = false,
+            };
+
+            // ファイル選択キャンセルは空文字列を返す
+            if (dlg.ShowDialog() != true)
+            {
+                return string.Empty;
+            }
+            // 選択されたファイルのフルパスを返す
+            return dlg.FileName.ToString();
         }
 
         /// <summary>

@@ -12,7 +12,7 @@
 
 #プロジェクト設定（削除禁止）
 projectSettings:
-    projectName: "MyTemplate"
+    projectName: "労働金庫連合会　AML業務"
     projectVersion: "1.0.0"
     login_id: 1
 
@@ -79,10 +79,16 @@ code_Connectin:
     password: ""
 
 #ろうきんAML案件設定
+#sjis, utf8, utf8bom, utf16le, utf16lebom, utf16be, utf16bebom
 roukin_setting:
     img_root_path: 'D:\04.VisualStudio\ろうきん\img'
     exp_root_path: 'D:\04.VisualStudio\ろうきん'
     fubi_print_name: "10_不備状印刷_@ymd@_@hms@.txt"
+
+    exp_webcas_file_name: "WEB_01_data_@ymd@_@hms@_@#@.csv"
+    exp_webcas_file_delimiter: ","
+    exp_webcas_file_mojicode: "utf8bom"
+
 
 
 

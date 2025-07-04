@@ -241,6 +241,9 @@ namespace MyTemplate.ImportClass
                 MyEnum.MyResult addResult = Add.Run(fileLoadProperties, window);
                 if (addResult != MyEnum.MyResult.Ok) return addResult;
 
+                // ログ作成
+                MyLogger.SetLogger($"{fileLoadProperties.FileSetting.process_name}を開始", MyEnum.LoggerType.Info, false);
+
                 // ファイル読込処理
                 using (MyLibrary.MyLoading.Dialog dlg = new MyLibrary.MyLoading.Dialog(window))
                 {
@@ -251,10 +254,15 @@ namespace MyTemplate.ImportClass
                     // エラーログがあれば表示
                     if (thread.Result == MyEnum.MyResult.Ng && showErrorLog)
                     {
-                        MyLibrary.MyDataViewer viewr = new MyDataViewer(window, fileLoadProperties.ErrorLog.DefaultView, 
+                        MyLibrary.MyDataViewer viewr = new MyDataViewer(window, fileLoadProperties.ErrorLog.DefaultView,
                             columnNames: fileLoadProperties.ErrorLog.ErrorLogField(), columnHeaders: fileLoadProperties.ErrorLog.ErrorLogCaption());
 
-                       viewr.ShowDialog();
+                        viewr.ShowDialog();
+                    }
+                    else
+                    {
+                        // ログ作成とメッセージ表示
+                        MyLogger.SetLogger($"{thread.ResultMessage}\r\n処理完了", MyEnum.LoggerType.Info, true);
                     }
 
                     // 結果を返す
@@ -350,7 +358,7 @@ namespace MyTemplate.ImportClass
         /// <param name="fileName"></param>
         /// <param name="recordNum"></param>
         /// <returns></returns>
-        public static bool CheckColumn(FileLoadProperties fileLoadProperties, MyStandardCheck check, DataRow row, string fileName, int recordNum)
+        public static bool CheckColumn(FileLoadProperties fileLoadProperties, MyStandardCheck check, CharValidator validator, DataRow row, string fileName, int recordNum)
         {
             // チェック前のエラーログ件数
             int errCount = fileLoadProperties.ErrorLog.Count;
@@ -358,14 +366,60 @@ namespace MyTemplate.ImportClass
             // 通常項目
             foreach (FileColumns column in fileLoadProperties.FileColumns)
             {
-                // エラーチェック
-                if (column.check_flg == 1)
+                // 通常エラーチェック
+                if(column.check_flg != 0)
                 {
                     var (errCode, errMsg) = check.GetResult(row[column.column_name].ToString(), column.column_type, column.column_length, column.column_null, column.column_fix, column.column_reg);
 
                     if (errCode != 0)
                     {
                         fileLoadProperties.ErrorLog.AddErrorLog(fileLoadProperties.FileSetting.process_name, fileName, recordNum, $"項番:{column.num} [{column.column_caption}] {errMsg}", (byte)errCode);
+                    }
+                }
+
+                string? result = null;
+
+                // JIS 1byte文字範囲チェック
+                if (column.check_flg == 1)
+                {
+                    result = validator.GetInvalid1ByteChars(row[column.column_name].ToString());
+
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        fileLoadProperties.ErrorLog.AddErrorLog(fileLoadProperties.FileSetting.process_name, fileName, recordNum, $"項番:{column.num} [{column.column_caption}]指定文字コード範囲外[{result}]", 54);
+                    }
+                }
+
+                // JIS 2byte文字範囲チェック
+                if(column.check_flg == 2)
+                {
+                    result = validator.GetInvalid2ByteChars(row[column.column_name].ToString());
+
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        fileLoadProperties.ErrorLog.AddErrorLog(fileLoadProperties.FileSetting.process_name, fileName, recordNum, $"項番:{column.num} [{column.column_caption}]指定文字コード範囲外[{result}]", 54);
+                    }
+                }
+
+                // JIS 1byteと2byteの混在文字範囲チェック
+                if (column.check_flg == 3)
+                {
+                    result = validator.GetInvalidMixedChars(row[column.column_name].ToString());
+
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        fileLoadProperties.ErrorLog.AddErrorLog(fileLoadProperties.FileSetting.process_name, fileName, recordNum, $"項番:{column.num} [{column.column_caption}]指定文字コード範囲外[{result}]", 54);
+                    }
+                }
+
+                // Unicode文字範囲チェック
+                if (column.check_flg == 4)
+                {
+                    result = validator.GetInvalid2ByteChars(row[column.column_name].ToString());
+
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        fileLoadProperties.ErrorLog.AddErrorLog(fileLoadProperties.FileSetting.process_name, fileName, recordNum, $"項番:{column.num} [{column.column_caption}]指定文字コード範囲外[{result}]", 54);
                     }
                 }
             }
@@ -422,11 +476,17 @@ namespace MyTemplate.ImportClass
     {
         FileLoadProperties _fileLoadProperties = new FileLoadProperties();
         MyStandardCheck _check = new MyStandardCheck();
+        CharValidator _validator;
 
         // コンストラクタ
         public FileLoadThread(FileLoadProperties fileLoadProperties)
         {
             _fileLoadProperties = fileLoadProperties;
+
+            _validator = new CharValidator(
+                _fileLoadProperties.FileSetting.jis_range_1byte,
+                _fileLoadProperties.FileSetting.jis_range_2byte,
+                _fileLoadProperties.FileSetting.unicode_range);
         }
 
         /// <summary>
@@ -478,6 +538,8 @@ namespace MyTemplate.ImportClass
             List<int> lens = _fileLoadProperties.FileColumns.AsEnumerable().Select(x => (int)x.column_length).ToList<int>();
             // 固定長用の文字数の合計値を取得
             int totalLength = lens.Sum();
+            // 読込レコード数
+            int totalRecord = 0;
 
             // ファイル数分繰り返す
             foreach (string filePath in _fileLoadProperties.FilePaths)
@@ -502,6 +564,7 @@ namespace MyTemplate.ImportClass
                     while (!text.EndOfStream())
                     {
                         ProgressValue++;
+                        totalRecord++;
 
                         // 区切り種別で読込を分岐
                         string[] record = _fileLoadProperties.FileSetting.delimiter switch
@@ -516,12 +579,16 @@ namespace MyTemplate.ImportClass
                         // 通常項目と追加情報のDataRowを作成
                         var recordRow = FileLoadClass.SetRecordRow(_fileLoadProperties, record, fileName, ProgressValue);
                         // 項目チェック
-                        if(!FileLoadClass.CheckColumn(_fileLoadProperties, _check, recordRow, fileName, ProgressValue)) continue;
+                        if(!FileLoadClass.CheckColumn(_fileLoadProperties, _check, _validator, recordRow, fileName, ProgressValue)) continue;
                         // エラーが無ければDataTableに追加
                         _fileLoadProperties.LoadData.Rows.Add(recordRow);
                     }
                 }
             }
+            // メッセージ
+            ResultMessage =$"{_fileLoadProperties.FileSetting.process_name}\r\n" +
+                             $"全: {_fileLoadProperties.FilePaths.Count}ファイル\r\n" +
+                             $"読込件数: {totalRecord}件";
         }
 
         /// <summary>
@@ -529,6 +596,9 @@ namespace MyTemplate.ImportClass
         /// </summary>
         private void ExcelFileLoad()
         {
+            // 全読込行数
+            int totalRecord = 0;
+
             // ファイル数分繰り返す
             foreach (string filePath in _fileLoadProperties.FilePaths)
             {
@@ -549,17 +619,22 @@ namespace MyTemplate.ImportClass
                     for (int row = _fileLoadProperties.FileSetting.start_record; row <= ProgressMax; row++)
                     {
                         ProgressValue = row;
+                        totalRecord++;
 
                         string[] record = excel.ReadLine(_fileLoadProperties.SheetName, row, ranges);
 
                         // 通常項目と追加情報のDataRowを作成
                         var recordRow = FileLoadClass.SetRecordRow(_fileLoadProperties, record, fileName, ProgressValue, excel);
                         // 項目チェック
-                        if (!FileLoadClass.CheckColumn(_fileLoadProperties, _check, recordRow, fileName, ProgressValue)) continue;
+                        if (!FileLoadClass.CheckColumn(_fileLoadProperties, _check, _validator, recordRow, fileName, ProgressValue)) continue;
                         // エラーが無ければDataTableに追加
                         _fileLoadProperties.LoadData.Rows.Add(recordRow);
                     }
                 }
+                // メッセージ
+                ResultMessage = $"{_fileLoadProperties.FileSetting.process_name}\r\n" +
+                                 $"全: {_fileLoadProperties.FilePaths.Count}ファイル\r\n" +
+                                 $"読込件数: {totalRecord}件";
             }
         }
     }
