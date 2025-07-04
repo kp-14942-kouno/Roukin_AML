@@ -26,7 +26,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace MyTemplate
+namespace MyTemplate.RoukinForm
 {
     /// <summary>
     /// FubiPrint.xaml の相互作用ロジック

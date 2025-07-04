@@ -42,5 +42,11 @@ namespace MyTemplate.RoukinForm
             form.ShowDialog();
             this.Visibility = Visibility.Visible;
         }
+
+        private void bt_FubiPrint_Click(object sender, RoutedEventArgs e)
+        {
+            var form = new RoukinForm.FubiPrint();
+            form.ShowDialog();
+        }
     }
 }

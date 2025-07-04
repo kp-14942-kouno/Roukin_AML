@@ -70,7 +70,7 @@ beatle_Connection:
     userId: "bea01mgr"
     password: "bea01mgr"
 
-code_Connectin:
+code_Connection:
     provider: "Sqlite"
     host: ""
     dataBaseName: '.\db\roukin_code.sqlite'

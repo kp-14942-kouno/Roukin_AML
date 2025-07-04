@@ -40,7 +40,7 @@ namespace MyTemplate
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            var form = new FubiPrint();
+            var form = new RoukinForm.FubiPrint();
             form.ShowDialog();
         }
 
@@ -52,8 +52,6 @@ namespace MyTemplate
                 if (!FileLoadClass.GetFileLoadSetting(5, load)) return;
                 // ファイル読込み処理
                 if (FileLoadClass.FileLoad(this, load) != MyEnum.MyResult.Ok) return;
-
-
             }
         }
 

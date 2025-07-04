@@ -17,17 +17,34 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Height="6cm" Background="White">
-            <StackPanel Orientation="Vertical">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <TextBlock Text="問い合わせ番号："/>
-                    <TextBlock Text="{Binding Person.qr_code}"/>
-                </StackPanel>
-                <TextBlock Text="{Binding Person.post_num}"/>
-                <TextBlock Text="{Binding Person.addr}" Width="8cm" HorizontalAlignment="Left" TextWrapping="Wrap" Margin="0,0.5cm,0,0"/>
-                <TextBlock Text="{Binding Person.name}" Margin="0,0.5cm,0,0"/>
-                <Image Source="{Binding Item.Qr}" Width="30" Height="30"/>
+        <Grid Grid.Row="0" Height="9cm" Background="White">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1.5cm"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right">
+                <TextBlock Text="問い合わせ番号："/>
+                <TextBlock Text="{Binding Person.qr_code}"/>
             </StackPanel>
+
+            <Grid Grid.Row="1" Width="9cm" Height="5.5cm" HorizontalAlignment="Left" Margin="0.5cm,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Vertical">
+                    <TextBlock Text="{Binding Person.post_num}" Width="9cm" HorizontalAlignment="Left" Margin="0"/>
+                    <TextBlock Text="{Binding Person.addr}" Width="9cm" HorizontalAlignment="Left" TextWrapping="Wrap" Margin="0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0.5cm,0,0">
+                    <TextBlock Text="{Binding Person.name}" Width="7.5cm" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0"/>
+                    <Image Source="{Binding Item.Qr}" Width="1cm" Height="1cm" VerticalAlignment="Top" HorizontalAlignment="Right"/>
+                </StackPanel>
+
+            </Grid>
         </Grid>
 
         <Grid Grid.Row="1" Height="4cm" Background="White">
@@ -47,7 +64,7 @@
 
         <TextBlock Grid.Row="2" Text="≪不備内容等≫" Background="White" Margin="0,0.5cm,0,0"/>
 
-        <Grid Grid.Row="3" Background="White" Height="14cm" Margin="0,0.5cm,0,0">
+        <Grid Grid.Row="3" Background="White" Height="11cm" Margin="0,0.5cm,0,0">
             <Border BorderThickness="1" BorderBrush="Black">
                 <TextBlock Text="{Binding Item.fubi}" Margin="0.3cm"/>
             </Border>

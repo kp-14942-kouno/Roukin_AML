@@ -31,6 +31,7 @@
 
                     <StackPanel Grid.Row="1" Orientation="Vertical">
                         <Button x:Name="bt_WebcasCngMenu" Content="WEBCASデータ変換" Width="192" Height="32" Margin="5" Click="bt_WebcasCngMenu_Click"/>
+                        <Button x:Name="bt_FubiPrint" Content="個人・不備状" Width="192" Height="32" Margin="5" Click="bt_FubiPrint_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>
