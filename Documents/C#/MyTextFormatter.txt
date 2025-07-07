@@ -1,0 +1,23 @@
+# ParseFormattedText の使い方
+
+`ParseFormattedText` は、XML形式の装飾テキストをWPFの `Inline` オブジェクト列挙に変換する静的メソッドです。  
+WPFの `TextBlock` などでリッチテキストを表示したい場合に利用できます。
+
+---
+
+## サポートされるタグ
+
+- `<b>` … 太字
+- `<i>` … 斜体
+- `<u>` … 下線
+- `<s>` … 取り消し線
+- `<font color="色名" size="数値">` … 色・サイズ指定
+- `<br>` … 改行
+
+---
+
+## 使用例
+using System.Windows.Documents; using MyLibrary.MyClass;
+// XML形式の装飾テキスト string xml = "<b>太字</b>と<font color="red" size="20">赤い大きな文字</font><br>改行<i>斜体</i>";
+// Inlineコレクションを取得 IEnumerable<Inline> inlines = MyTextFormatter.ParseFormattedText(xml);
+// TextBlockに追加 var textBlock = new TextBlock(); foreach (var inline in inlines) { textBlock.Inlines.Add(inline); }

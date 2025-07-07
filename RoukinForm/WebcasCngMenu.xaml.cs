@@ -105,7 +105,7 @@ namespace MyTemplate.RoukinForm
             using (var load = new ImportClass.FileLoadProperties())
             {
                 // ファイル読込み設定取得
-                if (!FileLoadClass.GetFileLoadSetting(10, load)) return;
+                if (!FileLoadClass.GetFileLoadSetting(1, load)) return;
                 // ファイル読込み処理
                 if (FileLoadClass.FileLoad(this, load) != MyEnum.MyResult.Ok) return;
 

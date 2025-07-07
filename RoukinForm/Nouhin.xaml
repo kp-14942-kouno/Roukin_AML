@@ -1,0 +1,16 @@
+﻿<Window x:Class="MyTemplate.RoukinForm.Nouhin"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MyTemplate.RoukinForm"
+        mc:Ignorable="d"
+        Title="Nouhin" Height="450" Width="800">
+    <Grid>
+        <StackPanel Orientation="Vertical" Margin="5">
+            <Button x:Name="bt_InsWebData" Content="（個人）WEB納品対象読込" Height="32" Width="192" Margin="5" Click="bt_InsWebData_Click"/>
+            <Button x:Name="bt_ExpNouhin" Content="納品ファイル作成" Height="32" Width="192" Margin="5" Click="bt_ExpNouhin_Click"/>
+        </StackPanel>
+
+    </Grid>
+</Window>

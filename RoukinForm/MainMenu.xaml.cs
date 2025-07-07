@@ -1,4 +1,5 @@
-﻿using MyLibrary.MyModules;
+﻿using MyLibrary;
+using MyLibrary.MyModules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +19,9 @@ namespace MyTemplate.RoukinForm
     /// <summary>
     /// RoukinMainMenu.xaml の相互作用ロジック
     /// </summary>
-    public partial class RoukinMainMenu : Window
+    public partial class MainMenu : Window
     {
-        public RoukinMainMenu()
+        public MainMenu()
         {
             InitializeComponent();
 
@@ -47,6 +48,24 @@ namespace MyTemplate.RoukinForm
         {
             var form = new RoukinForm.FubiPrint();
             form.ShowDialog();
+        }
+
+        private void bt_NouhinMenu_Click(object sender, RoutedEventArgs e)
+        {
+            var form = new RoukinForm.Nouhin();
+            form.ShowDialog();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            DateTime? formattedDate = MyLibrary.MyModules.MyUtilityModules.ParseDateString("19870102", "yyyyMMdd", MyEnum.CalenderType.Western);
+
+            // 設立年月日がyyyy/MM/dd形式に変換できた場合はOK
+            if (!string.IsNullOrEmpty(formattedDate.ToString()))
+            {
+                // 設立年月日が未来日でなければOK
+                if (formattedDate <= DateTime.Now) return;
+            }
         }
     }
 }

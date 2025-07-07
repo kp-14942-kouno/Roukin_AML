@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <Reference Include="MyLibrary">
-      <HintPath>..\..\..\TemplateModules\MyLibrary\bin\Release\net8.0-windows\MyLibrary.dll</HintPath>
+      <HintPath>..\..\TemplateModules\MyLibrary\bin\Release\net8.0-windows\MyLibrary.dll</HintPath>
     </Reference>
   </ItemGroup>
 

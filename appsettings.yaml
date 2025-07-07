@@ -83,11 +83,20 @@ code_Connection:
 roukin_setting:
     img_root_path: 'D:\04.VisualStudio\ろうきん\img'
     exp_root_path: 'D:\04.VisualStudio\ろうきん'
-    fubi_print_name: "10_不備状印刷_@ymd@_@hms@.txt"
+    nouhin_dir: '納品'
+    customer_info_name: 'KJOUHOUKOUSHINA'               #顧客情報変更データ
+    resuponse_res_name: 'ANS_KOKYAKUKANRI.txt'          #回答結果顧客管理データ
+    answer_res_image_name: 'ANS_IMAGEKANRI.txt'         #回答結果イメージ管理データ
+    safe_box_admin_name: 'ANS_DATA_KINKOJIMU_@ymd@.txt' #金庫事務用データ
 
-    exp_webcas_file_name: "WEB_01_data_@ymd@_@hms@_@#@.csv"
+    industry_etc_code: '620050' #（個人）業種その他コード
+
+    fubi_print_name: "10_不備状印刷_@ymd@_@hms@.txt"
+    exp_webcas_file_name: "PER_01_data_@ymd@_@hms@_@#@.csv"
     exp_webcas_file_delimiter: ","
     exp_webcas_file_mojicode: "utf8bom"
+    exp_grp_res_file_name: "GRP_51_data_@ymd@_@hms@_@#@.csv"
+    exp_per_res_file_name: "PER_21_data_@ymd@_@hms@_@#@.csv"
 
 
 

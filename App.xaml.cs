@@ -40,7 +40,7 @@ namespace MyTemplate
             // 例外処理イベントを取得
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-            var windwos = new RoukinForm.RoukinMainMenu();
+            var windwos = new RoukinForm.MainMenu();
             Application.Current.MainWindow = windwos;
             windwos.Show();
 

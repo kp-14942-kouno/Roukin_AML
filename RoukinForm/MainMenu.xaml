@@ -1,4 +1,4 @@
-﻿<Window x:Class="MyTemplate.RoukinForm.RoukinMainMenu"
+﻿<Window x:Class="MyTemplate.RoukinForm.MainMenu"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -32,6 +32,8 @@
                     <StackPanel Grid.Row="1" Orientation="Vertical">
                         <Button x:Name="bt_WebcasCngMenu" Content="WEBCASデータ変換" Width="192" Height="32" Margin="5" Click="bt_WebcasCngMenu_Click"/>
                         <Button x:Name="bt_FubiPrint" Content="個人・不備状" Width="192" Height="32" Margin="5" Click="bt_FubiPrint_Click"/>
+                        <Button x:Name="bt_NouhinMenu" Content="納品処理" Width="192" Height="32" Margin="5" Click="bt_NouhinMenu_Click"/>
+                        <Button Content="機能確認" Width="192" Height="32" Margin="5" Click="Button_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>
