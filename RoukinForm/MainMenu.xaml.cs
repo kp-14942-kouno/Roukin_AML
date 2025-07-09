@@ -67,5 +67,18 @@ namespace MyTemplate.RoukinForm
                 if (formattedDate <= DateTime.Now) return;
             }
         }
+
+        /// <summary>
+        /// 不備審査MENUボタンクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void bt_FubiCheck_Click(object sender, RoutedEventArgs e)
+        {
+            this.Visibility = Visibility.Hidden;
+            var form = new RoukinForm.FubiMenu();
+            form.ShowDialog();
+            this.Visibility = Visibility.Visible;
+        }
     }
 }

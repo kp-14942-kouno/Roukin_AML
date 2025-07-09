@@ -262,7 +262,8 @@ namespace MyTemplate.ImportClass
                     else
                     {
                         // ログ作成とメッセージ表示
-                        MyLogger.SetLogger($"{thread.ResultMessage}\r\n処理完了", MyEnum.LoggerType.Info, true);
+                        MyLogger.SetLogger($"{thread.ResultMessage}\r\n処理完了", MyEnum.LoggerType.Info, false);
+                        MyMessageBox.Show(thread.ResultMessage, fileLoadProperties.FileSetting.process_name, MyEnum.MessageBoxButtons.Ok, window: window);
                     }
 
                     // 結果を返す

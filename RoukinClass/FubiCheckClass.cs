@@ -5,6 +5,7 @@ using MyLibrary.MyClass;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -22,10 +23,39 @@ namespace MyTemplate.RoukinClass
         private DataTable _contoryCode;
         private DataTable _bussinessCode;
         private DataTable _bussinessCodePerson;
+
+        public DataTable FubiData { get; set; } = new DataTable();
+        public DataTable FixData { get; set; } = new DataTable();
+        
+        /// <summary>
+        /// デストラクタ
+        /// </summary>
+        ~FubiCheck()
+        {
+            // リソースの解放
+            _dataTable?.Dispose();
+            _contoryCode?.Dispose();
+            _bussinessCode?.Dispose();
+            _bussinessCodePerson?.Dispose();
+        }
+
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        /// <param name="dataTable"></param>
         public FubiCheck(DataTable dataTable)
         {
             _dataTable = dataTable;
+            // 不備登録用テーブル
+            FubiData = CreateFubiTable();
+            // 正常登録用テーブル
+            FixData = CreateFixTable();
         }
+
+        /// <summary>
+        /// 排他処理
+        /// </summary>
+        /// <returns></returns>
         public override int MultiThreadMethod()
         {
             try
@@ -44,13 +74,22 @@ namespace MyTemplate.RoukinClass
             return 0;
         }
 
+        /// <summary>
+        /// 実行
+        /// </summary>
         private void Run()
         {
+            ProcessName = "不備審査処理中…";
+            ProgressMax = _dataTable.Rows.Count;
+            ProgressValue = 0;
+
             // 人格コード（実質的支配者の不備審査が必要）
             HashSet<string> personCodes = new HashSet<string> { "21", "31", "81" };
 
             foreach (DataRow row in _dataTable.Rows)
             {
+                ProgressValue++;
+
                 // 不備コード用
                 StringBuilder fubiCode = new StringBuilder();
 
@@ -108,7 +147,6 @@ namespace MyTemplate.RoukinClass
                     FubiCheck_15(row, freq, fubiCode);
                     FubiCheck_16(row, amt, fubiCode);
                     FubiCheck_17(row, src, fubiCode);
-
                 }
 
                 FubiCheck_18(row, fubiCode);
@@ -118,9 +156,9 @@ namespace MyTemplate.RoukinClass
                 FubiCheck_22(row, fubiCode);
 
                 // 実質的支配者1のチェック
-                if (personCodes.Contains(personCode) && person1.Count() > 0)
+                if (personCodes.Contains(personCode))
                 {
-                    // 人格コードが対象で実質的支配者1のデータが存在する場合
+                    // 人格コードが対象の場合は必ずチェック
                     FubiCheck_23(row, fubiCode, "ubo1", "23");
                     FubiCheck_24(row, fubiCode, "ubo1", "24");
                     FubiCheck_25(row, fubiCode, "ubo1", "25");
@@ -128,16 +166,11 @@ namespace MyTemplate.RoukinClass
                     FubiCheck_27(row, fubiCode, "ubo1", "27");
                     FubiCheck_28(row, fubiCode, "ubo1", "28");
                 }
-                // 人格コードが対象で実質的支配者1のデータが存在しない場合は不備
-                else if (personCodes.Contains(personCode) && person1.Count() == 0)
-                {
-                    fubiCode.Append("50");
-                }
 
                 // 実質的支配者2のチェック
                 if (personCodes.Contains(personCode) && person2.Count() > 0)
                 {
-                    // 人格コードが対象で実質的支配者1のデータが存在する場合
+                    // 人格コードが対象で実質的支配者2のデータが存在する場合
                     FubiCheck_23(row, fubiCode, "ubo2", "29");
                     FubiCheck_24(row, fubiCode, "ubo2", "30");
                     FubiCheck_25(row, fubiCode, "ubo2", "31");
@@ -149,7 +182,7 @@ namespace MyTemplate.RoukinClass
                 // 実質的支配者3のチェック
                 if (personCodes.Contains(personCode) && person3.Count() > 0)
                 {
-                    // 人格コードが対象で実質的支配者1のデータが存在する場合
+                    // 人格コードが対象で実質的支配者3のデータが存在する場合
                     FubiCheck_23(row, fubiCode, "ubo3", "35");
                     FubiCheck_24(row, fubiCode, "ubo3", "36");
                     FubiCheck_25(row, fubiCode, "ubo3", "37");
@@ -160,6 +193,22 @@ namespace MyTemplate.RoukinClass
 
                 FubiCheck_41(row, fubiCode);
                 FubiCheck_42(row, fubiCode);
+
+                // 不備コードが存在する場合は不備データに追加
+                if (fubiCode.Length == 0)
+                {
+                    var fixRow = FixData.NewRow();
+                    fixRow["bpo_num"]  = row["bpo_num"];
+                    FixData.Rows.Add(fixRow);
+                }
+                else
+                {
+                    var fubiRow = FubiData.NewRow();
+                    fubiRow["bpo_num"] = row["bpo_num"];
+                    fubiRow["fubi_code"] = fubiCode.ToString().TrimEnd(';');
+                    FubiData.Rows.Add(fubiRow);
+                }
+                fubiCode.Clear(); // 不備コードをクリア
             }
         }
 
@@ -210,7 +259,7 @@ namespace MyTemplate.RoukinClass
             if (string.IsNullOrEmpty(flg) && !string.IsNullOrEmpty(name)) return;
 
             // それ以外は不備コードをセット
-            fubiCode.Append("01");
+            fubiCode.Append("01;");
         }
 
         /// <summary>
@@ -232,7 +281,7 @@ namespace MyTemplate.RoukinClass
             if (string.IsNullOrEmpty(flg) && !string.IsNullOrEmpty(name)) return;
 
             // それ以外は不備コードをセット
-            fubiCode.Append("02");
+            fubiCode.Append("02;");
         }
 
         /// <summary>
@@ -246,8 +295,7 @@ namespace MyTemplate.RoukinClass
             string[] grpType =
             {
                 row["org_type1"].ToString().Trim(),
-                row["org_type2"].ToString().Trim(),
-                row["org_type3"].ToString().Trim()
+                row["org_type2"].ToString().Trim()
             };
 
             // 空欄は除外
@@ -257,7 +305,7 @@ namespace MyTemplate.RoukinClass
             if( grpType.Count() == 1) return;
 
             // それ以外は不備コードをセット
-            fubiCode.Append("03");
+            fubiCode.Append("03;");
         }
 
         /// <summary>
@@ -278,14 +326,14 @@ namespace MyTemplate.RoukinClass
             biz = biz.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
             // 事業内容のコードで_bussinessCodeのコード以外が存在するか
-            bool hasIvalid = biz.Any(x => !_bussinessCode.AsEnumerable()
-                .Any(y => y.Field<string>("code") == x));
+            //bool hasIvalid = biz.Any(x => !_bussinessCode.AsEnumerable()
+            //    .Any(y => y.Field<string>("code") == x));
 
-            // 事業内容コードが存在しコードが1つならOK
-            if(!hasIvalid && biz.Count() == 1) return;
+            // 事業内容コードの選択が１つならOK
+            if(biz.Count() == 1) return;
 
             // それ以外は不備コードをセット
-            fubiCode.Append("04");
+            fubiCode.Append("04;");
         }
 
         /// <summary>
@@ -296,7 +344,7 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiCode"></param>
         private void FubiCheck_05(DataRow row, StringBuilder fubiCode)
         {
-            string estdateFlg = row["estdate_flg"].ToString().Trim();
+            string estdateFlg = row["est_date_chg"].ToString().Trim();
             string estdate = row["est_date"].ToString().Trim();
 
             // 変更なしで設立年月日が空はOK
@@ -308,12 +356,18 @@ namespace MyTemplate.RoukinClass
             // 設立年月日がyyyy/MM/dd形式に変換できた場合はOK
             if (!string.IsNullOrEmpty(formattedDate.ToString()))
             {
-                // 設立年月日が未来日でなければOK
-                if (formattedDate <= DateTime.Now) return;
+                // 設立年月日が未来日でなく
+                if (formattedDate <= DateTime.Now)
+                {
+                    // 変更ありはOK
+                    if (estdateFlg == "1") return;
+                    // 変更有無未選択はOK
+                    if (string.IsNullOrEmpty(estdateFlg)) return;
+                }
             }
 
             // それ以外は不備コードをセット
-            fubiCode.Append("05");
+            fubiCode.Append("05;");
         }
 
         /// <summary>
@@ -330,11 +384,17 @@ namespace MyTemplate.RoukinClass
             // 住所変更なしで郵便番号が空はOK
             if (addrChgFlg == "0" && string.IsNullOrEmpty(zipCode)) return;
 
-            // zipCodeが7桁の数字はOK
-            if (System.Text.RegularExpressions.Regex.IsMatch(zipCode, @"^\d{7}$")) return;
+            // zipCodeが7桁の数字で
+            if (System.Text.RegularExpressions.Regex.IsMatch(zipCode, @"^\d{7}$"))
+            {
+                // 住所変更ありならOK
+                if (addrChgFlg == "1") return;
+                // 住所変更有無未選択ならOK
+                if(string.IsNullOrEmpty(addrChgFlg)) return;
+            }
 
             // それ以外は不備コードをセット
-            fubiCode.Append("06");
+            fubiCode.Append("06;");
         }
 
         /// <summary>
@@ -345,20 +405,26 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiCode"></param>
         private void FubiCheck_07(DataRow row, StringBuilder fubiCode)
         {
-            string addrChgFlg = row["addrchg_flg"].ToString().Trim();
-            string addr = row["new_pref"].ToString().Trim() +
-                        row["new_city"].ToString().Trim() +
-                        row["new_addrno"].ToString().Trim() +
-                        row["new_bldg"].ToString().Trim();
+            string addrChgFlg = row["addr_chg"].ToString().Trim();
+            string addr = row["pref_new"].ToString().Trim() +
+                        row["city_new"].ToString().Trim() +
+                        row["addr1_new"].ToString().Trim() +
+                        row["addr2_new"].ToString().Trim();
 
             // 住所変更なしで住所が空はOK
             if (addrChgFlg == "0" && string.IsNullOrEmpty(addr)) return;
 
-            // 住所があればOK
-            if (string.IsNullOrEmpty(addr)) return;
+            // 住所があれば
+            if (!string.IsNullOrEmpty(addr)) 
+            {
+                // 住所変更ありならOK
+                if (addrChgFlg == "1") return;
+                // 住所変更有無未選択ならOK
+                if (string.IsNullOrEmpty(addrChgFlg)) return;
+            }
 
             // それ以外は不備コードをセット
-            fubiCode.Append("07");
+            fubiCode.Append("07;");
         }
 
         /// <summary>
@@ -375,8 +441,8 @@ namespace MyTemplate.RoukinClass
             // 本店所在国変更なしで本店所在国が空はOK
             if (hqFlg == "0" && string.IsNullOrEmpty(hqCountry)) return;
 
-            // 本店所在国変更有無がなし以外で
-            if (hqFlg != "0")
+            // 本店所在国変更有無がなしと未選択以外
+            if (hqFlg != "0" && hqFlg !="01")
             {
                 // 本店所在国名がテーブルに存在するか
                 bool exists = _contoryCode.AsEnumerable()
@@ -387,7 +453,7 @@ namespace MyTemplate.RoukinClass
             }
 
             // それ以外は不備コードをセット
-            fubiCode.Append("08");
+            fubiCode.Append("08;");
         }
 
         /// <summary>
@@ -401,9 +467,9 @@ namespace MyTemplate.RoukinClass
             string tel = row["tel"].ToString().Trim().Replace("-", "");
 
             // 電話番号が数値10桁か11桁ならOK
-            if (Regex.IsMatch(tel, @"\d{10,11}$")) return;
+            if (Regex.IsMatch(tel, @"^\d{10,11}$")) return;
 
-            fubiCode.Append("09");
+            fubiCode.Append("09;");
         }
 
         /// <summary>
@@ -424,9 +490,10 @@ namespace MyTemplate.RoukinClass
                 row["purp_cd3"].ToString().Trim(),
                 row["purp_cd4"].ToString().Trim(),
                 row["purp_cd5"].ToString().Trim(),
-                row["purp_cd6"].ToString().Trim(),
-                row["purp_cd7"].ToString().Trim()
+                row["purp_cd6"].ToString().Trim()
             };
+
+            string purpCd7 = row["purp_cd7"].ToString().Trim();
 
             // 空欄は除外
             trans = trans.Where(x => !string.IsNullOrEmpty(x)).ToArray();
@@ -434,16 +501,22 @@ namespace MyTemplate.RoukinClass
             // 変更なしで取引目的なしはOK
             if (flg == "0" && trans.Count() == 0) return;
 
+            // 取引目的1～6に値があり取引目的7に値が無ければOK
+            if (trans.Count() > 0 && string.IsNullOrEmpty(purpCd7)) return;
+
+            // 取引目的7に値があっても取引目的1～6の入力数が1以上6未満ならOK
+            if(trans.Count() >=1 && trans.Count() < 6 && !string.IsNullOrEmpty(purpCd7)) return;
+
             // 正常取引目的コードハッシュリスト
-            var validCOdes = new HashSet<string> { "001", "002", "003", "004", "005", "006" };
+            //var validCOdes = new HashSet<string> { "001", "002", "003", "004", "005", "006" };
             // ハッシュリストのコード以外が存在するかチェック
-            bool hasIvalid = trans.Any(x => !validCOdes.Contains(x));
+            //bool hasIvalid = trans.Any(x => !validCOdes.Contains(x));
 
             // 取引目的コードが存在し内容が001～006で入力数が6以下ならOK
-            if (!hasIvalid && trans.Count() > 0 && trans.Count() <= 6) return;
+            //if (!hasIvalid && trans.Count() > 0 && trans.Count() <= 6) return;
 
-            // 取引目的コードの選択すが6を超えていた場合は不備コード11それ以外は10
-            fubiCode.Append(trans.Count() > 6 ? "11" : "10");
+            // 取引目的コードの選択数が6を超えていた場合は不備コード11それ以外は10
+            fubiCode.Append(trans.Count() == 0 ? "10;" : "11;");
         }
 
         /// <summary>
@@ -464,14 +537,14 @@ namespace MyTemplate.RoukinClass
             trans = trans.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
             // 正常取引形態コードハッシュリスト
-            var validCOdes = new HashSet<string> { "1", "2", "3", "4", "5" };
+            //var validCOdes = new HashSet<string> { "1", "2", "3", "4", "5" };
             // ハッシュリストのコード以外が存在するかチェック
-            bool hasIvalid = trans.Any(x => !validCOdes.Contains(x));
+            //bool hasIvalid = trans.Any(x => !validCOdes.Contains(x));
 
-            // 選択が1つで正しいコードはOK
-            if (trans.Count() == 1 && !hasIvalid) return;
+            // 選択が1つならOK
+            if (trans.Count() == 1) return;
 
-            fubiCode.Append("12");
+            fubiCode.Append("12;");
         }
 
         /// <summary>
@@ -492,14 +565,14 @@ namespace MyTemplate.RoukinClass
             trans = trans.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
             // 正常取引形態コードハッシュリスト
-            var validCOdes = new HashSet<string> { "1", "2", "3", "4", "5", "6" };
+            //var validCOdes = new HashSet<string> { "1", "2", "3", "4", "5", "6" };
             // ハッシュリストのコード以外が存在するかチェック
-            bool hasIvalid = trans.Any(x => !validCOdes.Contains(x));
+            //bool hasIvalid = trans.Any(x => !validCOdes.Contains(x));
 
-            // 選択が1つで正しいコードはOK
-            if (trans.Count() == 1 && !hasIvalid) return;
+            // 選択が1つはOK
+            if (trans.Count() == 1) return;
 
-            fubiCode.Append("13");
+            fubiCode.Append("13;");
         }
 
         /// <summary>
@@ -520,14 +593,14 @@ namespace MyTemplate.RoukinClass
             trans = trans.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
             // 正常取引形態コードハッシュリスト
-            var validCOdes = new HashSet<string> { "1", "2", "3", "4", "5", "6" };
+            //var validCOdes = new HashSet<string> { "1", "2", "3", "4", "5", "6" };
             // ハッシュリストのコード以外が存在するかチェック
-            bool hasIvalid = trans.Any(x => !validCOdes.Contains(x));
+            //bool hasIvalid = trans.Any(x => !validCOdes.Contains(x));
 
-            // 選択が1つで正しいコードはOK
-            if (trans.Count() == 1 && !hasIvalid) return;
+            // 選択が1つはOK
+            if (trans.Count() == 1) return;
 
-            fubiCode.Append("14");
+            fubiCode.Append("14;");
         }
 
         /// <summary>
@@ -539,14 +612,14 @@ namespace MyTemplate.RoukinClass
         private void FubiCheck_15(DataRow row, string[] freq, StringBuilder fubiCode)
         {
             // 正常取引形態コードハッシュリスト
-            var validCOdes = new HashSet<string> { "1", "2", "3", "4", "5", "6" };
+            //var validCOdes = new HashSet<string> { "1", "2", "3", "4", "5", "6" };
             // ハッシュリストのコード以外が存在するかチェック
-            bool hasIvalid = freq.Any(x => !validCOdes.Contains(x));
+            //bool hasIvalid = freq.Any(x => !validCOdes.Contains(x));
 
             // 選択が1つで正しいコードはOK
-            if (freq.Count() == 1 && !hasIvalid) return;
+            if (freq.Count() == 1) return;
 
-            fubiCode.Append("15");
+            fubiCode.Append("15;");
         }
 
         /// <summary>
@@ -558,14 +631,14 @@ namespace MyTemplate.RoukinClass
         private void FubiCheck_16(DataRow row, string[] amt, StringBuilder fubiCode)
         {
             // 正常取引形態コードハッシュリスト
-            var validCOdes = new HashSet<string> { "1", "2", "3", "4" };
+            //var validCOdes = new HashSet<string> { "1", "2", "3", "4" };
             // ハッシュリストのコード以外が存在するかチェック
-            bool hasIvalid = amt.Any(x => !validCOdes.Contains(x));
+            //bool hasIvalid = amt.Any(x => !validCOdes.Contains(x));
 
-            // 選択が1つで正しいコードはOK
-            if (amt.Count() == 1 && !hasIvalid) return;
+            // 選択が1つはOK
+            if (amt.Count() == 1) return;
 
-            fubiCode.Append("16");
+            fubiCode.Append("16;");
         }
 
         /// <summary>
@@ -577,14 +650,14 @@ namespace MyTemplate.RoukinClass
         private void FubiCheck_17(DataRow row, string[] src, StringBuilder fubiCode)
         {
             // 正常取引形態コードハッシュリスト
-            var validCOdes = new HashSet<string> { "1", "2", "3", "4", "6", "7", "8", "9", "10" };
+            //var validCOdes = new HashSet<string> { "1", "2", "3", "4", "6", "7", "8", "9", "10" };
             // ハッシュリストのコード以外が存在するかチェック
-            bool hasIvalid = src.Any(x => !validCOdes.Contains(x));
+            //bool hasIvalid = src.Any(x => !validCOdes.Contains(x));
 
-            // 選択が1つから3つで正しいコードはOK
-            if (src.Count() > 1 && src.Count() <=3  && !hasIvalid) return;
+            // 選択が1つから3つでOK
+            if (src.Count() >= 1 && src.Count() <=3) return;
 
-            fubiCode.Append("17");
+            fubiCode.Append("17;");
         }
 
         /// <summary>
@@ -601,10 +674,16 @@ namespace MyTemplate.RoukinClass
             // 変更なしで代表者の漢字氏名が空はOK
             if (flg == "0" && string.IsNullOrEmpty(name)) return;
 
-            // 氏名が空でなく文字列内に全角スペースがあればOK
-            if (!string.IsNullOrEmpty(name) && !name.Contains("　")) return;
+            // 氏名が空でなく文字列内に全角スペースがあれば
+            if (!string.IsNullOrEmpty(name) && name.Contains("　"))
+            {
+                // 変更ありならOK
+                if (flg == "1") return;
+                // 変更有無未選択ならOK
+                if (string.IsNullOrEmpty(flg)) return;
+            }
 
-            fubiCode.Append("18");
+            fubiCode.Append("18;");
         }
 
         /// <summary>
@@ -621,10 +700,16 @@ namespace MyTemplate.RoukinClass
             // 変更なしで代表者のカナ氏名が空はOK
             if (flg == "0" && string.IsNullOrEmpty(name)) return;
 
-            // 氏名が空でなく文字列内に半角スペースがあればOK
-            if (!string.IsNullOrEmpty(name) && !name.Contains(" ")) return;
+            // 氏名が空でなく文字列内に半角スペースがあれば
+            if (!string.IsNullOrEmpty(name) && name.Contains(" "))
+            {   
+                // 変更ありならOK
+                if (flg == "1") return;
+                // 変更有無未選択ならOK
+                if (string.IsNullOrEmpty(flg)) return;
+            }
 
-            fubiCode.Append("19");
+            fubiCode.Append("19;");
         }
 
         /// <summary>
@@ -647,7 +732,7 @@ namespace MyTemplate.RoukinClass
                 if (formattedDate <= DateTime.Now) return;
             }
             // それ以外は不備コードをセット
-            fubiCode.Append("20");
+            fubiCode.Append("20;");
         }
 
         /// <summary>
@@ -663,9 +748,8 @@ namespace MyTemplate.RoukinClass
             if (!string.IsNullOrEmpty(title)) return;
 
             // それ以外は不備コードをセット
-            fubiCode.Append("21");
+            fubiCode.Append("21;");
         }
-
 
         /// <summary>
         /// 代表者の国籍
@@ -685,13 +769,13 @@ namespace MyTemplate.RoukinClass
 
             // 国籍テーブルに存在するかチェック
             bool exists = _contoryCode.AsEnumerable()
-                .Any(x => x.Field<string>("country_name_jp") == natname);
+                .Any(x => x.Field<string>("country_name") == natname);
 
             // 国籍テーブルに国名が存在する場合はOK
             if (exists) return;
 
             // それ以外は不備コードをセット
-            fubiCode.Append("22");
+            fubiCode.Append("22;");
         }
 
         /// <summary>
@@ -706,10 +790,10 @@ namespace MyTemplate.RoukinClass
             string name = row[$"{preFix}_name"].ToString().Trim();
 
             // 氏名が空でなく文字列内に全角スペースがあればOK
-            if (!string.IsNullOrEmpty(name) && !name.Contains("　")) return;
+            if (!string.IsNullOrEmpty(name) && name.Contains("　")) return;
 
             // それ以外は不備コードをセット
-            fubiCode.Append(fubi);
+            fubiCode.Append(fubi + ";");
         }
 
         /// <summary>
@@ -726,10 +810,10 @@ namespace MyTemplate.RoukinClass
             string name = row[$"{preFix}_kana"].ToString().Trim();
 
             // 氏名が空でなく文字列内に半角スペースがあればOK
-            if (!string.IsNullOrEmpty(name) && !name.Contains(" ")) return;
+            if (!string.IsNullOrEmpty(name) && name.Contains(" ")) return;
 
             // それ以外は不備コードをセット
-            fubiCode.Append(fubi);
+            fubiCode.Append(fubi + ";");
         }
 
         /// <summary>
@@ -755,7 +839,7 @@ namespace MyTemplate.RoukinClass
                 if (formattedDate <= DateTime.Now) return;
             }
             // それ以外は不備コードをセット
-            fubiCode.Append(fubi);
+            fubiCode.Append(fubi + ";");
         }
 
         /// <summary>
@@ -778,15 +862,15 @@ namespace MyTemplate.RoukinClass
             rel = rel.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
             // 正常コードハッシュリスト
-            var validCOdes = new HashSet<string> { "1", "2", "3" };
+            //var validCOdes = new HashSet<string> { "1", "2", "3" };
             // ハッシュリストのコード以外が存在するかチェック
-            bool hasIvalid = rel.Any(x => !validCOdes.Contains(x));
+            //bool hasIvalid = rel.Any(x => !validCOdes.Contains(x));
 
-            // 選択が1つで正しいコードはOK
-            if (rel.Count() == 1 && !hasIvalid) return;
+            // 選択が1つはOK
+            if (rel.Count() == 1) return;
 
             // それ以外は不備コードをセット
-            fubiCode.Append(fubi);
+            fubiCode.Append(fubi + ";");
         }
 
         /// <summary>
@@ -809,14 +893,14 @@ namespace MyTemplate.RoukinClass
             job = job.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
             // jobのコードで_bussinessCodePersonのコード以外が存在するか
-            bool hasIvalid = job.Any(x => !_bussinessCodePerson.AsEnumerable()
-                .Any(y => y.Field<string>("code") == x));
+            //bool hasIvalid = job.Any(x => !_bussinessCodePerson.AsEnumerable()
+            //    .Any(y => y.Field<string>("code") == x));
 
-            // 選択が1つで正しいコードはOK
-            if (job.Count() == 0 || !hasIvalid) return;
+            // 選択が1つはOK
+            if (job.Count() == 1) return;
 
             // それ以外は不備コードをセット
-            fubiCode.Append(fubi);
+            fubiCode.Append(fubi + ";");
         }
 
         /// <summary>
@@ -845,7 +929,7 @@ namespace MyTemplate.RoukinClass
             if (exists) return;
 
             // それ以外は不備コードをセット
-            fubiCode.Append(fubi);
+            fubiCode.Append(fubi + ";");
         }
 
         /// <summary>
@@ -859,9 +943,9 @@ namespace MyTemplate.RoukinClass
             string name = row["staff_name"].ToString().Trim();
 
             // 氏名が空でなく文字列内に全角スペースがあればOK
-            if (!string.IsNullOrEmpty(name) && !name.Contains("　")) return;
+            if (!string.IsNullOrEmpty(name) && name.Contains("　")) return;
 
-            fubiCode.Append("41");
+            fubiCode.Append("41;");
         }
 
         /// <summary>
@@ -875,9 +959,9 @@ namespace MyTemplate.RoukinClass
             string tel = row["staff_tel"].ToString().Trim().Replace("-", "");
 
             // 電話番号が数値10桁か11桁ならOK
-            if (Regex.IsMatch(tel, @"\d{10,11}$")) return;
+            if (Regex.IsMatch(tel, @"^\d{10,11}$")) return;
 
-            fubiCode.Append("42");
+            fubiCode.Append("42;");
         }
 
         /// <summary>
@@ -895,5 +979,30 @@ namespace MyTemplate.RoukinClass
                 _bussinessCodePerson = db.ExecuteQuery("select * from t_business_code_person order by code;");
             }
         }
+
+        /// <summary>
+        /// 不備登録用テーブルを作成
+        /// </summary>
+        /// <returns></returns>
+        private DataTable CreateFubiTable()
+        {
+            DataTable table = new DataTable();
+            table.Columns.Add("bpo_num", typeof(string));
+            table.Columns.Add("fubi_code", typeof(string));
+            return table;
+        }
+
+        /// <summary>
+        /// 正常登録用テーブルを作成
+        /// </summary>
+        /// <returns></returns>
+        private DataTable CreateFixTable()
+        {
+            DataTable table = new DataTable();
+            table.Columns.Add("bpo_num", typeof(string));
+            return table;
+        }
+
+
     }
 }

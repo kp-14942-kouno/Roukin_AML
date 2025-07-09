@@ -97,6 +97,8 @@ roukin_setting:
     exp_webcas_file_mojicode: "utf8bom"
     exp_grp_res_file_name: "GRP_51_data_@ymd@_@hms@_@#@.csv"
     exp_per_res_file_name: "PER_21_data_@ymd@_@hms@_@#@.csv"
+    exp_rew_ok_file_name: "団体_40_data_@ymd@_@hms@_@#@.csv"
+    exp_rew_ng_file_name: "団体_30_data_@ymd@_@hms@_@#@.csv"
 
 
 

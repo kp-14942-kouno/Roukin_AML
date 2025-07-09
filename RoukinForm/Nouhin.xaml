@@ -8,7 +8,8 @@
         Title="Nouhin" Height="450" Width="800">
     <Grid>
         <StackPanel Orientation="Vertical" Margin="5">
-            <Button x:Name="bt_InsWebData" Content="（個人）WEB納品対象読込" Height="32" Width="192" Margin="5" Click="bt_InsWebData_Click"/>
+            <Button x:Name="bt_InsKojinData" Content="（個人）納品対象読込" Height="32" Width="192" Margin="5" Click="bt_InsKojinData_Click"/>
+            <Button x:Name="bt_InsDantaiData" Content="（団体）納品対象読込" Height="32" Width="192" Margin="5" Click="bt_InsDantaiData_Click"/>
             <Button x:Name="bt_ExpNouhin" Content="納品ファイル作成" Height="32" Width="192" Margin="5" Click="bt_ExpNouhin_Click"/>
         </StackPanel>
 

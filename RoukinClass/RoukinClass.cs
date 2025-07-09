@@ -156,5 +156,117 @@ namespace MyTemplate
         }
     }
 
+    /// <summary>
+    /// 審査結果出力クラス
+    /// </summary>
+    public class ExpReviewResult : MyLibrary.MyLoading.Thread
+    {
+        DataTable _fubiData;
+        DataTable _FixData;
+        string _filePath = string.Empty; // 出力先ファイルパス
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        /// <param name="fubiData"></param>
+        /// <param name="fixData"></param>
+        public ExpReviewResult(DataTable fubiData, DataTable fixData, string filePath)
+        {
+            _fubiData = fubiData;
+            _FixData = fixData;
+            _filePath = filePath;
+        }
+
+        /// <summary>
+        /// 排他処理
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public override int MultiThreadMethod()
+        {
+            try
+            {
+                // 審査結果出力処理の開始ログ
+                MyLogger.SetLogger("審査結果出力処理を開始", MyEnum.LoggerType.Info, false);
+
+                ExpFubiData();
+                ExpFixData();
+
+                ResultMessage = $"審査不備：{_fubiData.Rows.Count}件 ／ 審査正常：{_FixData.Rows.Count}件"
+                    + "\r\n\r\n審査結果の出力が完了しました。";
+
+                // 審査結果出力処理の完了ログ
+                MyLogger.SetLogger(ResultMessage, MyEnum.LoggerType.Info, false);
+
+                Result = MyEnum.MyResult.Ok;
+            }
+            catch (Exception ex)
+            {
+                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
+                Result = MyEnum.MyResult.Error;
+            }
+            Completed = true;
+            return 0;
+        }
+
+        /// <summary>
+        /// 審査不備データ作成
+        /// </summary>
+        private void ExpFubiData()
+        {
+            // 不備データが無い場合は処理を終了
+            if (_fubiData.Rows.Count == 0) return;
+
+            ProcessName = "審査不備データ出力";
+            ProgressMax = _fubiData.Rows.Count;
+            ProgressValue = 0;
+
+            string fileName = MyUtilityModules.AppSetting("roukin_setting", "exp_rew_ng_file_name", true, _fubiData.Rows.Count);
+            string expPath = System.IO.Path.Combine(_filePath, fileName);
+
+            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(expPath, false, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Utf8Bom)))
+            {
+                foreach (DataRow row in _fubiData.Rows)
+                {
+                    ProgressValue++;
+
+                    string value = string.Empty;
+                    value += row["bpo_num"].ToString().Trim() + ",";
+                    value += row["fubi_code"].ToString().Trim();
+                    // 書き込み
+                    writer.WriteLine(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 審査正常データ作成
+        /// </summary>
+        private void ExpFixData()
+        {
+            // 正常データが無い場合は処理を終了
+            if (_FixData.Rows.Count == 0) return;
+
+            ProcessName = "審査正常データ出力";
+            ProgressMax = _FixData.Rows.Count;
+            ProgressValue = 0;
+
+            string fileName = MyUtilityModules.AppSetting("roukin_setting", "exp_rew_ok_file_name", true, _FixData.Rows.Count);
+            string expPath = System.IO.Path.Combine(_filePath, fileName);
+
+            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(expPath, false, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Utf8Bom)))
+            {
+                foreach (DataRow row in _FixData.Rows)
+                {
+                    ProgressValue++;
+
+                    string value = string.Empty;
+                    value += row["bpo_num"].ToString().Trim();
+                    // 書き込み
+                    writer.WriteLine(value);
+                }
+            }
+        }
+    }
+
 
 }

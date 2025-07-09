@@ -134,7 +134,7 @@ namespace MyTemplate.RoukinClass
                     using (var safeBox = new StreamWriter(Path.Combine(bankDir, safeBoxFile), false, Encoding.GetEncoding("Shift_Jis")))
                     {
                         SetKojin(codeDb, kojin, customer, resuponse, answerImage, safeBox, resPer, branchNo);
-                        //SetDantai(codeDb, dantai, customer, resuponse, answerImage, safeBox, resGrp, branchNo);
+                        SetDantai(codeDb, dantai, customer, resuponse, answerImage, safeBox, resGrp, branchNo);
                     }
                 }
             }
@@ -182,15 +182,21 @@ namespace MyTemplate.RoukinClass
                     if (blzRow.Rows.Count == 0) throw new Exception($"（団体）業種・職業コードが取得できません。：{blz[0].ToString()}");
 
                     industry = blzRow.Rows[0]["industry_code"].ToString().Trim();    // 業務コード
-                    bussiness = blzRow.Rows[0]["business_code"].ToString().Trim();   // 職業コード
+                    bussiness = blzRow.Rows[0]["bussiness_code"].ToString().Trim();   // 職業コード
 
                     // 開放
                     blz = null;
                     blzRow.Dispose();
                 }
+                // その他の場合
+                else
+                {
+                    industry = "000000"; // 業務コード
+                    bussiness = "000";  // 職業コード
+                }
 
-                // 本店所在国
-                string hqFlg = row["hq_cty_chg"].ToString().Trim();
+                    // 本店所在国
+                    string hqFlg = row["hq_ctry_chg"].ToString().Trim();
                 string hqCountry = row["hq_country"].ToString().Trim();
                 string? hqCode = null;
 
@@ -210,12 +216,12 @@ namespace MyTemplate.RoukinClass
                 // 取引目的コード
                 string[] purpose =
                 {
-                    row["tx_purpose1"].ToString().Trim(),
-                    row["tx_purpose2"].ToString().Trim(),
-                    row["tx_purpose3"].ToString().Trim(),
-                    row["tx_purpose4"].ToString().Trim(),
-                    row["tx_purpose5"].ToString().Trim(),
-                    row["tx_purpose6"].ToString().Trim()
+                    row["purp_cd1"].ToString().Trim(),
+                    row["purp_cd2"].ToString().Trim(),
+                    row["purp_cd3"].ToString().Trim(),
+                    row["purp_cd4"].ToString().Trim(),
+                    row["purp_cd5"].ToString().Trim(),
+                    row["purp_cd6"].ToString().Trim()
                 };
                 // 取引目的コードが空でないものを抽出し、ソートして配列に変換
                 purpose = purpose
@@ -428,8 +434,7 @@ namespace MyTemplate.RoukinClass
             string[] orgType =
             {
                 row["org_type1"].ToString().Trim(),
-                row["org_type2"].ToString().Trim(),
-                row["org_type3"].ToString().Trim()
+                row["org_type2"].ToString().Trim()
             };
             // 空欄を除外
             orgType = orgType.AsEnumerable().Where(x => !string.IsNullOrEmpty(x)).ToArray();
@@ -644,7 +649,7 @@ namespace MyTemplate.RoukinClass
         private string GetCustomerInfoDantai(MyDbData codeDb, DataRow row, string answerDate, string bussiness, string industry, string hqFlg, string? hqCode, string purposeFlg, string[] purpose, string purposeTxt)
         {
             var record = string.Empty;
-            string delimiter = "";
+            string delimiter = ",";
 
             // 取引目的有無フラグが0の場合はBPOデータから取得する
             if (purposeFlg == "0")
@@ -717,7 +722,7 @@ namespace MyTemplate.RoukinClass
             record += Convert("", 4, '0') + delimiter;  // 居住国
 
             // 本店所在国　変更なしはBPOデータを取得
-            record += hqFlg == "0" ? row["bpo_nation"].ToString() : hqCode + delimiter;
+            record += (hqFlg == "0" ? row["bpo_nation"].ToString() : hqCode) + delimiter;
 
             record += "90" + delimiter; // 顧客管理事項コード
             record += answerDate + delimiter; // 顧客管理事項確認日
@@ -974,9 +979,7 @@ namespace MyTemplate.RoukinClass
             record += row["pep_flag"].ToString() + delimiter; // PEPS該否
             record += job + delimiter; // 職業
             record += jobTxt + delimiter; // 職業その他
-
-            // 勤務先変更有無
-            record += ((!string.IsNullOrEmpty(row["work_or_sch"].ToString()) || !string.IsNullOrEmpty(row["worksch_kan"].ToString())) ? "1" : "0") + delimiter;
+            record += "" + delimiter; // 勤務先変更有無
 
             record += row["work_or_sch"].ToString() + delimiter; // 勤務先名
             record += row["worksch_kan"].ToString() + delimiter; // 勤務先名カナ

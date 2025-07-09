@@ -25,23 +25,13 @@ namespace MyTemplate.RoukinForm
     /// </summary>
     public partial class Nouhin : Window
     {
-        private DataTable _web = new();
+        private DataTable _kojin = new();
+        private DataTable _dantai = new();
         public Nouhin()
         {
             InitializeComponent();
         }
 
-        private void bt_InsWebData_Click(object sender, RoutedEventArgs e)
-        {
-            using (var web = new FileLoadProperties())
-            {
-                if (!FileLoadClass.GetFileLoadSetting(6, web)) return;
-
-                if (FileLoadClass.FileLoad(this, web) != MyLibrary.MyEnum.MyResult.Ok) return;
-
-                _web = web.LoadData;
-            }
-        }
 
         private void bt_ExpNouhin_Click(object sender, RoutedEventArgs e)
         {
@@ -59,7 +49,7 @@ namespace MyTemplate.RoukinForm
             // ローディングダイアログを表示
             using (var dlg = new MyLibrary.MyLoading.Dialog(this))
             {
-                var exp = new NouhinClass(new DataTable(), _web, expPath);
+                var exp = new NouhinClass(_dantai, _kojin, expPath);
                 dlg.ThreadClass(exp);
                 dlg.ShowDialog();
 
@@ -68,6 +58,38 @@ namespace MyTemplate.RoukinForm
                 MyMessageBox.Show(exp.ResultMessage);
             }
 
+        }
+
+        /// <summary>
+        /// （個人）納品対象データ読込みボタンクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void bt_InsKojinData_Click(object sender, RoutedEventArgs e)
+        {
+            using (var load = new FileLoadProperties())
+            {
+                if (!FileLoadClass.GetFileLoadSetting(6, load)) return;
+                if (FileLoadClass.FileLoad(this, load) != MyLibrary.MyEnum.MyResult.Ok) return;
+
+                _kojin = load.LoadData;
+            }
+        }
+
+        /// <summary>
+        /// （団体）納品対象データ読込みボタンクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void bt_InsDantaiData_Click(object sender, RoutedEventArgs e)
+        {
+            using (var load = new FileLoadProperties())
+            {
+                if (!FileLoadClass.GetFileLoadSetting(5, load)) return;
+                if (FileLoadClass.FileLoad(this, load) != MyLibrary.MyEnum.MyResult.Ok) return;
+
+                _dantai = load.LoadData;
+            }
         }
     }
 }

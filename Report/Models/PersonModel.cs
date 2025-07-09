@@ -22,7 +22,7 @@ namespace MyTemplate.Report.Models
         public string qr_code { get; set; }     // QRコードの値
         public int page { get; set; }           // ページ数
         public int max_page { get; set; }       // 最大ページ数
-        public string pages { get; set; }// 印刷用ページ数
+        public string pages { get; set; }       // 印刷用ページ数
         public string fubi { get; set; }        // 不備内容のテキスト
         public BitmapImage Qr { get; set; }     // QRコード画像
     }

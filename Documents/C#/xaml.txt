@@ -2,3 +2,13 @@
 
 　・SizeToContent：Windowサイズの自動調整
 
+■Borderの線をシャープにみせる
+　・<Window x:Class="MyTemplate.RoukinForm.MainMenu"
+        ...
+        UseLayoutRounding="True"
+        ...>
+
+　・<Border ... SnapsToDevicePixels="True">
+    	...
+	</Border>
+

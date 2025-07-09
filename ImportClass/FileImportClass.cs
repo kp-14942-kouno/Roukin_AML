@@ -304,7 +304,7 @@ namespace MyTemplate.ImportClass
                     }
                     // ログ出力
                     MyLogger.SetLogger($"{import.ImportSetting.process_name}\r\n{message}取込み処理完了", MyEnum.LoggerType.Info, false);
-                    MyMessageBox.Show($"{message}\r\n <\\ #4169E1 取込み処理完了 \\>");
+                    MyMessageBox.Show($"{message}\r\n 取込み処理完了", window:window);
                     break;
                 // 異常終了
                 case MyEnum.MyResult.Error:

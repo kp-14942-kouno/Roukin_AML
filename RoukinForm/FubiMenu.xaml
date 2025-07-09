@@ -1,0 +1,50 @@
+﻿<Window x:Class="MyTemplate.RoukinForm.FubiMenu"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MyTemplate.RoukinForm"
+        mc:Ignorable="d"
+        SizeToContent="WidthAndHeight"
+        UseLayoutRounding="True"
+        Title="団体（申請書）">
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" BorderThickness="1" BorderBrush="Black" SnapsToDevicePixels="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="不備審査処理" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
+
+                <StackPanel Grid.Row="1" Margin="5">
+                    <Button x:Name="bt_InsPnch" Content="審査対象データ読込" Width="192" Height="32" Margin="5" Click="bt_InsPnch_Click"/>
+                    <TextBlock x:Name="tb_PnchCount" Text="0件" Margin="0,0,5,0" TextAlignment="Right"/>
+                    <Button x:Name="bt_FubiCheck" Content="不備審査処理" Width="192" Height="32" Margin="5" Click="bt_FubiCheck_Click"/>
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <TextBlock Text="不備件数："/>
+                            <TextBlock x:Name="tb_FubiCount" Text="0件" Margin="0,0,5,0" TextAlignment="Right" TextDecorations="Underline" Foreground="Blue" Cursor="Hand" PreviewMouseLeftButtonUp="tb_FubiCount_PreviewMouseLeftButtonUp"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <TextBlock Text="正常件数："/>
+                            <TextBlock x:Name="tb_FixCount" Text="0件" Margin="0,0,5,0" TextAlignment="Right"/>
+                        </StackPanel>
+                    </Grid>
+                    <Button x:Name="bt_ExpData" Content="審査結果出力" Width="192" Height="32" Margin="5" Click="bt_ExpData_Click"/>
+                </StackPanel>
+
+            </Grid>
+        </Border>
+
+        <Button x:Name="bt_Close" Grid.Row="2" Content="閉じる" Width="192" Height="32" Margin="5" Click="bt_Close_Click"/>
+    </Grid>
+</Window>

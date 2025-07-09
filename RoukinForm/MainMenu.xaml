@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:MyTemplate.RoukinForm"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
+        UseLayoutRounding="True"
         Title="RoukinMainMenu" Height="450" Width="800">
     <Grid Margin="5">
 
@@ -20,7 +21,7 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Grid.Column="0">
-            <Border BorderThickness="1" BorderBrush="Black">
+            <Border BorderThickness="1" BorderBrush="Black" SnapsToDevicePixels="True">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="20"/>
@@ -30,10 +31,28 @@
                     <TextBlock Grid.Row="0" Text="個人（WEB）" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
 
                     <StackPanel Grid.Row="1" Orientation="Vertical">
-                        <Button x:Name="bt_WebcasCngMenu" Content="WEBCASデータ変換" Width="192" Height="32" Margin="5" Click="bt_WebcasCngMenu_Click"/>
-                        <Button x:Name="bt_FubiPrint" Content="個人・不備状" Width="192" Height="32" Margin="5" Click="bt_FubiPrint_Click"/>
+                        <Button x:Name="bt_WebcasCngMenu" Content="WEBCASデータ変換MENU" Width="192" Height="32" Margin="5" Click="bt_WebcasCngMenu_Click"/>
+                        
                         <Button x:Name="bt_NouhinMenu" Content="納品処理" Width="192" Height="32" Margin="5" Click="bt_NouhinMenu_Click"/>
                         <Button Content="機能確認" Width="192" Height="32" Margin="5" Click="Button_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="0" Grid.Column="1" Margin="5,0,0,0">
+            <Border BorderThickness="1" BorderBrush="Black" SnapsToDevicePixels="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="団体（申請書）" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
+
+                    <StackPanel Grid.Row="1" Orientation="Vertical">
+                        <Button x:Name="bt_FubiCheck" Content="不備審査MENU" Width="192" Height="32" Margin="5" Click="bt_FubiCheck_Click"/>
+                        <Button x:Name="bt_FubiPrint" Content="不備状MENU" Width="192" Height="32" Margin="5" Click="bt_FubiPrint_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>

@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:MyTemplate.RoukinForm"
         mc:Ignorable="d"
         SizeToContent="WidthAndHeight"
+        UseLayoutRounding="True"
         Title="個人（WEB）">
     
     <Grid Margin="5">
@@ -14,7 +15,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" BorderThickness="1" BorderBrush="Black">
+        <Border Grid.Row="0" BorderThickness="1" BorderBrush="Black" SnapsToDevicePixels="True">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="20"/>

@@ -25,6 +25,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using YamlDotNet.Serialization.BufferedDeserialization;
 
 namespace MyTemplate.RoukinForm
 {
@@ -238,38 +239,20 @@ namespace MyTemplate.RoukinForm
         /// <param name="e"></param>
         private void bt_Print_Click(object sender, RoutedEventArgs e)
         {
-            ExpPrintAndData(FubiPrintDocument.OP_PRINT | FubiPrintDocument.OP_IMAGE | FubiPrintDocument.OP_BEETLE);
+            int oparation = 0;
+
+            oparation |= chk_FubiPrint.IsChecked == true ? FubiPrintDocument.OP_PRINT : 0;
+            oparation |= chk_FubiImage.IsChecked == true ? FubiPrintDocument.OP_IMAGE : 0;
+            oparation |= chk_ExpData.IsChecked == true ? FubiPrintDocument.OP_BEETLE : 0;
+            oparation |= chk_HikinukiPrit.IsChecked == true ? FubiPrintDocument.OP_HIKINUKI : 0;
+            oparation |= chk_ExpMaching.IsChecked == true ? FubiPrintDocument.OP_MACHING : 0;
+
+            // チェックが無ければ中断
+            if (oparation == 0) return;
+
+            ExpPrintAndData(oparation);
         }
 
-        /// <summary>
-        /// 不備状印刷ボタンクリックイベント
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void bt_PrintOnly_Click(object sender, RoutedEventArgs e)
-        {
-            ExpPrintAndData(FubiPrintDocument.OP_PRINT);
-        }
-
-        /// <summary>
-        /// 不備状画像作成ボタンクリックイベント
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void bt_ExpImage_Click(object sender, RoutedEventArgs e)
-        {
-            ExpPrintAndData(FubiPrintDocument.OP_IMAGE);
-        }
-
-        /// <summary>
-        /// ビートルデータ作成ボタンクリックイベント
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void bt_ExpData_Click(object sender, RoutedEventArgs e)
-        {
-            ExpPrintAndData(FubiPrintDocument.OP_BEETLE);
-        }
 
         /// <summary>
         /// 印刷・画像作成・ビートルデータ作成を一括で行うメソッド
@@ -292,6 +275,14 @@ namespace MyTemplate.RoukinForm
             if ((operation & FubiPrintDocument.OP_BEETLE) != 0)
             {
                 beetle = "・ビートルデータ作成";
+            }
+            if((operation & FubiPrintDocument.OP_HIKINUKI) != 0)
+            {
+                print += "・引抜きリスト";
+            }
+            if((operation & FubiPrintDocument.OP_MACHING) != 0)
+            {
+                image += "・マッチングリスト";
             }
 
             var message = $"{print}{image}{beetle}";
@@ -378,6 +369,8 @@ namespace MyTemplate.RoukinForm
         public const int OP_PRINT = 1 << 0;  // 印刷
         public const int OP_IMAGE = 1 << 1;  // 画像作成
         public const int OP_BEETLE = 1 << 2; // ビートルデータ作成
+        public const int OP_HIKINUKI = 1 << 3; // 引抜き
+        public const int OP_MACHING = 1 << 4; // マッチング
 
         private int _operation; // 実行する操作
         private DataTable _table; // 不備状データ用テーブル
@@ -484,6 +477,11 @@ namespace MyTemplate.RoukinForm
             return 0;
         }
 
+        /// <summary>
+        /// FixedDocumentをTIFF画像として保存するメソッド
+        /// </summary>
+        /// <param name="document"></param>
+        /// <param name="row"></param>
         private void FixedDocumentAsTiff(FixedDocument document, DataRow row)
         {
             var path = MyUtilityModules.AppSetting("roukin_setting", "img_root_path");
@@ -562,7 +560,6 @@ namespace MyTemplate.RoukinForm
                     renderBitmap = null; // RenderTargetBitmapの参照を解放
                     bwBitmap = null; // 2値化されたBitmapの参照を解放
                     fixedPage = null; // FixedPageの参照を解放
-
                 }
             }
         }
