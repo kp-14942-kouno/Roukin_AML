@@ -82,12 +82,14 @@ code_Connection:
 #sjis, utf8, utf8bom, utf16le, utf16lebom, utf16be, utf16bebom
 roukin_setting:
     img_root_path: 'D:\04.VisualStudio\ろうきん\img'
-    exp_root_path: 'D:\04.VisualStudio\ろうきん'
-    nouhin_dir: '納品'
+    exp_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\テストデータ'
     customer_info_name: 'KJOUHOUKOUSHINA'               #顧客情報変更データ
+    customer_dir: '勘定系@ymd@'                         #勘定系用データのディレクトリ
     resuponse_res_name: 'ANS_KOKYAKUKANRI.txt'          #回答結果顧客管理データ
     answer_res_image_name: 'ANS_IMAGEKANRI.txt'         #回答結果イメージ管理データ
+    answer_dir: '本人確認システム@ymd@'                 #本人確認システム用データのディレクトリ
     safe_box_admin_name: 'ANS_DATA_KINKOJIMU_@ymd@.txt' #金庫事務用データ
+    safe_box_admin_dir: '金庫事務用@ymd@'               #金庫事務用データのディレクトリ
 
     industry_etc_code: '620050' #（個人）業種その他コード
 

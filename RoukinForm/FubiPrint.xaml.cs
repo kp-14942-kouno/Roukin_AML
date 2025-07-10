@@ -109,7 +109,7 @@ namespace MyTemplate.RoukinForm
             using (FileLoadProperties file = new FileLoadProperties())
             {
                 // ファイル読込み設定
-                if (!FileLoadClass.GetFileLoadSetting(50, file)) return;
+                if (!FileLoadClass.GetFileLoadSetting(4, file)) return;
                 // ファイル読込み
                 if (FileLoadClass.FileLoad(this, file) != MyLibrary.MyEnum.MyResult.Ok) return;
 
@@ -123,6 +123,7 @@ namespace MyTemplate.RoukinForm
                 };
                 _table.Columns.Add(isSelectedColumn);
 
+                _table = _table.AsEnumerable().OrderBy(x => x["taba_num"]).ThenBy(x => int.Parse(x["taba_count"].ToString())).CopyToDataTable();
                 dg_FubiList.ItemsSource = _table.DefaultView;
 
                 SetCount();
@@ -410,20 +411,24 @@ namespace MyTemplate.RoukinForm
 
             try
             {
-                foreach (DataRow row in _table.Rows)
+                // 不備状データをtaba_numでグループ化
+                var tabas = _table.AsEnumerable().Select(x => x["taba_num"].ToString()).Distinct().OrderBy(x => x).ToList();
+
+                foreach (var taba in tabas)
                 {
-                    ProgressValue++;
+                    // 各taba_numごとに行をフィルタリング
+                    var rows = _table.AsEnumerable().Where(x => x.Field<string>("taba_num") == taba).CopyToDataTable();
 
-                    // 不備状のFixedDocumentを作成
-                    // Dispatcher.Invokeを使用してUIスレッドでFixedDocumentを作成
                     FixedDocument document = null;
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        document = FubiHelper.CreateFixedDocument(row, _defectDic);
-                    });
 
-                    if ((_operation & OP_PRINT) != 0)
+                    if ((_operation & OP_HIKINUKI) != 0)
                     {
+                        // Dispatcher.Invokeを使用してUIスレッドでFixedDocumentを作成
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            document = HikinukiHelper.CreateFixedDocument(rows, taba);
+                        });
+
                         // 印刷処理
                         // A4、縦向き、片面印刷、用紙トレイは自動選択
                         // Dispatcher.Invokeを使用してUIスレッドで印刷処理を実行
@@ -432,25 +437,48 @@ namespace MyTemplate.RoukinForm
                             Modules.FixedDocumentPrint(document, _printer, ParperSize.A4, PageOrientation.Portrait, Duplexing.OneSided, InputBin.AutoSelect);
                         });
                     }
-                    if ((_operation & OP_IMAGE) != 0)
-                    {
-                        // 画像作成処理
-                        // Dispatcher.Invokeを使用してUIスレッドで画像作成処理を実行
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            FixedDocumentAsJpeg(document, row);
-                            FixedDocumentAsTiff(document, row);
-                        });
-                    }
-                    if ((_operation & OP_BEETLE) != 0)
-                    {
-                        // ビートルデータ作成処理
-                        var value = "";
-                        value += row["qr_code"].ToString() + "\t";
-                        value += document.Pages.Count.ToString();
-                        sb.AppendLine(value);
-                    }
 
+                    // _operationに引抜以外も含まれている場合
+                    if ((_operation & (OP_PRINT | OP_IMAGE | OP_BEETLE | OP_MACHING)) != 0)
+                    {
+                        foreach (DataRow row in rows.Rows)
+                        {
+                            // Dispatcher.Invokeを使用してUIスレッドでFixedDocumentを作成
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                document = FubiHelper.CreateFixedDocument(row, _defectDic);
+                            });
+
+                            if ((_operation & OP_PRINT) != 0)
+                            {
+                                // 印刷処理
+                                // A4、縦向き、片面印刷、用紙トレイは自動選択
+                                // Dispatcher.Invokeを使用してUIスレッドで印刷処理を実行
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    Modules.FixedDocumentPrint(document, _printer, ParperSize.A4, PageOrientation.Portrait, Duplexing.OneSided, InputBin.AutoSelect);
+                                });
+                            }
+                            if ((_operation & OP_IMAGE) != 0)
+                            {
+                                // 画像作成処理
+                                // Dispatcher.Invokeを使用してUIスレッドで画像作成処理を実行
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    FixedDocumentAsJpeg(document, row);
+                                    FixedDocumentAsTiff(document, row);
+                                });
+                            }
+                            if ((_operation & OP_BEETLE) != 0)
+                            {
+                                // ビートルデータ作成処理
+                                var value = "";
+                                value += row["bpo_num"].ToString() + "\t";
+                                value += document.Pages.Count.ToString();
+                                sb.AppendLine(value);
+                            }
+                        }
+                    }
                     document = null; // FixedDocumentの参照を解放
 
                     System.Threading.Thread.Sleep(50); // documentオブジェクトが解放されガベージコレクションが正しく処理されるように少し待機
@@ -467,6 +495,7 @@ namespace MyTemplate.RoukinForm
                 }
 
                 Result = MyEnum.MyResult.Ok;
+
             }
             catch (Exception ex)
             {
@@ -508,19 +537,12 @@ namespace MyTemplate.RoukinForm
                     // FubiPageまたはFubiPageNのDataContextからqr_codeを取得
                     if (child is FubiPage view)
                     {
-                        if (view.DataContext is PersonViewModel person)
-                        {
-                            qrCode = person.Item.qr_code;
-                        }
-
+                        qrCode = view.QrCode;
                     }
                     // FubiPageNの場合も同様に処理
                     else if (child is FubiPageN viewN)
                     {
-                        if (viewN.DataContext is PersonViewModel person)
-                        {
-                            qrCode = person.Item.qr_code;
-                        }
+                        qrCode = viewN.QrCode;
                     }
 
                     // 画像のサイズを計算
@@ -594,19 +616,13 @@ namespace MyTemplate.RoukinForm
                     // FubiPageまたはFubiPageNのDataContextからqr_codeを取得
                     if (child is FubiPage view)
                     {
-                        if (view.DataContext is PersonViewModel person)
-                        {
-                            qrCode = person.Item.qr_code;
-                        }
+                        qrCode = view.QrCode;
 
                     }
                     // FubiPageNの場合も同様に処理
                     else if (child is FubiPageN viewN)
                     {
-                        if (viewN.DataContext is PersonViewModel person)
-                        {
-                            qrCode = person.Item.qr_code;
-                        }
+                        qrCode = viewN.QrCode;
                     }
 
                     // 画像のサイズを計算

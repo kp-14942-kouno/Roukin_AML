@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using MyTemplate.Report.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,9 +22,16 @@ namespace MyTemplate.Report.Views
     /// </summary>
     public partial class FubiPageN : UserControl
     {
-        public FubiPageN()
+        public string QrCode { get; private set; } = string.Empty;
+
+        public FubiPageN(PersonItems items, int pages)
         {
             InitializeComponent();
+
+            QrCode = items.qr_code;
+            FubiList.ItemsSource = items.fubi;
+            imb_QR.Source = items.qr_image;
+            tb_Pages.Text = $"{items.page} / {pages}";
         }
     }
 }

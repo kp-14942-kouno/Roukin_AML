@@ -1,4 +1,5 @@
-﻿using MyLibrary;
+﻿using DocumentFormat.OpenXml.Presentation;
+using MyLibrary;
 using MyLibrary.MyClass;
 using MyLibrary.MyModules;
 using System.Data;
@@ -42,14 +43,15 @@ namespace MyTemplate.RoukinClass
 
                 using (var codeDb = new MyDbData("code"))
                 {
+                    // 実行
                     Run(codeDb);
 
                     // 結果メッセージ
-                    ResultMessage = $"<font color='#4169E1' size='13'>納品データ作成完了／各：{_kojin.Rows.Count + _dantai.Rows.Count}件</font><br/><br/>"
+                    ResultMessage = $"納品データ作成完了／各：{_kojin.Rows.Count + _dantai.Rows.Count}件"
                         + "・顧客情報変更データ<br/>・回答結果顧客管理データ<br/>・回答結果イメージ管理データ<br/>・金庫事務用データ";
 
                     // 終了ログ出力
-                    MyLogger.SetLogger($"納品データ作成完了：{_kojin.Rows.Count + _dantai.Rows.Count}件", MyEnum.LoggerType.Info, false);
+                    MyLogger.SetLogger(ResultMessage, MyEnum.LoggerType.Info, false);
 
                     Result = MyLibrary.MyEnum.MyResult.Ok;
                 }
@@ -71,10 +73,7 @@ namespace MyTemplate.RoukinClass
         /// <exception cref="Exception"></exception>
         private void Run(MyDbData codeDb)
         {
-            // 金融機関コードをリスト化
-            List<string> bankCodes = GetBankCodes();
-
-            // 顧客情報ファイル名
+            // 顧客情報変更データ名
             string customerFile = MyUtilityModules.AppSetting("roukin_setting", "customer_info_name");
             // 回答顧客情報ファイル名
             string resuponseFile = MyUtilityModules.AppSetting("roukin_setting", "resuponse_res_name");
@@ -87,10 +86,34 @@ namespace MyTemplate.RoukinClass
             // 納品ファイル作成結果データ（団体）
             string resGrpFile = MyUtilityModules.AppSetting("roukin_setting", "exp_grp_res_file_name", true, _dantai.Rows.Count);
 
+            // 勘定系（顧客情報変更データ）ディレクトリ
+            string customerDir = MyUtilityModules.AppSetting("roukin_setting", "customer_dir", true);
+            // 本陣確認システム（回答結果データ）ディレクトリ
+            string ansDir = MyUtilityModules.AppSetting("roukin_setting", "answer_dir", true);
+
+            string customerPath = Path.Combine(_expPath, customerDir);
+            string ansPath = Path.Combine(_expPath, ansDir);
+
+            // 各ディレクトリを作成
+            Directory.CreateDirectory(customerPath);
+            Directory.CreateDirectory(ansPath);
+
+            // 金融機関コードをリスト化
+            List<string> bankCodes = GetBankCodes();
+
             // 納品結果データ
             using (var resPer = new StreamWriter(Path.Combine(_expPath, resPerile), false, Encoding.GetEncoding("Shift_Jis")))
             using (var resGrp = new StreamWriter(Path.Combine(_expPath, resGrpFile), false, Encoding.GetEncoding("Shift_Jis")))
+            // 顧客情報変更データ
+            using (var customer = new StreamWriter(Path.Combine(customerPath, customerFile), false, Encoding.GetEncoding("Shift_Jis")))
+            // 回答顧客情報データ
+            using (var resuponse = new StreamWriter(Path.Combine(ansPath, resuponseFile), false, Encoding.GetEncoding("Shift_Jis")))
+            // 回答結果イメージ管理データ
+            using (var answerImage = new StreamWriter(Path.Combine(ansPath, answerImageFile), false, Encoding.GetEncoding("Shift_Jis")))
             {
+                ProgressMax = _dantai.Rows.Count + _kojin.Rows.Count;
+                ProgressValue = 0;
+
                 foreach (string bankCode in bankCodes)
                 {
                     // 金融機関コードから金融機関名を取得
@@ -110,10 +133,6 @@ namespace MyTemplate.RoukinClass
                     // 開放してDataTableを破棄
                     bankData.Dispose();
 
-                    // 金融機関名のディレクトリを作成
-                    string bankDir = Path.Combine(_expPath, bankCode + bankName);
-                    Directory.CreateDirectory(bankDir);
-
                     // 団体と個人のDataTableから金融機関コードに一致する行を抽出
                     var dantai = _dantai.AsEnumerable()
                         .Where(row => row.Field<string>("bpo_bank_code") == bankCode);
@@ -121,21 +140,10 @@ namespace MyTemplate.RoukinClass
                     var kojin = _kojin.AsEnumerable()
                         .Where(row => row.Field<string>("bpo_bank_code") == bankCode);
 
-                    ProgressMax = dantai.Count() + kojin.Count();
-                    ProgressValue = 0;
-
-                    // 顧客情報変更データ
-                    using (var customer = new StreamWriter(Path.Combine(bankDir, customerFile), false, Encoding.GetEncoding("Shift_Jis")))
-                    // 回答顧客情報データ
-                    using (var resuponse = new StreamWriter(Path.Combine(bankDir, resuponseFile), false, Encoding.GetEncoding("Shift_Jis")))
-                    // 回答結果イメージ管理データ
-                    using (var answerImage = new StreamWriter(Path.Combine(bankDir, answerImageFile), false, Encoding.GetEncoding("Shift_Jis")))
-                    // 金庫事務用データ
-                    using (var safeBox = new StreamWriter(Path.Combine(bankDir, safeBoxFile), false, Encoding.GetEncoding("Shift_Jis")))
-                    {
-                        SetKojin(codeDb, kojin, customer, resuponse, answerImage, safeBox, resPer, branchNo);
-                        SetDantai(codeDb, dantai, customer, resuponse, answerImage, safeBox, resGrp, branchNo);
-                    }
+                    // 個人データ作成
+                    SetKojin(codeDb, kojin, customer, resuponse, answerImage, resPer, branchNo);
+                    // 団体データ作成
+                    SetDantai(codeDb, dantai, customer, resuponse, answerImage, resGrp, branchNo);
                 }
             }
         }
@@ -152,7 +160,7 @@ namespace MyTemplate.RoukinClass
         /// <param name="resGrp"></param>
         /// <param name="branchNo"></param>
         /// <exception cref="Exception"></exception>
-        private void SetDantai(MyDbData codeDb, EnumerableRowCollection<DataRow> dantaiRows, StreamWriter customer, StreamWriter resuponse, StreamWriter answerImage, StreamWriter safeBox, StreamWriter resGrp, string branchNo)
+        private void SetDantai(MyDbData codeDb, EnumerableRowCollection<DataRow> dantaiRows, StreamWriter customer, StreamWriter resuponse, StreamWriter answerImage, StreamWriter resGrp, string branchNo)
         {
             // 人格コード（実質的支配者のデータが必要なコード）
             HashSet<string> personCodes = new HashSet<string> { "21", "31", "81" };
@@ -195,8 +203,8 @@ namespace MyTemplate.RoukinClass
                     bussiness = "000";  // 職業コード
                 }
 
-                    // 本店所在国
-                    string hqFlg = row["hq_ctry_chg"].ToString().Trim();
+                // 本店所在国
+                string hqFlg = row["hq_ctry_chg"].ToString().Trim();
                 string hqCountry = row["hq_country"].ToString().Trim();
                 string? hqCode = null;
 
@@ -250,313 +258,13 @@ namespace MyTemplate.RoukinClass
                 // 個人の顧客情報変更データを取得
                 string customerInfo = GetCustomerInfoDantai(codeDb, row, answerDate, bussiness, industry, hqFlg, hqCode, purposeFlg, purpose, purposeTxt);
                 customer.WriteLine(customerInfo);
+                // 個人の回答結果顧客管理データを取得
+                string responseDantai = GetResuponseDantai(codeDb, row, branchNo, caseNo, answerDate, ProgressValue);
+                resuponse.Write(responseDantai);
+                // 個人の回答結果イメージ管理データを取得
+                string answerImageDantai = GetAnswerImageDantai(codeDb, row, branchNo, caseNo, answerDate, ProgressValue);
+                answerImage.Write(answerImageDantai);
             }
-        }
-
-        /// <summary>
-        /// 金庫事務用データ（団体）
-        /// </summary>
-        /// <param name="codeDb"></param>
-        /// <param name="row"></param>
-        /// <param name="brancNo"></param>
-        /// <param name="caseNo"></param>
-        /// <param name="answerDate"></param>
-        /// <param name="hqFlg"></param>
-        /// <param name="hqCounty"></param>
-        /// <param name="hqCode"></param>
-        /// <param name="busisness"></param>
-        /// <param name="industry"></param>
-        /// <param name="purposeFlg"></param>
-        /// <param name="purpose"></param>
-        /// <param name="purposeTxt"></param>
-        /// <param name="personCodes"></param>
-        /// <returns></returns>
-        private string GetSafeBoxDantai(MyDbData codeDb, DataRow row, string brancNo, string caseNo, string answerDate, string hqFlg, string hqCounty, string hqCode,
-                            string busisness, string industry, string purposeFlg, string[] purpose, string purposeTxt, HashSet<string> personCodes)
-        {
-            string delimiter = ",";
-            string record = string.Empty;
-
-            record += row["bpo_bank_code"].ToString() + delimiter;  // 金融機関コード
-            record += row["bpo_cust_no"].ToString() + delimiter;  // 顧客番号
-            record += row["bpo_member_no"].ToString() + delimiter;  // 会員番号
-            record += row["bpo_persona_cd"].ToString() + delimiter;  // 人格コード
-            record += row["bpo_kana_name"].ToString() + delimiter;  // カナ氏名
-            record += row["bpo_org_kanji"].ToString() + delimiter;  // 漢字氏名
-
-            record += answerDate + delimiter; // 回答日
-            record += "" + delimiter;  // メールアドレス
-
-            // 氏名変更有無（団体名変更有無）　漢字団体目に記入がなければ0、あれば1
-            record += (string.IsNullOrEmpty(row["org_name_new"].ToString().Trim()) ? "0" : "1") + delimiter;
-            record += row["org_kana_new"].ToString().Trim() + delimiter; // カナ氏名（団体名）
-            record += row["org_name_new"].ToString().Trim() + delimiter; // 漢字氏名（団体名）
-
-
-            // 住所変更有無判定用
-            StringBuilder addr = new StringBuilder();
-            addr.Append(row["pref_new"].ToString().Trim()); // 都道府県
-            addr.Append(row["city_new"].ToString().Trim()); // 市区町村
-            addr.Append(row["addr1_new"].ToString().Trim()); // 丁目・番地
-            addr.Append(row["addr2_new"].ToString().Trim()); // マンション名・部屋番号
-
-            // 住所変更有無  漢字住所に記入がなければ0、あれば1
-            record += (addr.Length == 0 ? "0" : "1") + delimiter;
-            addr.Clear(); // 開放
-
-            record += row["zip_new"].ToString().Trim() + delimiter;     // 郵便番号
-            record += row["pref_new"].ToString().Trim() + delimiter;    // 都道府県
-            record += row["city_new"].ToString().Trim() + delimiter;    // 市区町村
-            record += row["addr1_new"].ToString().Trim() + delimiter;   // 丁目・番地
-            record += row["addr2_new"].ToString().Trim() + delimiter;   // マンション名・部屋番号
-            record += row["kana_addr"].ToString().Trim() + delimiter;   // カナ住所
-
-            record += row["tel"].ToString().Trim() + delimiter;　// 第一電話番号
-            record += "" + delimiter;   // 第二電話番号
-            record += "" + delimiter;   // 第三電話番号
-
-            // 国籍変更有無
-            record += hqFlg + delimiter;
-            // 国籍・国名
-            record += hqCounty + delimiter; // 国籍・国名
-
-            record += "" + delimiter; // 国籍・アルファベット氏名
-            record += "" + delimiter; // 在留資格
-            record += "" + delimiter; // 在留期限
-            record += "" + delimiter; // PEPS該否
-
-            // 職業事業内容コード　その他（000）の場合はBPOデータの職業事業内容コードを使用
-            record += (busisness.ToString() == "000" ? row["bpo_job_type_cd"].ToString() : busisness) + delimiter;
-
-            record += "" + delimiter; // 職業その他
-            record += "" + delimiter;   // 勤務先変更有無
-            record += "" + delimiter; // 勤務先名
-            record += "" + delimiter; // 勤務先名カナ
-
-            // 職業　業種コードが000000（その他）の場合はnull
-            record += (industry == "000000" ? "" : industry) + delimiter;
-            // 業種その他　業種コードが000000（その他）の場合は入力値を使用
-            record += (industry == "000000" ? row["biz_other"].ToString().Trim() : "") + delimiter;
-            // 主な製品・サービス　業種コードが000000（その他）の場合は入力値を使用
-            record += (industry == "000000" ? row["product_srv"].ToString().Trim() : "") + delimiter;
-
-            record += "" + delimiter; // 副業有無
-            record += "" + delimiter; // 副業の業種
-            record += "" + delimiter; // 副業の業種その他
-
-            record += purposeFlg + delimiter; // 取引目的コード変更有無
-            record += (purpose.Count() > 0 ? purpose[0] : "") + delimiter; // 取引目的コード1
-            record += (purpose.Count() > 1 ? purpose[1] : "") + delimiter; // 取引目的コード2
-            record += (purpose.Count() > 2 ? purpose[2] : "") + delimiter; // 取引目的コード3
-            record += (purpose.Count() > 3 ? purpose[3] : "") + delimiter; // 取引目的コード4
-            record += (purpose.Count() > 4 ? purpose[4] : "") + delimiter; // 取引目的コード5
-            record += (purpose.Count() > 5 ? purpose[5] : "") + delimiter; // 取引目的コード6
-            record += purposeTxt + delimiter; // 取引目的コードその他
-
-            // 取引形態
-            string[] dealType =
-            {
-                row["deal_type1"].ToString().Trim(),
-                row["deal_type2"].ToString().Trim()
-            };
-            // 空欄を除外
-            dealType = dealType.AsEnumerable().Where(x => !string.IsNullOrEmpty(x)).ToArray();
-            record += dealType[0].ToString().Trim() + delimiter; // 取引形態
-            dealType = null; // 開放
-
-            // 取引頻度
-            string[] dealFreq =
-            {
-                row["deal_freq1"].ToString().Trim(),
-                row["deal_freq2"].ToString().Trim()
-            };
-            // 空欄を除外
-            dealFreq = dealFreq.AsEnumerable().Where(x => !string.IsNullOrEmpty(x)).ToArray();
-            record += dealFreq[0].ToString().Trim() + delimiter; // 取引頻度
-            dealFreq = null; // 開放
-
-            // 取引金額
-            string[] dealAmt =
-            {
-                row["deal_amt1"].ToString().Trim(),
-                row["deal_amt2"].ToString().Trim()
-            };
-            // 空欄を除外
-            dealAmt = dealAmt.AsEnumerable().Where(x => !string.IsNullOrEmpty(x)).ToArray();
-            record += dealAmt[0].ToString().Trim() + delimiter; // 1回あたり取引金額
-            dealAmt = null; // 開放
-
-            // 200万円超取引の頻度
-            string[] cashFreq =
-            {
-                row["cash_freq1"].ToString().Trim(),
-                row["cash_freq2"].ToString().Trim()
-            };
-            // 空欄を除外
-            cashFreq = cashFreq.AsEnumerable().Where(x => !string.IsNullOrEmpty(x)).ToArray();
-
-            // 200万円超取引の金額
-            string[] cashAmt =
-            {
-                row["cash_amt1"].ToString().Trim(),
-                row["cash_amt2"].ToString().Trim()
-            };
-            // 空欄を除外
-            cashAmt = cashAmt.AsEnumerable().Where(x => !string.IsNullOrEmpty(x)).ToArray();
-
-            // 200万円超現金取引の原資
-            string[] cashSrc =
-            {
-                row["cash_src1"].ToString().Trim(),
-                row["cash_src2"].ToString().Trim(),
-                row["cash_src3"].ToString().Trim(),
-                row["cash_src4"].ToString().Trim()
-            };
-            // 空欄を除外
-            cashSrc = cashSrc.AsEnumerable().Where(x => !string.IsNullOrEmpty(x)).ToArray();
-
-            // 200万円超現金取引の原資その他
-            string cashSrcOther = cashSrc.Contains("9") ? row["cash_src_oth"].ToString().Trim() : string.Empty;
-            // 選択数
-            int cash = cashFreq.Count() + cashAmt.Count() + cashSrc.Count();
-            // 200万円超現金取引の選択フラグ
-            string cashFlg = cash == 0 ? "0" : "1";
-
-            record += cashFlg + delimiter; // 200万円超取引の有無
-            record += (cashFreq.Count() > 0 ? cashFreq[0].ToString().Trim() : "") + delimiter;  // 200万円超取引の頻度
-            record += (cashAmt.Count() > 0 ? cashAmt[0].ToString().Trim() : "") + delimiter;    // 200万円超取引の金額
-            record += (cashSrc.Count() > 0 ? cashSrc[0].ToString() : "") + delimiter; // 200万円超現金取引の原資
-            record += (cashSrc.Count() > 1 ? cashSrc[1].ToString() : "") + delimiter; // 200万円超現金取引の原資2
-            record += (cashSrc.Count() > 2 ? cashSrc[2].ToString() : "") + delimiter; // 200万円超現金取引の原資3
-            record += cashSrcOther + delimiter; // 200万円超現金取引の原資その他
-
-            // 団体種類
-            string[] orgType =
-            {
-                row["org_type1"].ToString().Trim(),
-                row["org_type2"].ToString().Trim()
-            };
-            // 空欄を除外
-            orgType = orgType.AsEnumerable().Where(x => !string.IsNullOrEmpty(x)).ToArray();
-            record += (orgType.Count() > 0 ? orgType[0].ToString().Trim() : "") + delimiter; // 団体種類
-            orgType = null; // 開放
-
-            // 設立年月日変更有無　設立年月日に記入がなければ0、あれば1
-            record += (string.IsNullOrEmpty(row["est_date"].ToString().Trim()) ? "0" : "1") + delimiter;
-            record += row["est_date"].ToString().Trim() + delimiter; // 設立年月日
-
-            record += hqCounty + delimiter; // 本社所在国名
-
-            // 代表者の漢字氏名変更有無　代表者の漢字締名に記入がなければ0、あれば1
-            record += (string.IsNullOrEmpty(row["rep_name"].ToString().Trim()) ? "0" : "1") + delimiter;
-            record += row["rep_name"].ToString().Trim() + delimiter; // 代表者の漢字氏名
-            record += row["rep_kana"].ToString().Trim() + delimiter; // 代表者のカナ氏名
-            record += row["rep_bday"].ToString().Trim() + delimiter; // 代表者の生年月日
-            record += row["rep_title"].ToString().Trim() + delimiter; // 代表者の役職
-
-            // 代表者の国籍・国名　国名が空欄の場合は「日本国」を設定
-            record += (string.IsNullOrEmpty(row["rep_natname"].ToString().Trim()) ? "日本国" : row["rep_natname"].ToString().Trim()) + delimiter;
-            record += row["rep_alpha"].ToString().Trim() + delimiter; // 代表者の国籍・アルファベット氏名
-            record += row["rep_visa"].ToString().Trim() + delimiter; // 代表者の国籍・在留資格
-            record += row["rep_exp"].ToString().Trim() + delimiter; // 代表者の国籍・在留期限
-
-            // 実質的支配者1～3
-            for (int ubo = 1; ubo <= 3; ubo++)
-            {
-                if (personCodes.Contains(row["bpo_persona_cd"].ToString().Trim()))
-                {
-                    record += row[$"ubo{ubo}_name"].ToString().Trim() + delimiter; // 実質的支配者の氏名
-                    record += row[$"ubo{ubo}_kana"].ToString().Trim() + delimiter; // 実質的支配者のカナ氏名
-                    record += row[$"ubo{ubo}_bday"].ToString().Trim() + delimiter; // 実質的支配者の生年月日
-
-                    // 団体との関係
-                    string[] rel =
-                    {
-                    row[$"ubo{ubo}_rel1"].ToString().Trim(),
-                    row[$"ubo{ubo}_rel2"].ToString().Trim()
-                    };
-                    // 空欄を除外
-                    rel = rel.AsEnumerable().Where(x => !string.IsNullOrEmpty(x)).ToArray();
-                    record += (rel.Count() > 0 ? rel[0].ToString().Trim() : "") + delimiter; // 実質的支配者の団体との関係
-                    rel = null; // 開放
-
-                    record += row[$"ubo{ubo}_addr"].ToString().Trim() + delimiter; // 実質的支配者の住所
-
-                    // 事業内容
-                    string[] job =
-                    {
-                    row[$"ubo{ubo}_job1"].ToString().Trim(),
-                    row[$"ubo{ubo}_job2"].ToString().Trim()
-                    };
-                    // 空欄を除外
-                    job = job.AsEnumerable().Where(x => !string.IsNullOrEmpty(x)).ToArray();
-                    record += (job.Count() > 0 ? job[0].ToString().Trim() : "") + delimiter; // 実質的支配者の職業・事業内容
-                    job = null; // 開放
-
-                    // 実質的支配者のPEPS該否 空欄は0、それ以外は右から1桁目を取得
-                    // 0 => 0, 1 => 1, 01 => 1
-                    string peps = row[$"ubo{ubo}_peps"].ToString().Trim();
-                    record += (string.IsNullOrEmpty(peps) ? "0" : peps.Right(1)) + delimiter;
-
-                    // 実質的支配者の国籍・国名　国名が空欄の場合は「日本国」を設定
-                    record += (string.IsNullOrEmpty(row[$"ubo{ubo}_natname"].ToString().Trim()) ? "日本国" : row[$"ubo{ubo}_natname"].ToString().Trim()) + delimiter;
-
-                    record += row[$"ubo{ubo}_alpha"].ToString().Trim() + delimiter; // 実質的支配者のアルファベット氏名
-                    record += row[$"ubo{ubo}_visa"].ToString().Trim() + delimiter; // 実質的支配者の在留資格
-                    record += row[$"ubo{ubo}_exp"].ToString().Trim() + delimiter; // 実質的支配者の在留期限
-                }
-                else
-                {
-                    // 人格コードが21,31,81以外の場合は空欄を設定
-                    record += "" + delimiter; // 実質的支配者の氏名
-                    record += "" + delimiter; // 実質的支配者のカナ氏名
-                    record += "" + delimiter; // 実質的支配者の生年月日
-                    record += "" + delimiter; // 実質的支配者の団体との関係
-                    record += "" + delimiter; // 実質的支配者の住所
-                    record += "" + delimiter; // 実質的支配者の職業・事業内容
-                    record += "" + delimiter; // 実質的支配者のPEPS該否
-                    record += "" + delimiter; // 実質的支配者の国籍・国名
-                    record += "" + delimiter; // 実質的支配者のアルファベット氏名
-                    record += "" + delimiter; // 実質的支配者の在留資格
-                    record += "" + delimiter; // 実質的支配者の在留期限
-                }
-            }
-
-            record += row["staff_name"].ToString().Trim() + delimiter; // 取引担当者の氏名
-            record += row["staff_kana"].ToString().Trim() + delimiter; // 取引担当者のカナ氏名
-            record += row["staff_dept"].ToString().Trim() + delimiter; // 取引担当者の部署
-            record += row["staff_title"].ToString().Trim() + delimiter; // 取引担当者の役職
-            record += row["staff_tel"].ToString().Trim() + delimiter; // 取引担当者の電話番号
-            record += row["staff_mail"].ToString().Trim() + delimiter; // 取引担当者のメールアドレス
-            record += row["staff_zip"].ToString().Trim() + delimiter; // 取引担当者の郵便番号
-            record += row["staff_addr"].ToString().Trim() + delimiter; // 取引担当者の住所
-            record += row["staff_kanaad"].ToString().Trim() + delimiter; // 取引担当者のカナ住所
-
-            record += row["bpo_ship_round"].ToString() + delimiter; // 発送希望回次
-            record += row["bpo_zip_code"].ToString() + delimiter; // 変更前郵便番号
-            record += row["bpo_address"].ToString() + delimiter; // 変更前住所（所在地）
-            record += row["bpo_home_tel"].ToString() + delimiter; // 変更前第一電話番号
-            record += row["bpo_work_tel"].ToString() + delimiter; // 変更前第二電話番号
-            record += row["bpo_mobile_tel"].ToString() + delimiter; // 変更間第三電話番号
-            record += row["bpo_nation"].ToString() + delimiter; // 変更前国籍
-            record += row["bpo_visa_type"].ToString() + delimiter; // 変更前在留資格
-            record += row["bpo_visa_exp"].ToString() + delimiter; // 変更前在留期限
-            record += row["bpo_job_type_cd"].ToString() + delimiter; // 変更前職業事業内容コード
-            record += row["bpo_biz_type_cd"].ToString() + delimiter; // 変更前業種コード
-            record += row["bpo_biz_name_etc"].ToString() + delimiter; // 変更前その他業種名称
-
-            record += row["bpo_purp_1"].ToString() + delimiter; // 変更前取引目的1
-            record += row["bpo_purp_2"].ToString() + delimiter; // 変更前取引目的2
-            record += row["bpo_purp_3"].ToString() + delimiter; // 変更前取引目的3
-            record += row["bpo_purp_4"].ToString() + delimiter; // 変更前取引目的4
-            record += row["bpo_purp_5"].ToString() + delimiter; // 変更前取引目的5
-            record += row["bpo_purp_6"].ToString() + delimiter; // 変更前取引目的6
-            record += row["bpo_birth_date"].ToString() + delimiter; // 変更間生年月日（設立年月日）
-            record += row["bpo_kanji_2"].ToString() + delimiter; // 変更前漢字氏名2
-            record += row["bpo_role_kanji"].ToString() + delimiter; // 変更前漢字役職名
-            record += row["bpo_rep_kanji"].ToString() + delimiter; // 変更前代表者の漢字氏名
-
-            return record;
         }
 
         /// <summary>
@@ -571,7 +279,7 @@ namespace MyTemplate.RoukinClass
         /// <returns></returns>
         private string GetAnswerImageDantai(MyDbData codeDb, DataRow row, string brancNo, string caseNo, string answerDate, int num)
         {
-            string delimiter = "";
+            string delimiter = ",";
 
             string record = string.Empty;
             record += row["bpo_bank_code"].ToString() + delimiter;  // 金融機関コード
@@ -585,7 +293,7 @@ namespace MyTemplate.RoukinClass
             // レコードデータが40Byte以外はエラー
             if (record.LenBSjis() != 40)
             {
-                throw new Exception($"（個人）個人回答結果イメージ管理データのレコード長が40Byteではありません: {record.LenBSjis()}");
+                //throw new Exception($"（個人）個人回答結果イメージ管理データのレコード長が40Byteではありません: {record.LenBSjis()}");
             }
             return record;
         }
@@ -605,7 +313,7 @@ namespace MyTemplate.RoukinClass
             string delimiter = ",";
 
             // カナ団体名
-            string kanaName = string.IsNullOrEmpty(row["org_kana_name"].ToString().Trim()) ? row["bpo_kana_name"].ToString().Trim() : row["org_kana_name"].ToString().Trim();
+            string kanaName = string.IsNullOrEmpty(row["org_kana_new"].ToString().Trim()) ? row["bpo_kana_name"].ToString().Trim() : row["org_kana_new"].ToString().Trim();
             // 漢字団体名
             string kanjiName = string.IsNullOrEmpty(row["org_name_new"].ToString().Trim()) ? row["bpo_org_kanji"].ToString().Trim() : row["org_name_new"].ToString().Trim();
 
@@ -777,7 +485,7 @@ namespace MyTemplate.RoukinClass
         /// <param name="safeBox"></param>
         /// <param name="branchNo"></param>
         /// <exception cref="Exception"></exception>
-        private void SetKojin(MyDbData codeDb, EnumerableRowCollection<DataRow> kojinRows, StreamWriter customer, StreamWriter resuponse, StreamWriter answerImage, StreamWriter safeBox, StreamWriter resPer, string branchNo)
+        private void SetKojin(MyDbData codeDb, EnumerableRowCollection<DataRow> kojinRows, StreamWriter customer, StreamWriter resuponse, StreamWriter answerImage, StreamWriter resPer, string branchNo)
         {
             // 業種その他コード
             string industryEtc = MyUtilityModules.AppSetting("roukin_setting", "industry_etc_code");
@@ -896,9 +604,6 @@ namespace MyTemplate.RoukinClass
                 // 個人の回答結果イメージ管理データを取得
                 string answerImageKojin = GetAnswerImageKojin(codeDb, row, branchNo, caseNo, parsedDate, ProgressValue);
                 answerImage.Write(answerImageKojin);
-                // 個人の金庫事務用データを取得
-                string safeBoxKojin = GetSafeBoxKojin(codeDb, row, branchNo, caseNo, parsedDate, ProgressValue, tel1st, tel3rd, industryEtc, industry, industryTxt, job, jobTxt, nationCode, purpose, purposeTxt);
-                safeBox.WriteLine(safeBoxKojin);
             }
         }
 

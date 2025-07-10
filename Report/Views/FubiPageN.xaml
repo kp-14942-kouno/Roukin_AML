@@ -13,13 +13,19 @@
             <RowDefinition Height="1.5cm"/>
         </Grid.RowDefinitions>
 
-        <Image Source="{Binding Item.Qr}" Width="30" Height="30" HorizontalAlignment="Right"/>
+        <Image x:Name="imb_QR"  Width="30" Height="30" HorizontalAlignment="Right"/>
 
         <Border Grid.Row="1" BorderThickness="1" BorderBrush="Black">
-            <TextBlock Text="{Binding Item.fubi}" Margin="0.3cm"/>
+            <ItemsControl x:Name="FubiList">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Fubi}" Grid.Column="0" TextWrapping="Wrap" Margin="0.2cm,0,0.2cm,0"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </Border>
 
-        <TextBlock Grid.Row="2" Text="{Binding Item.pages}" HorizontalAlignment="Right" Background="White" Margin="0,0.5cm,0,0"/>
+        <TextBlock Grid.Row="2" x:Name="tb_Pages" HorizontalAlignment="Right" Background="White" Margin="0,0.5cm,0,0"/>
 
     </Grid>
 </UserControl>

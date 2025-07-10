@@ -9,10 +9,5 @@ using System.Windows.Media.Imaging;
 
 namespace MyTemplate.Report.ViewModels
 {
-    public class PersonViewModel
-    {
-        public PersonModel Person { get; set; }
 
-        public ItemModule Item { get; set; } // 不備内容のモジュール
-    }
 }

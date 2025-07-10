@@ -25,7 +25,7 @@
 
             <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right">
                 <TextBlock Text="問い合わせ番号："/>
-                <TextBlock Text="{Binding Person.qr_code}"/>
+                <TextBlock x:Name="tb_QrCode"/>
             </StackPanel>
 
             <Grid Grid.Row="1" Width="9cm" Height="5.5cm" HorizontalAlignment="Left" Margin="0.5cm,0,0,0">
@@ -35,13 +35,13 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Orientation="Vertical">
-                    <TextBlock Text="{Binding Person.post_num}" Width="9cm" HorizontalAlignment="Left" Margin="0"/>
-                    <TextBlock Text="{Binding Person.addr}" Width="9cm" HorizontalAlignment="Left" TextWrapping="Wrap" Margin="0"/>
+                    <TextBlock x:Name="tb_PostNum" Width="9cm" HorizontalAlignment="Left" Margin="0"/>
+                    <TextBlock x:Name="tb_Addr" Width="9cm" HorizontalAlignment="Left" TextWrapping="Wrap" Margin="0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0.5cm,0,0">
-                    <TextBlock Text="{Binding Person.name}" Width="7.5cm" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0"/>
-                    <Image Source="{Binding Item.Qr}" Width="1cm" Height="1cm" VerticalAlignment="Top" HorizontalAlignment="Right"/>
+                    <TextBlock x:Name="tb_Name" Width="7.5cm" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0"/>
+                    <Image x:Name="img_QR" Width="1cm" Height="1cm" VerticalAlignment="Top" HorizontalAlignment="Right"/>
                 </StackPanel>
 
             </Grid>
@@ -64,18 +64,22 @@
 
         <TextBlock Grid.Row="2" Text="≪不備内容等≫" Background="White" Margin="0,0.5cm,0,0"/>
 
-        <Grid Grid.Row="3" Background="White" Height="11cm" Margin="0,0.5cm,0,0">
-            <Border BorderThickness="1" BorderBrush="Black">
-                <TextBlock Text="{Binding Item.fubi}" Margin="0.3cm"/>
-            </Border>
-        </Grid>
+        <Border Grid.Row="3" BorderThickness="1" BorderBrush="Black" Height="11cm">
+            <ItemsControl x:Name="FubiList">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Fubi}" Grid.Column="1" TextWrapping="Wrap" Margin="0.2cm,0,0.2cm,0"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
 
-        <Grid Grid.Row="4" Background="White" Height="2cm" Margin="0,0.5cm,0,0">
+        <Grid Grid.Row="4" Background="White" Height="1.5cm" Margin="0,0.5cm,0,0">
             <TextBlock Text="[お問い合わせ先]"/>
             <TextBlock Text="〇〇〇〇〇〇〇〇〇〇〇　コールセンター　0120-000-000" Margin="0.5cm,0.5cm,0,0"/>
         </Grid>
 
-        <TextBlock Grid.Row="5" Text="{Binding Item.pages}" HorizontalAlignment="Right" Background="White"/>
+        <TextBlock Grid.Row="5" x:Name="tb_Pages" HorizontalAlignment="Right" Background="White"/>
 
     </Grid>
 

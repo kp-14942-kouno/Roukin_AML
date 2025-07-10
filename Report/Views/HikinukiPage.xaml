@@ -11,11 +11,50 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="1.5cm"/>
             <RowDefinition Height="5cm"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="1.5cm"/>
+            <RowDefinition Height="18cm"/>
             <RowDefinition Height="1.5cm"/>
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="ろうきん AML業務 不備引抜対象リスト" FontSize="24" TextAlignment="Center" VerticalAlignment="Center"/>
+        <Canvas Grid.Row="1" Margin="0.5cm">
+            <TextBlock Text="引抜" FontSize="24" Canvas.Left="1cm" Width="2cm" TextAlignment="Center"/>
+            <Border BorderThickness="1" BorderBrush="Black" Width="2cm" Height="2cm" Canvas.Left="1cm" Canvas.Top="1cm">
+                <TextBlock Text="印" FontSize="36" Foreground="LightGray" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            </Border>
 
+            <TextBlock Text="確認" FontSize="24" Canvas.Left="3.5cm" Width="2cm" TextAlignment="Center"/>
+            <Border BorderThickness="1" BorderBrush="Black" Width="2cm" Height="2cm" Canvas.Left="3.5cm" Canvas.Top="1cm">
+                <TextBlock Text="印" FontSize="36" Foreground="LightGray" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            </Border>
+        </Canvas>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0.1cm">
+            <TextBlock Text="束番号：" FontSize="20" VerticalAlignment="Center"/>
+            <TextBlock x:Name="tb_Tabe" FontSize="20" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <Border Grid.Row="3" BorderThickness="1" BorderBrush="Black" Width="19cm">
+            <ItemsControl x:Name="ItemList">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderThickness="0,0,0,1" BorderBrush="Black" Margin="0.5cm,0,0.5cm,0">
+                            <Grid Margin="0.5cm,0.2cm,0.2cm,0.2cm">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4cm"/>
+                                    <ColumnDefinition Width="12cm"/>
+                                    <ColumnDefinition Width="50"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="{Binding bpo_num}" Grid.Column="0" FontSize="16"/>
+                                <TextBlock Text="{Binding group_name}" Grid.Column="1" FontSize="16"/>
+                                <Border Grid.Column="2" Width="20" Height="20" BorderBrush="Black" BorderThickness="1"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                        
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
     </Grid>
 </UserControl>

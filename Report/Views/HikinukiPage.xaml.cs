@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,9 +21,12 @@ namespace MyTemplate.Report.Views
     /// </summary>
     public partial class HikinukiPage : UserControl
     {
-        public HikinukiPage()
+        public HikinukiPage(List<Models.Hikinuki> items, string taba, int page, int pages)
         {
             InitializeComponent();
+
+            ItemList.ItemsSource = items;
+            tb_Tabe.Text = taba;
         }
     }
 }

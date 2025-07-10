@@ -1,5 +1,7 @@
 ﻿using MyLibrary;
 using MyLibrary.MyModules;
+using MyTemplate.Report;
+using MyTemplate.Report.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,20 +54,12 @@ namespace MyTemplate.RoukinForm
 
         private void bt_NouhinMenu_Click(object sender, RoutedEventArgs e)
         {
-            var form = new RoukinForm.Nouhin();
-            form.ShowDialog();
+
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            DateTime? formattedDate = MyLibrary.MyModules.MyUtilityModules.ParseDateString("19870102", "yyyyMMdd", MyEnum.CalenderType.Western);
-
-            // 設立年月日がyyyy/MM/dd形式に変換できた場合はOK
-            if (!string.IsNullOrEmpty(formattedDate.ToString()))
-            {
-                // 設立年月日が未来日でなければOK
-                if (formattedDate <= DateTime.Now) return;
-            }
+ 
         }
 
         /// <summary>
@@ -79,6 +73,23 @@ namespace MyTemplate.RoukinForm
             var form = new RoukinForm.FubiMenu();
             form.ShowDialog();
             this.Visibility = Visibility.Visible;
+        }
+
+        private void bt_RoukinNouhinMenu_Click(object sender, RoutedEventArgs e)
+        {
+            var form = new RoukinForm.NouhinMenu();
+            form.ShowDialog();
+        }
+
+        private void bt_KinkoNouhinMenu_Click(object sender, RoutedEventArgs e)
+        {
+            var form = new RoukinForm.KinkojimMenu();
+            form.ShowDialog();
+        }
+
+        private void bt_FubiNouhinMenu_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

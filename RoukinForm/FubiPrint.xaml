@@ -28,8 +28,8 @@
             <DataGrid x:Name="dg_FubiList" Height="320" AutoGenerateColumns="False" CanUserAddRows="False" Width="660">
                 <DataGrid.Columns>
                     <DataGridCheckBoxColumn Header="選択" Width="50" Binding="{Binding IsSelected, Mode=TwoWay}" IsReadOnly="False"/>
-                    <DataGridTextColumn Header="QRコード" Binding="{Binding qr_code}" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="氏名" Binding="{Binding name}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="BPO管理番号" Binding="{Binding bpo_num}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="団体名" Binding="{Binding bpo_org_kanji}" IsReadOnly="True"/>
                     <DataGridTextColumn Header="不備コード" Binding="{Binding fubi_code}" IsReadOnly="True"/>
                 </DataGrid.Columns>
             </DataGrid>

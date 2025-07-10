@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MyTemplate.Report.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,9 +21,24 @@ namespace MyTemplate.Report.Views
     /// </summary>
     public partial class FubiPage : UserControl
     {
-        public FubiPage()
+        public string QrCode => tb_QrCode.Text;
+
+        public FubiPage(PersonModel model, PersonItems items, int pages)
         {
             InitializeComponent();
+
+            tb_QrCode.Text = items.qr_code;
+            tb_PostNum.Text = model.post_num;  
+            tb_Addr.Text = model.addr;
+            tb_Name.Text = model.name;
+            img_QR.Source = items.qr_image;
+
+            FubiList.ItemsSource = items.fubi;
+
+            if(pages > 1)
+            {
+                tb_Pages.Text = $"{items.page} / {pages}";
+            }
         }
     }
 }

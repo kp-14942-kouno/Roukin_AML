@@ -1,5 +1,7 @@
 ﻿using Acornima.Ast;
 using DocumentFormat.OpenXml.Wordprocessing;
+using MyTemplate.Report.Models;
+using MyTemplate.Report.Views;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -35,7 +37,6 @@ namespace MyTemplate.Report.Helpers
                     document.Pages.Add(page);
                 }
             }
-
             return document;
         }
 
@@ -51,101 +52,78 @@ namespace MyTemplate.Report.Helpers
 
             var size = ParperSize.A4.ToSSize(); // 用紙サイズを指定
 
-            const int firstPageLimit = 29; // 1ページ目の上限
-            const int otherPageLimit = 56; // 2ページ目以降の上限
+            const int firstPageLimit = 24; // 1ページ目の上限
+            const int otherPageLimit = 55; // 2ページ目以降の上限
 
-            List<List<string>> pages = new();
-            List<string> currentPage = new();
-            int currentLine = 0; // 現在の行数
-            int lineLimit = firstPageLimit; // 行数の上限を初期化
+            var person = new Models.PersonModel();
 
             // 郵便番号が７桁の数値の場合、ハイフンを挿入して「123-4567」の形式に変換
-            var post_num = dataRow["post_num"].ToString().Trim();
+            var post_num = dataRow["bpo_zip_code"].ToString().Trim();
             if (post_num.Length == 7 && int.TryParse(post_num, out _))
             {
                 post_num = post_num.Insert(3, "-");
             }
+            person.name = $"{dataRow["bpo_org_kanji"].ToString()}　御中";
+            person.post_num = post_num;
+            person.addr = dataRow["bpo_address"].ToString();
 
-            // PersonModelのインスタンスを作成
-            var person = new Report.Models.PersonModel
-            {
-                qr_code = dataRow["qr_code"].ToString(),
-                name = $"{dataRow["name"].ToString()}　御中",
-                post_num = post_num,
-                addr = dataRow["addr"].ToString(),
-                fubi_code = dataRow["fubi_code"].ToString()
-            };
+            var pages = new List<PersonItems>();
+            var fubiAry = dataRow["fubi_code"].ToString().Split(';');
 
-            // ページの作成
-            var fubi_ary = person.fubi_code.Split(',');
-            foreach (var code in fubi_ary)
+            var pageNum = 1;
+            var currentLine = 0; // 現在の行数
+            var lineLimit = firstPageLimit; // 行数の上限を初期化
+            var personItem = new PersonItems();
+            personItem.fubi.Add(new FubiText { Fubi = "" }); // 開始行を1段下げる
+
+            foreach (var code in fubiAry)
             {
+                // 不備文言を改行で分割
                 var lines = defectDic[code].ToString().Split(@"\n");
+                // 必要な行数を計算
                 int neededLines = lines.Length + 1;
 
                 if (currentLine + neededLines > lineLimit)
                 {
-                    pages.Add(currentPage);
-                    currentPage = new List<string>();
+                    // QR
+                    personItem.qr_code = $"{dataRow["bpo_num"].ToString()}{pageNum}";
+                    personItem.qr_image = QrCoderHelper.GenerateQrCode(personItem.qr_code, 50);
+
+                    pages.Add(personItem);
+                    personItem = new PersonItems(); // 新しいPersonItemsを作成
+                    personItem.fubi.Add(new FubiText { Fubi = "" }); // 開始行を1段下げる
+                    pageNum++;
                     currentLine = 0;
                     lineLimit = otherPageLimit; // 2ページ目以降は行数の上限を変更
                 }
-
-                currentPage.AddRange(lines);
-                currentPage.Add(""); // 空行を追加
+                // 不備文言
+                personItem.fubi.Add(new FubiText { Fubi = defectDic[code].ToString().Replace("\\n", Environment.NewLine) + "\r\n"});
+                // ページ数
+                personItem.page = pageNum;
+                // 現在行
                 currentLine += neededLines;
             }
 
-            if (currentPage.Count > 0)
+            // 最後の行に次ページの案内を追加
+            if (pageNum > pages.Count - 1)
             {
-                pages.Add(currentPage);
+                personItem.qr_code = $"{dataRow["bpo_num"].ToString()}{pageNum}";
+                personItem.qr_image = QrCoderHelper.GenerateQrCode(personItem.qr_code, 50);
+                pages.Add(personItem);
             }
 
-            // ページごとにPersonViewModelを作成
-            for (int i = 0; i < pages.Count; i++)
+            for (int i = 0; i< pages.Count; i++)
             {
-                var personPage = new Report.ViewModels.PersonViewModel
-                {
-                    Person = person,
-                    Item = new Models.ItemModule()
-                };
-
-                // QRコード値
-                personPage.Item.qr_code = personPage.Person.qr_code + (i + 1);
-                // QRコード生成
-                personPage.Item.Qr = QrCoderHelper.GenerateQrCode(personPage.Item.qr_code, 50);
-                // ページごとにテキストをリセット
-                personPage.Item.fubi = string.Empty;
-
-                // Viewの選択
-                // 1ページ目はFubiPage、2ページ目以降はFubiPageNを使用
-                UserControl view = i == 0
-                    ? new Views.FubiPage()
-                    : new Views.FubiPageN();
-
-                // 不備内容の作成
-                var sb = new StringBuilder();
-                foreach (var line in pages[i])
-                {
-                    sb.AppendLine(line);
-                }
-
-                // 最後の行に次ページの案内を追加
                 if (i < pages.Count - 1)
                 {
-                    sb.AppendLine();
-                    sb.AppendLine("※次頁もご覧ください");
+                    // 最後の行に次ページの案内を追加
+                    pages[i].fubi.Add(new FubiText { Fubi = "※次頁もご覧ください" });
                 }
-                personPage.Item.fubi = sb.ToString();
-                sb.Clear();
 
-                // ページ数
-                personPage.Item.page = i + 1;
-                personPage.Item.max_page = pages.Count;
-                personPage.Item.pages = personPage.Item.max_page > 1 ? $"Page. {personPage.Item.page} / {personPage.Item.max_page}" : "";
+                UserControl view = i == 0
+                    ? new Views.FubiPage(person, pages[i], pages.Count)
+                    : new Views.FubiPageN(pages[i], pages.Count);
 
-                // ViewModelのDataContextに設定
-                view.DataContext = personPage;
 
                 // レイアウトの設定
                 view.Width = size.Width;
@@ -168,10 +146,8 @@ namespace MyTemplate.Report.Helpers
 
                 pageContents.Add(pageContent);
 
-                personPage = null;
-                fixedPage = null;
-                pageContent = null;
             }
+
             return pageContents;
         }
 
