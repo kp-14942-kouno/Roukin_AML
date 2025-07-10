@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace MyTemplate.RoukinClass
 {
+    /// <summary>
+    /// 金庫事務用データ作成クラス
+    /// </summary>
     public class KinkojimClass : MyLibrary.MyLoading.Thread
     {
         private DataTable _dantai = new();

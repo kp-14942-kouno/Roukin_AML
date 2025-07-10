@@ -89,7 +89,8 @@ namespace MyTemplate.RoukinForm
 
         private void bt_FubiNouhinMenu_Click(object sender, RoutedEventArgs e)
         {
-
+            var form = new RoukinForm.FubiNouhinMenu();
+            form.ShowDialog();
         }
     }
 }

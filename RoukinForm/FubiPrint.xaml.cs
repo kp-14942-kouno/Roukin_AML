@@ -267,23 +267,23 @@ namespace MyTemplate.RoukinForm
 
             if((operation & FubiPrintDocument.OP_PRINT) != 0)
             {
-                print = "・印刷";
+                print = @"・印刷\r\n";
             }
             if ((operation & FubiPrintDocument.OP_IMAGE) != 0)
             {
-                image = "・画像作成";
+                image = @"・画像作成\r\n";
             }
             if ((operation & FubiPrintDocument.OP_BEETLE) != 0)
             {
-                beetle = "・ビートルデータ作成";
+                beetle = @"・ビートルデータ作成\r\";
             }
             if((operation & FubiPrintDocument.OP_HIKINUKI) != 0)
             {
-                print += "・引抜きリスト";
+                print += @"・引抜きリスト\r\n";
             }
             if((operation & FubiPrintDocument.OP_MACHING) != 0)
             {
-                image += "・マッチングリスト";
+                image += @"・マッチングリスト\r\n";
             }
 
             var message = $"{print}{image}{beetle}";
@@ -367,12 +367,12 @@ namespace MyTemplate.RoukinForm
     /// </summary>
     public class FubiPrintDocument : MyLibrary.MyLoading.Thread
     {
-        public const int OP_PRINT = 1 << 0;  // 印刷
-        public const int OP_IMAGE = 1 << 1;  // 画像作成
-        public const int OP_BEETLE = 1 << 2; // ビートルデータ作成
-        public const int OP_HIKINUKI = 1 << 3; // 引抜き
-        public const int OP_MACHING = 1 << 4; // マッチング
-
+        public const int OP_PRINT = 1 << 0;         // 印刷
+        public const int OP_IMAGE = 1 << 1;         // 画像作成
+        public const int OP_BEETLE = 1 << 2;        // ビートルデータ作成
+        public const int OP_HIKINUKI = 1 << 3;      // 引抜き
+        public const int OP_MACHING = 1 << 4;       // マッチング
+                
         private int _operation; // 実行する操作
         private DataTable _table; // 不備状データ用テーブル
         private Dictionary<string, string> _defectDic; // 不備文言用辞書
@@ -411,80 +411,11 @@ namespace MyTemplate.RoukinForm
 
             try
             {
-                // 不備状データをtaba_numでグループ化
-                var tabas = _table.AsEnumerable().Select(x => x["taba_num"].ToString()).Distinct().OrderBy(x => x).ToList();
+                // 開始ログ
+                MyLogger.SetLogger($"不備状\r\n{_msg}作成開始", MyEnum.LoggerType.Info, false);
 
-                foreach (var taba in tabas)
-                {
-                    // 各taba_numごとに行をフィルタリング
-                    var rows = _table.AsEnumerable().Where(x => x.Field<string>("taba_num") == taba).CopyToDataTable();
-
-                    FixedDocument document = null;
-
-                    if ((_operation & OP_HIKINUKI) != 0)
-                    {
-                        // Dispatcher.Invokeを使用してUIスレッドでFixedDocumentを作成
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            document = HikinukiHelper.CreateFixedDocument(rows, taba);
-                        });
-
-                        // 印刷処理
-                        // A4、縦向き、片面印刷、用紙トレイは自動選択
-                        // Dispatcher.Invokeを使用してUIスレッドで印刷処理を実行
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            Modules.FixedDocumentPrint(document, _printer, ParperSize.A4, PageOrientation.Portrait, Duplexing.OneSided, InputBin.AutoSelect);
-                        });
-                    }
-
-                    // _operationに引抜以外も含まれている場合
-                    if ((_operation & (OP_PRINT | OP_IMAGE | OP_BEETLE | OP_MACHING)) != 0)
-                    {
-                        foreach (DataRow row in rows.Rows)
-                        {
-                            // Dispatcher.Invokeを使用してUIスレッドでFixedDocumentを作成
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                document = FubiHelper.CreateFixedDocument(row, _defectDic);
-                            });
-
-                            if ((_operation & OP_PRINT) != 0)
-                            {
-                                // 印刷処理
-                                // A4、縦向き、片面印刷、用紙トレイは自動選択
-                                // Dispatcher.Invokeを使用してUIスレッドで印刷処理を実行
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    Modules.FixedDocumentPrint(document, _printer, ParperSize.A4, PageOrientation.Portrait, Duplexing.OneSided, InputBin.AutoSelect);
-                                });
-                            }
-                            if ((_operation & OP_IMAGE) != 0)
-                            {
-                                // 画像作成処理
-                                // Dispatcher.Invokeを使用してUIスレッドで画像作成処理を実行
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    FixedDocumentAsJpeg(document, row);
-                                    FixedDocumentAsTiff(document, row);
-                                });
-                            }
-                            if ((_operation & OP_BEETLE) != 0)
-                            {
-                                // ビートルデータ作成処理
-                                var value = "";
-                                value += row["bpo_num"].ToString() + "\t";
-                                value += document.Pages.Count.ToString();
-                                sb.AppendLine(value);
-                            }
-                        }
-                    }
-                    document = null; // FixedDocumentの参照を解放
-
-                    System.Threading.Thread.Sleep(50); // documentオブジェクトが解放されガベージコレクションが正しく処理されるように少し待機
-                    GC.Collect(); // ガベージコレクションを実行
-                    GC.WaitForPendingFinalizers(); // ガベージコレクションの完了を待機
-                }
+                // 実行
+                Run(sb);
 
                 // ビートルデータの保存
                 if (sb.Length > 0 && (_operation & OP_BEETLE) != 0)
@@ -493,6 +424,9 @@ namespace MyTemplate.RoukinForm
                     var fileName = MyUtilityModules.AppSetting("roukin_setting", "fubi_print_name", true);
                     System.IO.File.WriteAllText(System.IO.Path.Combine(path, fileName), sb.ToString());
                 }
+
+                // 完了ログ
+                MyLogger.SetLogger($"不備状\r\n{_msg}作成完了", MyEnum.LoggerType.Info, false);
 
                 Result = MyEnum.MyResult.Ok;
 
@@ -504,6 +438,88 @@ namespace MyTemplate.RoukinForm
             }
             Completed = true;
             return 0;
+        }
+
+        /// <summary>
+        /// 実行
+        /// </summary>
+        /// <param name="sb"></param>
+        private  void Run(StringBuilder sb)
+        {
+            // 不備状データをtaba_numでグループ化
+            var tabas = _table.AsEnumerable().Select(x => x["taba_num"].ToString()).Distinct().OrderBy(x => x).ToList();
+
+            foreach (var taba in tabas)
+            {
+                // 各taba_numごとに行をフィルタリング
+                var rows = _table.AsEnumerable().Where(x => x.Field<string>("taba_num") == taba).CopyToDataTable();
+
+                FixedDocument document = null;
+
+                if ((_operation & OP_HIKINUKI) != 0)
+                {
+                    // Dispatcher.Invokeを使用してUIスレッドでFixedDocumentを作成
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        document = HikinukiHelper.CreateFixedDocument(rows, taba);
+                    });
+
+                    // 印刷処理
+                    // A4、縦向き、片面印刷、用紙トレイは自動選択
+                    // Dispatcher.Invokeを使用してUIスレッドで印刷処理を実行
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        Modules.FixedDocumentPrint(document, _printer, ParperSize.A4, PageOrientation.Portrait, Duplexing.OneSided, InputBin.AutoSelect);
+                    });
+                }
+
+                // _operationに引抜以外も含まれている場合
+                if ((_operation & (OP_PRINT | OP_IMAGE | OP_BEETLE | OP_MACHING)) != 0)
+                {
+                    foreach (DataRow row in rows.Rows)
+                    {
+                        // Dispatcher.Invokeを使用してUIスレッドでFixedDocumentを作成
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            document = FubiHelper.CreateFixedDocument(row, _defectDic);
+                        });
+
+                        if ((_operation & OP_PRINT) != 0)
+                        {
+                            // 印刷処理
+                            // A4、縦向き、片面印刷、用紙トレイは自動選択
+                            // Dispatcher.Invokeを使用してUIスレッドで印刷処理を実行
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                Modules.FixedDocumentPrint(document, _printer, ParperSize.A4, PageOrientation.Portrait, Duplexing.OneSided, InputBin.AutoSelect);
+                            });
+                        }
+                        if ((_operation & OP_IMAGE) != 0)
+                        {
+                            // 画像作成処理
+                            // Dispatcher.Invokeを使用してUIスレッドで画像作成処理を実行
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                FixedDocumentAsJpeg(document, row);
+                                FixedDocumentAsTiff(document, row);
+                            });
+                        }
+                        if ((_operation & OP_BEETLE) != 0)
+                        {
+                            // ビートルデータ作成処理
+                            var value = "";
+                            value += row["bpo_num"].ToString() + "\t";
+                            value += document.Pages.Count.ToString();
+                            sb.AppendLine(value);
+                        }
+                    }
+                }
+                document = null; // FixedDocumentの参照を解放
+
+                System.Threading.Thread.Sleep(50); // documentオブジェクトが解放されガベージコレクションが正しく処理されるように少し待機
+                GC.Collect(); // ガベージコレクションを実行
+                GC.WaitForPendingFinalizers(); // ガベージコレクションの完了を待機
+            }
         }
 
         /// <summary>

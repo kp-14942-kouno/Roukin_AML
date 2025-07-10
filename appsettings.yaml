@@ -83,6 +83,7 @@ code_Connection:
 roukin_setting:
     img_root_path: 'D:\04.VisualStudio\ろうきん\img'
     exp_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\テストデータ'
+    fubi_img_dir: '不備画像'
     customer_info_name: 'KJOUHOUKOUSHINA'               #顧客情報変更データ
     customer_dir: '勘定系@ymd@'                         #勘定系用データのディレクトリ
     resuponse_res_name: 'ANS_KOKYAKUKANRI.txt'          #回答結果顧客管理データ
@@ -90,6 +91,10 @@ roukin_setting:
     answer_dir: '本人確認システム@ymd@'                 #本人確認システム用データのディレクトリ
     safe_box_admin_name: 'ANS_DATA_KINKOJIMU_@ymd@.txt' #金庫事務用データ
     safe_box_admin_dir: '金庫事務用@ymd@'               #金庫事務用データのディレクトリ
+
+    fubi_data_name: 'ANS_KOKYAKUKANRI_KINKOJIMU_@ymd@.txt'      #不備対象データ
+    fubi_img_data_name: 'ANS_IMAGEKANRI_KINKOJIMU_@ymd@.txt'    #不備対象イメージ管理データ
+    fubi_img_zip_name: 'ANS_IAMGE_KINKOJIMU_@ymd@.zip'          #不備対象イメージZIPファイル
 
     industry_etc_code: '620050' #（個人）業種その他コード
 

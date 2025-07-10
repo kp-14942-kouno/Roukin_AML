@@ -20,27 +20,25 @@ using System.Windows.Shapes;
 namespace MyTemplate.RoukinForm
 {
     /// <summary>
-    /// KinkojimuMenu.xaml の相互作用ロジック
+    /// FubiNouhinMenu.xaml の相互作用ロジック
     /// </summary>
-    public partial class KinkojimMenu : Window
+    public partial class FubiNouhinMenu : Window
     {
-        DataTable _dantai = new();
-        DataTable _kojin = new();
+        DataTable _table = new DataTable();
+
 
         /// <summary>
         /// デストラクタ
         /// </summary>
-        ~KinkojimMenu()
+        ~FubiNouhinMenu()
         {
-            // データテーブルの破棄
-            _kojin?.Dispose();
-            _dantai?.Dispose();
+            _table?.Dispose();
         }
 
         /// <summary>
-        /// コンストラクタ　
+        /// コンストラクタ
         /// </summary>
-        public KinkojimMenu()
+        public FubiNouhinMenu()
         {
             InitializeComponent();
 
@@ -51,70 +49,63 @@ namespace MyTemplate.RoukinForm
         }
 
         /// <summary>
-        /// 件数表示
+        /// 件数
         /// </summary>
         private void SetCount()
         {
-            tb_DantaiCount.Text = _dantai.Rows.Count.ToString();
-            tb_KojinCount.Text = _kojin.Rows.Count.ToString();
+            tb_FubiCount.Text = _table.Rows.Count.ToString();
         }
 
         /// <summary>
-        /// （団体）金庫事務用データ読込みボタンクリックイベント
+        /// 不備納品対象データ読込みボタンクリックイベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void bt_InsDantaiData_Click(object sender, RoutedEventArgs e)
+        private void bt_InsFubiData_Click(object sender, RoutedEventArgs e)
         {
             using (var load = new FileLoadProperties())
             {
-                if (!FileLoadClass.GetFileLoadSetting(8, load)) return;
+                if (!FileLoadClass.GetFileLoadSetting(7, load)) return;
                 if (FileLoadClass.FileLoad(this, load) != MyLibrary.MyEnum.MyResult.Ok) return;
 
-                _dantai = load.LoadData;
+                _table = load.LoadData;
                 SetCount();
             }
         }
 
         /// <summary>
-        /// （個人）金庫事務用データ読込みボタンクリックイベント
+        /// 納品データ作成ボタンクリックイベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void bt_InsKojinData_Click(object sender, RoutedEventArgs e)
+        private void bt_ExpNouhin_Click(object sender, RoutedEventArgs e)
         {
-            using (var load = new FileLoadProperties())
+            // 不備納品対象データがない場合は処理を中止
+            if (_table.Rows.Count == 0)
             {
-                if (!FileLoadClass.GetFileLoadSetting(9, load)) return;
-                if (FileLoadClass.FileLoad(this, load) != MyLibrary.MyEnum.MyResult.Ok) return;
-
-                _kojin = load.LoadData;
-                SetCount();
-            }
-        }
-
-        /// <summary>
-        /// 金庫事務用データ作成ボタンクリックイベント
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void bt_ExpKinkojim_Click(object sender, RoutedEventArgs e)
-        {
-            List<string> zero = new();
-
-            if (_dantai.Rows.Count == 0) zero.Add("団体");
-            if (_kojin.Rows.Count == 0) zero.Add("個人");
-
-            // 納品対象データが存在しない場合はメッセージを表示
-            if (zero.Count == 2)
-            {
-                MyMessageBox.Show("金庫事務用データが存在しません。", buttons: MyEnum.MessageBoxButtons.Ok, window: this);
+                MyMessageBox.Show("不備納品対象データがありません。");
                 return;
             }
-            else if (zero.Count == 1)
+
+            // 出力対象が選択されてない場合は中止
+            int operation = 0;
+            operation |= chk_ExpFubiData.IsChecked == true ? FubiNouhinClass.OP_DATA : 0;
+            operation |= chk_ExpFubiCall.IsChecked == true ? FubiNouhinClass.OP_CALL : 0;
+
+            if (operation == 0)
             {
-                if (MyMessageBox.Show($"{zero[0].ToString()}のデータが存在しません。作成しますか？", "確認",
-                                            MyEnum.MessageBoxButtons.YesNo, window: this) != MyEnum.MessageBoxResult.Yes) return;
+                MyMessageBox.Show("出力対象が選択されていません。");
+                return;
+            }
+
+            string msg = string.Empty;
+            if ((operation & FubiNouhinClass.OP_DATA) != 0)
+            {
+                msg += "・不備対象データ\r\n";
+            }
+            if ((operation & FubiNouhinClass.OP_CALL) != 0)
+            {
+                msg += "・コール連携画像\r\n";
             }
 
             // 出力先設定を取得
@@ -125,14 +116,14 @@ namespace MyTemplate.RoukinForm
             // 出力先が指定されていない場合は処理を中止
             if (string.IsNullOrEmpty(expPath)) return;
             // 確認
-            if (MyMessageBox.Show("納品データを出力します。よろしいですか？", "確認",
+            if (MyMessageBox.Show($"{msg}作成を開始します。よろしいですか？", "確認",
                 MyEnum.MessageBoxButtons.YesNo, MyEnum.MessageBoxIcon.None) != MyEnum.MessageBoxResult.Yes) return;
 
             // ローディングダイアログを表示
             using (var dlg = new MyLibrary.MyLoading.Dialog(this))
             {
                 // 処理実行
-                var exp = new KinkojimClass(_dantai, _kojin, expPath);
+                var exp = new FubiNouhinClass(_table, operation, msg);
                 dlg.ThreadClass(exp);
                 dlg.ShowDialog();
                 // 結果を確認
@@ -143,13 +134,13 @@ namespace MyTemplate.RoukinForm
         }
 
         /// <summary>
-        /// 閉じるボタンクリックイベント
+        /// / 閉じるボタンクリックイベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void bt_Close_Click(object sender, RoutedEventArgs e)
         {
-
+            this.Close();
         }
     }
 }
