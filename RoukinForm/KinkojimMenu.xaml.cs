@@ -149,7 +149,7 @@ namespace MyTemplate.RoukinForm
         /// <param name="e"></param>
         private void bt_Close_Click(object sender, RoutedEventArgs e)
         {
-
+            this.Close();
         }
     }
 }

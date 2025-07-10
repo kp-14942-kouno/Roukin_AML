@@ -23,6 +23,9 @@ namespace MyTemplate.RoukinForm
     /// </summary>
     public partial class MainMenu : Window
     {
+        /// <summary>
+        ///  コンストラクタ
+        /// </summary>
         public MainMenu()
         {
             InitializeComponent();
@@ -46,20 +49,17 @@ namespace MyTemplate.RoukinForm
             this.Visibility = Visibility.Visible;
         }
 
+        /// <summary>
+        /// 不備状印刷MENUボタンクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void bt_FubiPrint_Click(object sender, RoutedEventArgs e)
         {
+            this.Visibility = Visibility.Hidden;
             var form = new RoukinForm.FubiPrint();
             form.ShowDialog();
-        }
-
-        private void bt_NouhinMenu_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
- 
+            this.Visibility = Visibility.Visible;
         }
 
         /// <summary>
@@ -75,22 +75,63 @@ namespace MyTemplate.RoukinForm
             this.Visibility = Visibility.Visible;
         }
 
+        /// <summary>
+        /// 勘定系・本人確認納品MENUボタンクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void bt_RoukinNouhinMenu_Click(object sender, RoutedEventArgs e)
         {
+            this.Visibility = Visibility.Hidden;
             var form = new RoukinForm.NouhinMenu();
             form.ShowDialog();
+            this.Visibility = Visibility.Visible;
         }
 
+        /// <summary>
+        /// 金庫事務納品MENUボタンクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void bt_KinkoNouhinMenu_Click(object sender, RoutedEventArgs e)
         {
+            this.Visibility = Visibility.Hidden;
             var form = new RoukinForm.KinkojimMenu();
             form.ShowDialog();
+            this.Visibility = Visibility.Visible;
         }
 
+        /// <summary>
+        /// 不備納品MENUボタンクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void bt_FubiNouhinMenu_Click(object sender, RoutedEventArgs e)
         {
+            this.Visibility = Visibility.Hidden;
             var form = new RoukinForm.FubiNouhinMenu();
             form.ShowDialog();
+            this.Visibility = Visibility.Visible;
+        }
+
+        /// <summary>
+        /// 閉じるボタンクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void bt_Close_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        /// <summary>
+        /// 申請書仕分リストMENUボタンクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void bt_ShiwakeList_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

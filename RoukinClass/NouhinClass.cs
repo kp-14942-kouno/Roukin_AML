@@ -608,219 +608,6 @@ namespace MyTemplate.RoukinClass
         }
 
         /// <summary>
-        /// 金庫事務用データ（個人）
-        /// </summary>
-        /// <param name="codeDb"></param>
-        /// <param name="row"></param>
-        /// <param name="brancNo"></param>
-        /// <param name="caseNo"></param>
-        /// <param name="parsedDate"></param>
-        /// <param name="num"></param>
-        /// <param name="tel1st"></param>
-        /// <param name="tel3rd"></param>
-        /// <param name="industryEtc"></param>
-        /// <param name="industry"></param>
-        /// <param name="industryTxt"></param>
-        /// <param name="job"></param>
-        /// <param name="jobTxt"></param>
-        /// <param name="nationCode"></param>
-        /// <param name="sortedPurpose"></param>
-        /// <param name="purposeTxt"></param>
-        /// <returns></returns>
-        private string GetSafeBoxKojin(MyDbData codeDb, DataRow row, string brancNo, string caseNo, DateTime parsedDate, int num, string tel1st, string tel3rd,
-                            string industryEtc, string industry, string industryTxt, string job, string jobTxt, string nationCode, string[] purpose, string purposeTxt)
-        {
-            string delimiter = ",";
-
-            // カナ住所結合
-            string kanaAddr = row["pref_kana"].ToString() + " " + row["city_kana"].ToString() + " "
-                                + row["addrnum_kan"].ToString() + " " + row["bldgkana_nm"].ToString();
-
-            string record = string.Empty;
-            record += row["bpo_bank_code"].ToString() + delimiter;  // 金融機関コード
-            record += row["bpo_cust_no"].ToString() + delimiter;  // 顧客番号
-            record += row["bpo_member_no"].ToString() + delimiter;  // 会員番号
-            record += row["bpo_persona_cd"].ToString() + delimiter;  // 人格コード
-            record += row["bpo_kana_name"].ToString() + delimiter;  // カナ氏名
-            record += row["bpo_org_kanji"].ToString() + delimiter;  // 漢字氏名
-            record += parsedDate.ToString("yyyyMMdd") + delimiter; // 回答日
-            record += row["email"].ToString() + delimiter;  // メールアドレス
-
-            // 氏名変更有無　WEBCASデータでは1・2 ⇒ 0・1 に置換え
-            record += (row["namechg_flg"].ToString() == "1" ? "0" : "1") + delimiter;
-            record += (row["lname_kana"].ToString() == "2" ? row["fname_kana"].ToString() + " " + row["fname_kanji"].ToString() : "") + delimiter; // カナ氏名
-            record += (row["namechg_flg"].ToString() == "2" ? row["lname_kanji"].ToString() + "　" + row["fname_kanji"].ToString() : "") + delimiter; // 漢字氏名
-
-            // 住所変更有無　WEBCASデータでは1・2 ⇒ 0・1 に置換え
-            record += (row["addrchg_flg"].ToString() == "1" ? "0" : "1") + delimiter;
-            record += (row["addrchg_flg"].ToString() == "2" ? row["zipcode"].ToString() : "") + delimiter;  // 郵便番号
-
-            string pref = string.Empty;
-            if(row["addrchg_flg"].ToString() == "2")
-            {
-                // 都道府県コードから都道府県名を取得
-                pref = codeDb.ExecuteScalar($"SELECT zip_name FROM t_zip_code WHERE code = '{row["pref"].ToString()}'") as string;
-                // 都道府県名が見つからない場合は例外を投げる
-                if (string.IsNullOrEmpty(pref))  throw new Exception($"（個人）都道府県コードが見つかりません: {row["pref"].ToString()}");
-            }
-
-            record += pref + delimiter;  // 都道府県
-            record += (row["addrchg_flg"].ToString() == "2" ? row["city"].ToString() : "") + delimiter;  // 市区町村
-            record += (row["addrchg_flg"].ToString() == "2" ? row["addr_num"].ToString() : "") + delimiter;  // 丁目・番地
-            record += (row["addrchg_flg"].ToString() == "2" ? row["bldg_name"].ToString() : "") + delimiter;  // マンション名・部屋番号
-            record += (row["addrchg_flg"].ToString() == "2" ? kanaAddr.Left(176) : "") + delimiter; // カナ住所
-            record += tel1st + delimiter;　// 第一電話番号
-            record += row["work_tel"].ToString() + delimiter;　// 第二電話番号
-            record += tel3rd + delimiter; // 第三電話番号
-
-            // 国籍変更有無　WEBCASデータでは1・2 ⇒　0・1 に置換え
-            record += (row["nationchg_flg"].ToString() == "1" ? "0" : "1") + delimiter;
-            // 国籍・国名　変更なしは空欄
-            record += (row["nationchg_flg"].ToString() == "1" ? "" : nationCode) + delimiter; // 国籍・国名
-
-            record += row["name_alpha"].ToString() + delimiter; // 国籍・アルファベット氏名
-            record += row["visa"].ToString() + delimiter; // 在留資格
-            record += row["visa_limit"].ToString() + delimiter; // 在留期限
-            record += row["pep_flag"].ToString() + delimiter; // PEPS該否
-            record += job + delimiter; // 職業
-            record += jobTxt + delimiter; // 職業その他
-            record += "" + delimiter; // 勤務先変更有無
-
-            record += row["work_or_sch"].ToString() + delimiter; // 勤務先名
-            record += row["worksch_kan"].ToString() + delimiter; // 勤務先名カナ
-            record += job + delimiter; // 職業
-            record += jobTxt + delimiter; // 職業その他
-            record += "" + delimiter; // 主な製品・サービス
-            record += row["sidejob_flg"].ToString() + delimiter; // 副業有無
-            record += row["sidejob_typ"].ToString() + delimiter; // 副業の業種
-            record += row["sideothr_tx"].ToString() + delimiter; // 副業の業種その他
-            record += "" + delimiter; // 取引目的コード変更有無
-            record += (purpose.Count() > 0 ? purpose[0] : "") + delimiter; // 取引目的コード1
-            record += (purpose.Count() > 1 ? purpose[1] : "") + delimiter; // 取引目的コード2
-            record += (purpose.Count() > 2 ? purpose[2] : "") + delimiter; // 取引目的コード3
-            record += (purpose.Count() > 3 ? purpose[3] : "") + delimiter; // 取引目的コード4
-            record += (purpose.Count() > 4 ? purpose[4] : "") + delimiter; // 取引目的コード5
-            record += (purpose.Count() > 5 ? purpose[5] : "") + delimiter; // 取引目的コード6
-            record += purposeTxt + delimiter; // 取引目的コードその他
-            record += row["tx_type"].ToString() + delimiter; // 取引形態
-            record += row["tx_freq"].ToString() + delimiter; // 取引頻度
-            record += row["tx_amt_once"].ToString() + delimiter; // 1回あたり取引金額
-
-            record += row["tx_over2m_f"].ToString() + delimiter; // 200万円超取引の有無
-            record += row["tx_over2mfrq"].ToString() + delimiter; // 200万円超取引の頻度
-            record += row["tx_over2mam"].ToString() + delimiter; // 200万円超取引の金額
-
-            string[] src =
-            {
-                row["src_salary"].ToString(),   // 200万円超現金取引の原資_給与_退職金
-                row["src_pension"].ToString(),  // 200万円超現金取引の原資_年金_社会保険_公的扶助
-                row["src_insur"].ToString(),    // 200万円超現金取引の原資_保険_民間
-                row["src_exec"].ToString(),     // 200万円超現金取引の原資_役員報酬
-                row["src_bizin"].ToString(),    // 200万円超現金取引の原資_事業収入
-                row["src_inheri"].ToString(),   // 200万円超現金取引の原資_相続_贈与
-                row["src_invincm"].ToString(),  // 200万円超現金取引の原資_配当_利子_資産運用益_不動産収入
-                row["src_saving"].ToString(),   // 200万円超現金取引の原資_貯蓄
-                row["src_otherbk"].ToString(),  // 200万円超現金取引の原資_他の金融機関口座から引き出した現金
-                row["src_home"].ToString(),     // 200万円超現金取引の原資_自宅保管現金
-                row["src_loan"].ToString(),     // 200万円超現金取引の原資_借入金
-                row["src_other"].ToString() == "-999" ? "12" : ""   // 200万円超現金取引の原資_それ以外
-            };
-
-            // 200万円超現金取引の原資の配列から空欄を除外
-            var srcFiltered = src
-                .Where(x => !string.IsNullOrEmpty(x))
-                .ToArray();
-
-            record += (srcFiltered.Count() > 0 ? srcFiltered[0].ToString() : "") + delimiter; // 200万円超現金取引の原資
-            record += (srcFiltered.Count() > 1 ? srcFiltered[1].ToString() : "") + delimiter; // 200万円超現金取引の原資2
-            record += (srcFiltered.Count() > 2 ? srcFiltered[2].ToString() : "") + delimiter; // 200万円超現金取引の原資3
-            record += (srcFiltered.Contains("12") ? row["src_oth_txt"].ToString() : "") + delimiter; // 200万円超現金取引の原資その他
-
-            record += "" + delimiter; // 団体種類
-            record += "" + delimiter; // 設立年月日変更有無
-            record += "" + delimiter; // 設立年月日
-            record += "" + delimiter; // 本社所在国名
-            record += "" + delimiter; // 代表者の漢字氏名変更有無
-            record += "" + delimiter; // 代表者の漢字氏名
-            record += "" + delimiter; // 代表者のカナ氏名
-            record += "" + delimiter; // 代表者の生年月日
-            record += "" + delimiter; // 代表者の役職
-            record += "" + delimiter; // 代表者の国籍・国名
-            record += "" + delimiter; // 代表者の国籍・アルファベット氏名
-            record += "" + delimiter; // 代表者の国籍・在留資格
-            record += "" + delimiter; // 代表者の国籍・在留期限
-            record += "" + delimiter; // 実質的支配者の氏名
-            record += "" + delimiter; // 実質的支配者のカナ氏名
-            record += "" + delimiter; // 実質的支配者の生年月日
-            record += "" + delimiter; // 実質的支配者の団体との関係
-            record += "" + delimiter; // 実質的支配者の住所
-            record += "" + delimiter; // 実質的支配者の職業・事業内容
-            record += "" + delimiter; // 実質的支配者のPEPS該否
-            record += "" + delimiter; // 実質的支配者の国籍・国名
-            record += "" + delimiter; // 実質的支配者のアルファベット氏名
-            record += "" + delimiter; // 実質的支配者の在留資格
-            record += "" + delimiter; // 実質的支配者の在留期限
-            record += "" + delimiter; // 実質的支配者の氏名2
-            record += "" + delimiter; // 実質的支配者のカナ氏名2
-            record += "" + delimiter; // 実質的支配者の生年月日2
-            record += "" + delimiter; // 実質的支配者の団体との関係2
-            record += "" + delimiter; // 実質的支配者の住所2
-            record += "" + delimiter; // 実質的支配者の職業・事業内容2
-            record += "" + delimiter; // 実質的支配者のPEPS該否2
-            record += "" + delimiter; // 実質的支配者の国籍・国名2
-            record += "" + delimiter; // 実質的支配者のアルファベット氏名2
-            record += "" + delimiter; // 実質的支配者の在留資格2
-            record += "" + delimiter; // 実質的支配者の在留期限2
-            record += "" + delimiter; // 実質的支配者の氏名3
-            record += "" + delimiter; // 実質的支配者のカナ氏名3
-            record += "" + delimiter; // 実質的支配者の生年月日3
-            record += "" + delimiter; // 実質的支配者の団体との関係3
-            record += "" + delimiter; // 実質的支配者の住所3
-            record += "" + delimiter; // 実質的支配者の職業・事業内容3
-            record += "" + delimiter; // 実質的支配者のPEPS該否3
-            record += "" + delimiter; // 実質的支配者の国籍・国名3
-            record += "" + delimiter; // 実質的支配者のアルファベット氏名3
-            record += "" + delimiter; // 実質的支配者の在留資格3
-            record += "" + delimiter; // 実質的支配者の在留期限3
-            record += "" + delimiter; // 取引担当者の氏名
-            record += "" + delimiter; // 取引担当者のカナ氏名
-            record += "" + delimiter; // 取引担当者の部署
-            record += "" + delimiter; // 取引担当者の役職
-            record += "" + delimiter; // 取引担当者の電話番号
-            record += "" + delimiter; // 取引担当者のメールアドレス
-            record += "" + delimiter; // 取引担当者の郵便番号
-            record += "" + delimiter; // 取引担当者の住所
-            record += "" + delimiter; // 取引担当者のカナ住所
-
-            record += row["bpo_ship_round"].ToString() + delimiter; // 発送希望回次
-            record += row["bpo_zip_code"].ToString() + delimiter; // 変更前郵便番号
-            record += row["bpo_address"].ToString() + delimiter; // 変更前住所（所在地）
-            record += row["bpo_home_tel"].ToString() + delimiter; // 変更前第一電話番号
-            record += row["bpo_work_tel"].ToString() + delimiter; // 変更前第二電話番号
-            record += row["bpo_mobile_tel"].ToString() + delimiter; // 変更間第三電話番号
-            record += row["bpo_nation"].ToString() + delimiter; // 変更前国籍
-            record += row["bpo_visa_type"].ToString() + delimiter; // 変更前在留資格
-            record += row["bpo_visa_exp"].ToString() + delimiter; // 変更前在留期限
-            record += row["bpo_job_type_cd"].ToString() + delimiter; // 変更前職業事業内容コード
-            record += row["bpo_biz_type_cd"].ToString() + delimiter; // 変更前業種コード
-            record += row["bpo_biz_name_etc"].ToString() + delimiter; // 変更前その他業種名称
-
-            record += row["bpo_purp_1"].ToString() + delimiter; // 変更前取引目的1
-            record += row["bpo_purp_2"].ToString() + delimiter; // 変更前取引目的2
-            record += row["bpo_purp_3"].ToString() + delimiter; // 変更前取引目的3
-            record += row["bpo_purp_4"].ToString() + delimiter; // 変更前取引目的4
-            record += row["bpo_purp_5"].ToString() + delimiter; // 変更前取引目的5
-            record += row["bpo_purp_6"].ToString() + delimiter; // 変更前取引目的6
-            record += row["bpo_birth_date"].ToString() + delimiter; // 変更間生年月日（設立年月日）
-            record += row["bpo_kanji_2"].ToString() + delimiter; // 変更前漢字氏名2
-            record += row["bpo_role_kanji"].ToString() + delimiter; // 変更前漢字役職名
-            record += row["bpo_rep_kanji"].ToString() + delimiter; // 変更前代表者の漢字氏名
-
-            return record;
-        }
-
-
-        /// <summary>
         /// 回答結果イメージ管理データ（個人）作成
         /// </summary>
         /// <param name="codeDb"></param>
@@ -888,7 +675,7 @@ namespace MyTemplate.RoukinClass
             record += row["bpo_bank_code"].ToString() + delimiter;  // 金融機関コード
             record += brancNo + delimiter;  // 支店番号
             record += row["bpo_cust_no"].ToString() + delimiter;    // 顧客番号
-            record += Convert(kanaName, 30, ' ') + delimiter;       // カナ氏名
+            record += Convert(RokinModules.ReplaceSmallKanaWithLargeKana(kanaName), 30, ' ') + delimiter;   // カナ氏名
             record += Convert(kanjiName, 30, '　') + delimiter;     // 漢字氏名
             record += Convert("", 8, '0') + delimiter;  // 本人確認日
             record += row["bpo_branch_no"].ToString() + delimiter;  // 顧客管理番号
@@ -906,7 +693,6 @@ namespace MyTemplate.RoukinClass
 
             return record;
         }
-
 
         /// <summary>
         /// 顧客情報変更データ（個人）作成
@@ -973,7 +759,7 @@ namespace MyTemplate.RoukinClass
             record += Convert("", 4, '0') + delimiter;  // 事業所コード
             record += Convert("", 4, '0') + delimiter;  // 登録店番
 
-            record += Convert(row["worksch_kan"].ToString(), 48, ' ') + delimiter; // カナ勤務先名
+            record += Convert(RokinModules.ReplaceSmallKanaWithLargeKana(row["worksch_kan"].ToString()), 48, ' ') + delimiter; // カナ勤務先名
             record += Convert(row["work_or_sch"].ToString(), 30, '　') + delimiter; // 勤務先名
 
             record += Convert("", 6, '0') + delimiter;  // 年収
@@ -1085,14 +871,6 @@ namespace MyTemplate.RoukinClass
                 .ToList();
 
             return result;
-        }
-    }
-
-    public class AnsImageClass : MyLibrary.MyLoading.Thread
-    {
-        public override int MultiThreadMethod()
-        {
-            throw new NotImplementedException();
         }
     }
 }

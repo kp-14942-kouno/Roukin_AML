@@ -175,6 +175,7 @@ namespace MyTemplate.Forms
                 catch (Exception ex)
                 {
                     db.RollbackTransaction();
+                    MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
                     throw;
                 }
             }
