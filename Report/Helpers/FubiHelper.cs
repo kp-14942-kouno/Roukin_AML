@@ -24,13 +24,13 @@ namespace MyTemplate.Report.Helpers
         /// <param name="dataTable"></param>
         /// <param name="defectDic"></param>
         /// <returns></returns>
-        public static FixedDocument CreateFixedDocument(DataTable dataTable, Dictionary<string, string> defectDic)
+        public static FixedDocument CreateFixedDocument(DataTable dataTable, List<Report.Models.DefectModel> defectModels)
         {
             var document = new FixedDocument();
 
             foreach (DataRow row in dataTable.Rows)
             {
-                var pageContents = CreatePageContent(row, defectDic);
+                var pageContents = CreatePageContent(row, defectModels);
                 foreach(PageContent page in pageContents)
                 {
                     // PageContentをFixedDocumentに追加
@@ -46,7 +46,7 @@ namespace MyTemplate.Report.Helpers
         /// <param name="dataRow"></param>
         /// <param name="defectDic"></param>
         /// <returns></returns>
-        private static List<PageContent> CreatePageContent(DataRow dataRow, Dictionary<string, string> defectDic)
+        private static List<PageContent> CreatePageContent(DataRow dataRow, List<Report.Models.DefectModel> defectModels)
         {
             var pageContents = new List<PageContent>();
 
@@ -78,8 +78,15 @@ namespace MyTemplate.Report.Helpers
 
             foreach (var code in fubiAry)
             {
-                // 不備文言を改行で分割
-                var lines = defectDic[code].ToString().Split(@"\n");
+                // 不備文言を取得
+                var line = defectModels.ToList()
+                    .Where(x => x.fubi_code == code)
+                    .Select(x => x.fubi_caption).ToList()
+                    .FirstOrDefault();
+                    
+                // 改行で配列化
+                var lines = line.ToString().Split(@"\n", StringSplitOptions.None);
+
                 // 必要な行数を計算
                 int neededLines = lines.Length + 1;
 
@@ -97,7 +104,8 @@ namespace MyTemplate.Report.Helpers
                     lineLimit = otherPageLimit; // 2ページ目以降は行数の上限を変更
                 }
                 // 不備文言
-                personItem.fubi.Add(new FubiText { Fubi = defectDic[code].ToString().Replace("\\n", Environment.NewLine) + "\r\n"});
+                personItem.fubi.Add(new FubiText { Fubi = line.ToString().Replace(@"\n", Environment.NewLine) + Environment.NewLine });
+
                 // ページ数
                 personItem.page = pageNum;
                 // 現在行
@@ -157,11 +165,11 @@ namespace MyTemplate.Report.Helpers
         /// <param name="dataRow"></param>
         /// <param name="defectDic"></param>
         /// <returns></returns>
-        public static FixedDocument CreateFixedDocument(DataRow dataRow, Dictionary<string, string> defectDic)
+        public static FixedDocument CreateFixedDocument(DataRow dataRow, List<Report.Models.DefectModel> defectModels)
         {
             var document = new FixedDocument();
 
-            var pageContents = CreatePageContent(dataRow, defectDic);
+            var pageContents = CreatePageContent(dataRow, defectModels);
             foreach (PageContent page in pageContents)
             {
                 // PageContentをFixedDocumentに追加

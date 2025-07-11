@@ -1,4 +1,9 @@
-﻿using System.Globalization;
+﻿using MyLibrary;
+using MyLibrary.MyClass;
+using Org.BouncyCastle.Pqc.Crypto.Frodo;
+using System.Data;
+using System.Globalization;
+using System.Windows.Controls;
 using System.Windows.Data;
 
 namespace MyTemplate.Class
@@ -76,6 +81,37 @@ namespace MyTemplate.Class
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
+        }
+    }
+
+
+    public static class DataTableExtensions
+    {
+        public static List<T> ToList<T>(string providerName, string tableName) where T : new()
+        {
+            List<T> list = new List<T>();
+            var properties = typeof(T).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                                                        .Where(p => p.CanWrite).ToList();
+
+            using (MyDbData db = new MyDbData(providerName))
+            {
+                var table = db.ExecuteQuery($"SELECT * FROM {tableName}");
+
+                foreach (DataRow row in table.Rows)
+                {
+                    T item = new T();
+                    foreach (var prop in properties)
+                    {
+                        if (table.Columns.Contains(prop.Name) && row[prop.Name] != DBNull.Value)
+                        {
+                            var value = Convert.ChangeType(row[prop.Name], Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
+                            prop.SetValue(item, value);
+                        }
+                    }
+                    list.Add(item);
+                }
+            }
+            return list;
         }
     }
 }

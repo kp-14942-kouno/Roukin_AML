@@ -84,6 +84,7 @@ roukin_setting:
     img_root_path: 'D:\04.VisualStudio\ろうきん\img'
     exp_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\テストデータ'
     match_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\マッチングデータ'
+    siwake_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\仕訳データ'
     fubi_img_dir: '不備画像'
     customer_info_name: 'KJOUHOUKOUSHINA'               #顧客情報変更データ
     customer_dir: '勘定系@ymd@'                         #勘定系用データのディレクトリ
@@ -97,7 +98,10 @@ roukin_setting:
     fubi_img_data_name: 'ANS_IMAGEKANRI_KINKOJIMU_@ymd@.txt'    #不備対象イメージ管理データ
     fubi_img_zip_name: 'ANS_IAMGE_KINKOJIMU_@ymd@.zip'          #不備対象イメージZIPファイル
 
+    dp_file_name: 'ANS_DP_RENKEI_@ymd@.txt' #DP連携データ
+
     match_name: 'MATCHING_@ymd@.txt' #マッチングデータ
+    siwake_name: 'SIWAKE_@ymd@.txt' #仕訳データ
 
     industry_etc_code: '620050' #（個人）業種その他コード
 

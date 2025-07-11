@@ -5,6 +5,7 @@ using MyLibrary.MyModules;
 using MyTemplate.ImportClass;
 using MyTemplate.Report;
 using MyTemplate.Report.Helpers;
+using MyTemplate.Report.Models;
 using MyTemplate.Report.ViewModels;
 using MyTemplate.Report.Views;
 using MyTemplate.RoukinClass;
@@ -23,6 +24,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -37,8 +39,8 @@ namespace MyTemplate.RoukinForm
     {
         // 不備状データ用テーブル
         private DataTable _table = new();
-        // 不備文言用辞書
-        Dictionary<string, string> _defectDic = new();
+        // 不備文言
+        private List<DefectModel> _defectModels = new();
 
         /// <summary>
         /// リソースの開放
@@ -47,7 +49,6 @@ namespace MyTemplate.RoukinForm
         {
             // リソースの解放
             _table?.Dispose();
-            _defectDic?.Clear();
         }
 
         /// <summary>
@@ -66,6 +67,8 @@ namespace MyTemplate.RoukinForm
         {
             InitializeComponent();
             Owner = Application.Current.MainWindow;
+            WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            // プリンターリストを設定
             Modules.SetPrinterList(cmb_PrinterList);
             SetCount();
         }
@@ -76,27 +79,6 @@ namespace MyTemplate.RoukinForm
         private void SetCount()
         {
             tb_fubiCount.Text = $"{_table.Rows.Count.ToString()}件";
-        }
-
-        /// <summary>
-        /// 不備文言取得
-        /// </summary>
-        /// <returns></returns>
-        private bool GetDefectDic()
-        {
-            using (MyLibrary.MyLoading.Dialog dlg = new MyLibrary.MyLoading.Dialog())
-            {
-                var dic = new GetDefectDic();
-                dlg.ThreadClass(dic);
-                dlg.ShowDialog();
-
-                if(dic.Result != MyLibrary.MyEnum.MyResult.Ok)
-                {
-                    return false;
-                }
-                _defectDic = dic.DefectDic;
-            }
-            return true;
         }
 
         /// <summary>
@@ -138,8 +120,25 @@ namespace MyTemplate.RoukinForm
         /// <param name="e"></param>
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // 不備文言を取得
-            if (!GetDefectDic()) Close();
+            try
+            {
+                // マウスカーソルをwaitにする
+                Mouse.OverrideCursor = Cursors.Wait;
+                // 不備文言の取得
+                _defectModels = MyTemplate.Class.DataTableExtensions.ToList<DefectModel>("code", "t_fubi_code");
+                // 不備文言が取得できていない場合は例外を投げる
+                if (_defectModels.Count == 0) throw new Exception("不備文言の取得に失敗しました。");
+            }
+            catch (Exception ex)
+            {
+                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error, true);
+                this.Close();
+            }
+            finally
+            {
+                // マウスカーソルを元に戻す
+                Mouse.OverrideCursor = null;
+            }
         }
 
         /// <summary>
@@ -209,7 +208,7 @@ namespace MyTemplate.RoukinForm
                 return;
             }
             // 選択された行の不備状のFixedDocumentを作成
-            var document = FubiHelper.CreateFixedDocument(selectedRows.Rows[0], _defectDic);
+            var document = FubiHelper.CreateFixedDocument(selectedRows.Rows[0], _defectModels);
             // FixedDocumentをReportPreivewに渡して表示
             var form = new ReportPreivew(document);
             form.ShowDialog();
@@ -262,39 +261,37 @@ namespace MyTemplate.RoukinForm
         /// <param name="operation"></param>
         private void ExpPrintAndData(int operation)
         {
-            var print = string.Empty;
-            var image = string.Empty;
-            var beetle = string.Empty;
+            var msg = string.Empty;
 
-            if((operation & FubiPrintDocument.OP_PRINT) != 0)
+            if ((operation & FubiPrintDocument.OP_PRINT) != 0)
             {
-                print = "・印刷\r\n";
+                msg += "・印刷\r\n";
             }
             if ((operation & FubiPrintDocument.OP_IMAGE) != 0)
             {
-                image = "・画像作成\r\n";
+                msg += "・画像作成\r\n";
             }
             if ((operation & FubiPrintDocument.OP_BEETLE) != 0)
             {
-                beetle = "・ビートルデータ作成\r\n";
+                msg += "・ビートルデータ作成\r\n";
             }
             if((operation & FubiPrintDocument.OP_HIKINUKI) != 0)
             {
-                print += "・引抜きリスト\r\n";
+                msg += "・引抜きリストの印刷\r\n";
             }
             if((operation & FubiPrintDocument.OP_MACHING) != 0)
             {
-                image += "・マッチングリスト\r\n";
+                msg += "・マッチングリストの作成\r\n";
             }
 
-            var message = $"{print}{image}{beetle}";
-
+            msg = $"不備状\r\n{msg}";
+           
             // 選択された行を取得
             var selectedRows = SelectedItem();
             // 選択された行がない場合は処理を終了
             if (selectedRows.Rows.Count == 0) return;
             // 確認メッセージ
-            if (MyMessageBox.Show($"選択された不備状の{message}を開始します。", "確認", MyEnum.MessageBoxButtons.YesNo, MyEnum.MessageBoxIcon.Info) != MyEnum.MessageBoxResult.Yes) return;
+            if (MyMessageBox.Show($"{msg}を開始します。", "確認", MyEnum.MessageBoxButtons.YesNo, MyEnum.MessageBoxIcon.Info) != MyEnum.MessageBoxResult.Yes) return;
 
             // 選択されたプリンターを取得
             if (cmb_PrinterList.SelectedItem is not PrintQueue printer)
@@ -306,60 +303,18 @@ namespace MyTemplate.RoukinForm
             using (MyLibrary.MyLoading.Dialog dlg = new MyLibrary.MyLoading.Dialog(this))
             {
                 // 不備状印刷・画像作成スレッドを実行
-                var thread = new FubiPrintDocument(selectedRows, _defectDic, printer, operation, message);
+                var thread = new FubiPrintDocument(selectedRows, printer, _defectModels, operation, msg);
                 dlg.ThreadClass(thread);
                 dlg.ShowDialog();
                 if (thread.Result != MyLibrary.MyEnum.MyResult.Ok)
                 {
-                    MyMessageBox.Show($"{message}に失敗しました。");
+                    MyMessageBox.Show($"{msg}に失敗しました。");
                 }
                 else
                 {
-                    MyMessageBox.Show($"{message}が完了しました。");
+                    MyMessageBox.Show($"{msg}が完了しました。");
                 }
             }
-        }
-    }
-
-    /// <summary>
-    /// 不備文言データを取得するクラス
-    /// </summary>
-    public class GetDefectDic : MyLibrary.MyLoading.Thread
-    {
-        // 不備文言用辞書
-        public Dictionary<string, string> DefectDic { get; private set; } = new Dictionary<string, string>();
-
-        /// <summary>
-        /// 排他処理
-        /// </summary>
-        /// <returns></returns>
-        public override int MultiThreadMethod()
-        {
-            ProgressBarType = MyEnum.MyProgressBarType.None;
-            ProcessName = "不備文言データ取得中";
-
-            try
-            {
-                // 不備文言データを取得
-                using (MyDbData db = new MyDbData("code"))
-                {
-                    using (DbDataReader reader = db.ExecuteReader("select * from t_fubi_code order by fubi_code"))
-                    {
-                        while (reader.Read())
-                        {
-                            DefectDic.Add(reader["fubi_code"].ToString(), reader["fubi_caption"].ToString());
-                        }
-                    }
-                }
-                Result = MyEnum.MyResult.Ok;
-            }
-            catch(Exception ex)
-            {
-                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
-                Result = MyEnum.MyResult.Error;
-            }
-            Completed = true;
-            return 0;
         }
     }
 }

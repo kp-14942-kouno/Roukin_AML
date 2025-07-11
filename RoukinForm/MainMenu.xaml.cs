@@ -131,7 +131,10 @@ namespace MyTemplate.RoukinForm
         /// <param name="e"></param>
         private void bt_ShiwakeList_Click(object sender, RoutedEventArgs e)
         {
-
+            this.Visibility = Visibility.Hidden;
+            var form = new RoukinForm.SiwakePrint();
+            form.ShowDialog();
+            this.Visibility = Visibility.Visible;
         }
     }
 }

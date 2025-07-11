@@ -4,6 +4,7 @@ using MyLibrary.MyClass;
 using MyLibrary.MyModules;
 using MyTemplate.Report;
 using MyTemplate.Report.Helpers;
+using MyTemplate.Report.Models;
 using MyTemplate.Report.Views;
 using System;
 using System.Collections.Generic;
@@ -34,9 +35,9 @@ namespace MyTemplate.RoukinClass
 
         private int _operation; // 実行する操作
         private DataTable _table; // 不備状データ用テーブル
-        private Dictionary<string, string> _defectDic; // 不備文言用辞書
         private PrintQueue _printer; // 印刷するプリンター
         private string _msg; // メッセージ
+        private List<Report.Models.DefectModel> _defectModels; // 不備文言のモデルリスト
 
         /// <summary>
         /// コンストラクタ
@@ -45,11 +46,11 @@ namespace MyTemplate.RoukinClass
         /// <param name="defectDic"></param>
         /// <param name="printer"></param>
         /// <param name="operation"></param>
-        public FubiPrintDocument(DataTable table, Dictionary<string, string> defectDic, PrintQueue printer, int operation, string msg)
+        public FubiPrintDocument(DataTable table, PrintQueue printer, List<DefectModel> defectModels, int operation, string msg)
         {
             _table = table;
-            _defectDic = defectDic;
             _printer = printer;
+            _defectModels = defectModels;
             _operation = operation;
             _msg = msg;
         }
@@ -60,8 +61,8 @@ namespace MyTemplate.RoukinClass
         /// <returns></returns>
         public override int MultiThreadMethod()
         {
-            ProgressBarType = MyEnum.MyProgressBarType.Percent;
-            ProcessName = $"不備状{_msg}処理中...";
+            ProgressBarType = MyEnum.MyProgressBarType.None;
+            ProcessName = $"不備状処理中...";
             ProgressMax = _table.Rows.Count;
             ProgressValue = 0;
 
@@ -73,10 +74,10 @@ namespace MyTemplate.RoukinClass
             try
             {
                 // 開始ログ
-                MyLogger.SetLogger($"不備状\r\n{_msg}作成開始", MyEnum.LoggerType.Info, false);
+                MyLogger.SetLogger($"{_msg}作成開始", MyEnum.LoggerType.Info, false);
 
                 // 実行
-                Run(btl, maching);
+                Run(_defectModels, btl, maching);
 
                 // ビートルデータの保存
                 if (btl.Length > 0 && (_operation & OP_BEETLE) != 0)
@@ -97,10 +98,9 @@ namespace MyTemplate.RoukinClass
                 }
 
                 // 完了ログ
-                MyLogger.SetLogger($"不備状\r\n{_msg}作成完了", MyEnum.LoggerType.Info, false);
+                MyLogger.SetLogger($"{_msg}作成完了", MyEnum.LoggerType.Info, false);
 
                 Result = MyEnum.MyResult.Ok;
-
             }
             catch (Exception ex)
             {
@@ -115,7 +115,7 @@ namespace MyTemplate.RoukinClass
         /// 実行
         /// </summary>
         /// <param name="sb"></param>
-        private void Run(StringBuilder blt, StringBuilder maching)
+        private void Run(List<Report.Models.DefectModel> defectModels, StringBuilder blt, StringBuilder maching)
         {
             // 不備状データをtaba_numでグループ化
             var tabas = _table.AsEnumerable().Select(x => x["taba_num"].ToString()).Distinct().OrderBy(x => x).ToList();
@@ -152,7 +152,7 @@ namespace MyTemplate.RoukinClass
                         // Dispatcher.Invokeを使用してUIスレッドでFixedDocumentを作成
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            document = FubiHelper.CreateFixedDocument(row, _defectDic);
+                            document = FubiHelper.CreateFixedDocument(row, defectModels);
                         });
 
                         if ((_operation & OP_PRINT) != 0)

@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Documents;
 
 namespace MyTemplate.Report.Helpers
 {
-    /// <summary>
-    /// 引抜リスト印刷用ヘルパークラス
-    /// </summary>
-    public static class HikinukiHelper
+    public static class SiwakeHelper
     {
         /// <summary>
         /// FixedDocumentを作成する
@@ -21,16 +16,16 @@ namespace MyTemplate.Report.Helpers
         /// <param name="table"></param>
         /// <param name="taba"></param>
         /// <returns></returns>
-        public static FixedDocument CreateFixedDocument(DataTable table, string taba)
+        public static FixedDocument CreateFixedDocument(DataTable table, string code, string financialName)
         {
             // 引抜リストのデータを変換
-            List<Models.Hikinuki> hikinukiList = ConvTable(table);
-            
+            List<Models.Siwake> siwakeList = ConvTable(table);
+
             // 用紙サイズ
             var size = MyTemplate.Report.ParperSize.A4.ToSSize();
 
             // 引抜リストのデータを10件ずつのページに分割
-            var pages = ChunkBy(hikinukiList, 10);
+            var pages = ChunkBy(siwakeList, 10);
 
             var count = 0;
 
@@ -40,7 +35,7 @@ namespace MyTemplate.Report.Helpers
             {
                 count++;
                 // ページ作成
-                var page = new Report.Views.HikinukiPage(pageData, taba, count, pages.Count());
+                var page = new Report.Views.SiwakePage(pageData, code, financialName,  count, pages.Count());
 
                 // ページのサイズを設定
                 FixedPage fixedPage = new FixedPage { Height = size.Height, Width = size.Width };
@@ -61,23 +56,35 @@ namespace MyTemplate.Report.Helpers
         }
 
         /// <summary>
-        /// 引抜リストのデータをリストに変換
+        /// 仕分けリストのデータをリストに変換
+        /// 前行の束番号が同じならセットしない
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        private static List<Models.Hikinuki> ConvTable(DataTable table)
+        private static List<Models.Siwake> ConvTable(DataTable table)
         {
-            List<Models.Hikinuki> hikinukiList = new List<Models.Hikinuki>();
+            List<Models.Siwake> siwakeList = new List<Models.Siwake>();
+            string previousTaba = string.Empty;
+
             foreach (DataRow row in table.Rows)
             {
-                var hikinuki = new Models.Hikinuki
+                string tabaNum = string.Empty;
+
+                if(previousTaba != row["taba_num"].ToString())
+                {
+                    tabaNum = row["taba_num"].ToString();
+                    previousTaba = tabaNum;
+                } 
+
+                var siwake = new Models.Siwake
                 {
                     bpo_num = row["bpo_num"].ToString(),
+                    taba_num = tabaNum,
                     group_name = row["bpo_org_kanji"].ToString()
                 };
-                hikinukiList.Add(hikinuki);
+                siwakeList.Add(siwake);
             }
-            return hikinukiList;
+            return siwakeList;
         }
 
         /// <summary>

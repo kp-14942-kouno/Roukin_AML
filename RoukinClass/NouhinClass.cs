@@ -79,12 +79,13 @@ namespace MyTemplate.RoukinClass
             string resuponseFile = MyUtilityModules.AppSetting("roukin_setting", "resuponse_res_name");
             // 回答結果イメージ管理データファイル名
             string answerImageFile = MyUtilityModules.AppSetting("roukin_setting", "answer_res_image_name");
-            // 金庫事務用データファイル名
-            string safeBoxFile = MyUtilityModules.AppSetting("roukin_setting", "safe_box_admin_name", true);
             // 納品ファイル作成結果データ（個人）
             string resPerile = MyUtilityModules.AppSetting("roukin_setting", "exp_per_res_file_name", true, _kojin.Rows.Count);
             // 納品ファイル作成結果データ（団体）
             string resGrpFile = MyUtilityModules.AppSetting("roukin_setting", "exp_grp_res_file_name", true, _dantai.Rows.Count);
+
+            // DP連携ファイル名
+            string dpFile = MyUtilityModules.AppSetting("roukin_setting", "dp_file_name", true);
 
             // 勘定系（顧客情報変更データ）ディレクトリ
             string customerDir = MyUtilityModules.AppSetting("roukin_setting", "customer_dir", true);
@@ -110,6 +111,8 @@ namespace MyTemplate.RoukinClass
             using (var resuponse = new StreamWriter(Path.Combine(ansPath, resuponseFile), false, Encoding.GetEncoding("Shift_Jis")))
             // 回答結果イメージ管理データ
             using (var answerImage = new StreamWriter(Path.Combine(ansPath, answerImageFile), false, Encoding.GetEncoding("Shift_Jis")))
+            // DP連携ファイル
+            using (var dp = new StreamWriter(Path.Combine(_expPath, dpFile), false, Encoding.GetEncoding("Shift_Jis")))
             {
                 ProgressMax = _dantai.Rows.Count + _kojin.Rows.Count;
                 ProgressValue = 0;
