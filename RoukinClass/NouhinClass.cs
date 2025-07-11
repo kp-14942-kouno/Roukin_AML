@@ -83,10 +83,8 @@ namespace MyTemplate.RoukinClass
             string resPerile = MyUtilityModules.AppSetting("roukin_setting", "exp_per_res_file_name", true, _kojin.Rows.Count);
             // 納品ファイル作成結果データ（団体）
             string resGrpFile = MyUtilityModules.AppSetting("roukin_setting", "exp_grp_res_file_name", true, _dantai.Rows.Count);
-
             // DP連携ファイル名
             string dpFile = MyUtilityModules.AppSetting("roukin_setting", "dp_file_name", true);
-
             // 勘定系（顧客情報変更データ）ディレクトリ
             string customerDir = MyUtilityModules.AppSetting("roukin_setting", "customer_dir", true);
             // 本陣確認システム（回答結果データ）ディレクトリ
