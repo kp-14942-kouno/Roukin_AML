@@ -2,6 +2,7 @@
 using DocumentFormat.OpenXml.Drawing;
 using MyLibrary;
 using MyLibrary.MyClass;
+using MyLibrary.MyModules;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -435,21 +436,33 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiCode"></param>
         private void FubiCheck_08(DataRow row, StringBuilder fubiCode)
         {
+            string cngFlg = row["addr_chg"].ToString().Trim();
             string hqFlg = row["hq_ctry_chg"].ToString().Trim();
             string hqCountry = row["hq_country"].ToString().Trim();
+            // 日本コード
+            string jpn = MyUtilityModules.AppSetting("roukin_setting", "jpn_code");
 
-            // 本店所在国変更なしで本店所在国が空はOK
-            if (hqFlg == "0" && string.IsNullOrEmpty(hqCountry)) return;
-
-            // 本店所在国変更有無がなしと未選択以外
-            if (hqFlg != "0" && hqFlg !="01")
+            // 変更なしで
+            if (cngFlg == "0")
             {
-                // 本店所在国名がテーブルに存在するか
-                bool exists = _contoryCode.AsEnumerable()
-                    .Any(x => x.Field<string>("country_name") == hqCountry);
+                // 日本・日本以外未選択・国名未記入はOK
+                if (string.IsNullOrEmpty(hqFlg) && string.IsNullOrEmpty(hqCountry)) return;
+            }
 
-                // 本店所在国名がテーブルに存在する場合はOK
-                if (exists) return;
+            // 変更ありで
+            if (cngFlg == "1")
+            {
+                // 日本選択・国名未記入はOK
+                if (hqFlg == "01" && string.IsNullOrEmpty(hqCountry)) return;
+
+                // 国籍テーブルから国コードを取得
+                string? code = _contoryCode.AsEnumerable()
+                    .Where(x => x.Field<string>("country_name") == hqCountry)
+                    .Select(x => x.Field<string>("code"))
+                    .FirstOrDefault();
+
+                // 日本以外選択で国名が日本以外はOK
+                if (hqFlg == "02" && !string.IsNullOrEmpty(code) && code != jpn) return;
             }
 
             // それ以外は不備コードをセット
@@ -668,7 +681,7 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiCode"></param>
         private void FubiCheck_18(DataRow row, StringBuilder fubiCode) 
         {
-            string flg = row["rep_name_chg"].ToString().Trim();
+            string flg = row["rep_chg"].ToString().Trim();
             string name = row["rep_name"].ToString().Trim();
 
             // 変更なしで代表者の漢字氏名が空はOK
@@ -694,7 +707,7 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiCode"></param>
         private void FubiCheck_19(DataRow row, StringBuilder fubiCode)
         {
-            string flg = row["rep_name_chg"].ToString().Trim();
+            string flg = row["rep_chg"].ToString().Trim();
             string name = row["rep_kana"].ToString().Trim();
 
             // 変更なしで代表者のカナ氏名が空はOK
@@ -720,7 +733,11 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiCode"></param>
         private void FubiCheck_20(DataRow row, StringBuilder fubiCode)
         {
+            string flg = row["rep_chg"].ToString().Trim();
             string birth = row["rep_bday"].ToString().Trim();
+
+            // 変更なしで代表者の生年月日が空はOK
+            if (flg=="0" && string.IsNullOrEmpty(birth)) return;
 
             // 生年月日（yyyymmdd）をyyyy/MM/dd形式に変換
             DateTime? formattedDate = MyLibrary.MyModules.MyUtilityModules.ParseDateString(birth, "yyyyMMdd");
@@ -728,8 +745,12 @@ namespace MyTemplate.RoukinClass
             // 生年月日がyyyy/MM/dd形式に変換できた場合はOK
             if (!string.IsNullOrEmpty(formattedDate.ToString()))
             {
-                // 生年月日が未来日でなければOK
-                if (formattedDate <= DateTime.Now) return;
+                // 生年月日が未来かどうか
+                bool isFuture = formattedDate > DateTime.Now;
+                // 変更ありで未来日でなければOK
+                if (!isFuture && flg == "1") return;
+                // 変更有無未選択で未来日でなければOK
+                if (!isFuture && string.IsNullOrEmpty(flg)) return;
             }
             // それ以外は不備コードをセット
             fubiCode.Append("20;");
@@ -742,10 +763,15 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiCode"></param>
         private void FubiCheck_21(DataRow row, StringBuilder fubiCode)
         {
+            string flg = row["rep_chg"].ToString().Trim();
             string title = row["rep_title"].ToString().Trim();
 
-            // 役職が空でなければOK
-            if (!string.IsNullOrEmpty(title)) return;
+            // 変更なしで代表者の役職が空はOK
+            if (flg == "0" && string.IsNullOrEmpty(title)) return;
+            // 変更ありで代表者の役職に値が入っている場合はOK
+            if (flg == "1" && !string.IsNullOrEmpty(title)) return;
+            // 変更有無未選択で代表者の役職に値が入っている場合はOK
+            if (string.IsNullOrEmpty(flg) && !string.IsNullOrEmpty(title)) return;
 
             // それ以外は不備コードをセット
             fubiCode.Append("21;");
@@ -763,17 +789,29 @@ namespace MyTemplate.RoukinClass
             string nat = row["rep_nat"].ToString().Trim();
             // 国名
             string natname = row["rep_natname"].ToString().Trim();
+            // 日本コード
+            string jpn = MyUtilityModules.AppSetting("roukin_setting", "jpn_code");
 
-            // 国籍が日本はOK
-            if (nat == "01") return;
+            // 日本選択で国名が未記入はOK
+            if (nat == "01" && string.IsNullOrEmpty(natname)) return;
+            // 日本・日本以外未選択で国名未記入はOK
+            if(nat == "" && string.IsNullOrEmpty(natname)) return;
 
-            // 国籍テーブルに存在するかチェック
-            bool exists = _contoryCode.AsEnumerable()
-                .Any(x => x.Field<string>("country_name") == natname);
+            // 国籍テーブルから国コードを取得
+            string? code = _contoryCode.AsEnumerable()
+                .Where(x => x.Field<string>("country_name") == natname)
+                .Select(x => x.Field<string>("code"))
+                .FirstOrDefault();
 
-            // 国籍テーブルに国名が存在する場合はOK
-            if (exists) return;
-
+            // 日本以外選択で日本以外の国名が存在する場合はOK
+            if (nat == "02" && !string.IsNullOrEmpty(code) && code != jpn) return;
+            // 日本・日本以外とも選択で国名が存在する場合はOK
+            if(nat == "0102" && !string.IsNullOrEmpty(code)) return;
+            // 日本・日本以外とも未選択で国名が存在する場合はOK
+            if(string.IsNullOrEmpty(nat) && !string.IsNullOrEmpty(code)) return;
+            // 日本選択・国名記入はOK
+            if (nat == "01" && !string.IsNullOrEmpty(code)) return;
+   
             // それ以外は不備コードをセット
             fubiCode.Append("22;");
         }
@@ -917,16 +955,26 @@ namespace MyTemplate.RoukinClass
             string nat = row[$"{preFix}_nat"].ToString().Trim();
             // 国名
             string natname = row[$"{preFix}_natname"].ToString().Trim();
+            // 日本コード
+            string jpn = MyUtilityModules.AppSetting("roukin_setting", "jpn_code");
 
-            // 国籍が日本はOK
-            if (nat == "01") return;
+            // 日本選択・国名未記入はOK
+            if (nat == "01" && string.IsNullOrEmpty(natname)) return;
 
-            // 国籍テーブルに存在するかチェック
-            bool exists = _contoryCode.AsEnumerable()
-                .Any(x => x.Field<string>("country_name") == natname);
+            // 国籍テーブルから国コードを取得
+            string? code = _contoryCode.AsEnumerable()
+                .Where(x => x.Field<string>("country_name") == natname)
+                .Select(x => x.Field<string>("code"))
+                .FirstOrDefault();
 
-            // 国籍テーブルに国名が存在する場合はOK
-            if (exists) return;
+            // 日本以外選択で日本外の国名記入はOK
+            if (nat == "02" && !string.IsNullOrEmpty(code) && code != jpn) return;
+            // 日本・日本以外未選択で国名記入はOK
+            if (nat == "" && !string.IsNullOrEmpty(code)) return;
+            // 日本・日本以外とも選択で国名記入はOK
+            if (nat == "0102" && !string.IsNullOrEmpty(code)) return;
+            // 日本選択で国名記入はOK
+            if (nat == "01" && !string.IsNullOrEmpty(code)) return;
 
             // それ以外は不備コードをセット
             fubiCode.Append(fubi + ";");

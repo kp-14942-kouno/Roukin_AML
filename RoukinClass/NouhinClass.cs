@@ -256,15 +256,28 @@ namespace MyTemplate.RoukinClass
                 resGrp.WriteLine(record.ToString());
                 record.Clear(); // 開放
 
-                // 個人の顧客情報変更データを取得
+                // 団体の顧客情報変更データを取得
                 string customerInfo = GetCustomerInfoDantai(codeDb, row, answerDate, bussiness, industry, hqFlg, hqCode, purposeFlg, purpose, purposeTxt);
                 customer.WriteLine(customerInfo);
-                // 個人の回答結果顧客管理データを取得
+                // 団体の回答結果顧客管理データを取得
                 string responseDantai = GetResuponseDantai(codeDb, row, branchNo, caseNo, answerDate, ProgressValue);
                 resuponse.Write(responseDantai);
-                // 個人の回答結果イメージ管理データを取得
-                string answerImageDantai = GetAnswerImageDantai(codeDb, row, branchNo, caseNo, answerDate, ProgressValue);
-                answerImage.Write(answerImageDantai);
+
+                // 人格コードで回答結果イメージ管理データの種類を決定
+                int typeNum = row["bpo_persona_cd"].ToString().Trim() switch
+                {
+                    "11" or "13" => 1, // 個人・個人事業主
+                    "11" or "22" => 2, // 社団・財団
+                    "21" or "31" or "81" or "83" => 0, // 金融機関・国
+                    _ => throw new Exception($"条件に無い人格コードが指定されています: {row["bpo_persona_cd"].ToString().Trim()}")
+                };
+           
+                for (int i = 1; i <= typeNum; i++)
+                {
+                    // 団体の回答結果イメージ管理データを取得
+                    string answerImageDantai = GetAnswerImageDantai(codeDb, row, branchNo, caseNo, answerDate,typeNum.ToString(), ProgressValue);
+                    answerImage.Write(answerImageDantai);
+                }
             }
         }
 
@@ -278,7 +291,7 @@ namespace MyTemplate.RoukinClass
         /// <param name="answerDate"></param>
         /// <param name="num"></param>
         /// <returns></returns>
-        private string GetAnswerImageDantai(MyDbData codeDb, DataRow row, string brancNo, string caseNo, string answerDate, int num)
+        private string GetAnswerImageDantai(MyDbData codeDb, DataRow row, string brancNo, string caseNo, string answerDate,string typeNum, int num)
         {
             string delimiter = ",";
 
@@ -286,7 +299,7 @@ namespace MyTemplate.RoukinClass
             record += row["bpo_bank_code"].ToString() + delimiter;  // 金融機関コード
             record += brancNo + delimiter;  // 支店番号
             record += caseNo + delimiter; // 案件毎番号
-            record += "1" + delimiter; // 代表種類区分
+            record += typeNum + delimiter; // 代表種類区分
             record += num.ToString("0000") + delimiter; // イメージ毎番号
             record += Convert("", 13, ' '); // 予備
             record += "\r\n"; // 改行
@@ -602,9 +615,22 @@ namespace MyTemplate.RoukinClass
                 // 個人の回答結果顧客管理データを取得
                 string responseKojin = GetResuponseKojin(codeDb, row, branchNo, caseNo, parsedDate, ProgressValue);
                 resuponse.Write(responseKojin);
-                // 個人の回答結果イメージ管理データを取得
-                string answerImageKojin = GetAnswerImageKojin(codeDb, row, branchNo, caseNo, parsedDate, ProgressValue);
-                answerImage.Write(answerImageKojin);
+
+                // 人格コードで回答結果イメージ管理データの種類を決定
+                int typeNum = row["bpo_persona_cd"].ToString().Trim() switch
+                {
+                    "11" or "13" => 1, // 個人・個人事業主
+                    "11" or "22" => 2, // 社団・財団
+                    "21" or "31" or "81" or "83" => 0, // 金融機関・国
+                    _ => throw new Exception($"条件に無い人格コードが指定されています: {row["bpo_persona_cd"].ToString().Trim()}")
+                };
+
+                for (int i = 1; i <= typeNum; i++)
+                {
+                    // 個人の回答結果イメージ管理データを取得
+                    string answerImageKojin = GetAnswerImageKojin(codeDb, row, branchNo, caseNo, parsedDate, typeNum.ToString(), ProgressValue);
+                    answerImage.Write(answerImageKojin);
+                }
             }
         }
 
@@ -618,7 +644,7 @@ namespace MyTemplate.RoukinClass
         /// <param name="parsedDate"></param>
         /// <param name="num"></param>
         /// <returns></returns>
-        private string GetAnswerImageKojin(MyDbData codeDb, DataRow row, string brancNo, string caseNo, DateTime parsedDate, int num)
+        private string GetAnswerImageKojin(MyDbData codeDb, DataRow row, string brancNo, string caseNo, DateTime parsedDate, string typeNum, int num)
         {
             string delimiter = "";
 
@@ -626,7 +652,7 @@ namespace MyTemplate.RoukinClass
             record += row["bpo_bank_code"].ToString() + delimiter;  // 金融機関コード
             record += brancNo + delimiter;  // 支店番号
             record += caseNo + delimiter; // 案件毎番号
-            record += "1" + delimiter; // 代表種類区分
+            record += typeNum + delimiter; // 代表種類区分
             record += num.ToString("0000") + delimiter; // イメージ毎番号
             record += Convert("", 13, ' '); // 予備
             record += "\r\n"; // 改行

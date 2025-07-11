@@ -104,6 +104,7 @@ roukin_setting:
     siwake_name: 'SIWAKE_@ymd@.txt' #仕訳データ
 
     industry_etc_code: '620050' #（個人）業種その他コード
+    jpn_code: '0100' #日本国コード
 
     fubi_print_name: "10_不備状印刷_@ymd@_@hms@.txt"
     exp_webcas_file_name: "PER_01_data_@ymd@_@hms@_@#@.csv"
