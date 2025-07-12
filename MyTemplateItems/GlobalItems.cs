@@ -19,11 +19,14 @@ namespace MyTemplate
         public static int Authority { get; set; }
 
         // 権限名称に変換
-        public static string AuthorityName { get
+        public static string AuthorityName
+        {
+            get
             {
                 var autoritys = MyUtilityModules.AppSettings("authority");
                 var authority = autoritys.FirstOrDefault(x => Equals(x.Value.ToString(), UserInfo.Authority.ToString()));
                 return authority.Key;
-            } }
+            }
+        }
     }
 }

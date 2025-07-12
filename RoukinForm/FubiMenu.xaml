@@ -21,12 +21,12 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="不備審査処理" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
+                <TextBlock Grid.Row="0" Text="審査処理" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
 
                 <StackPanel Grid.Row="1" Margin="5">
                     <Button x:Name="bt_InsPnch" Content="審査対象データ読込" Width="192" Height="32" Margin="5" Click="bt_InsPnch_Click"/>
                     <TextBlock x:Name="tb_PnchCount" Text="0件" Margin="0,0,5,0" TextAlignment="Right"/>
-                    <Button x:Name="bt_FubiCheck" Content="不備審査処理" Width="192" Height="32" Margin="5" Click="bt_FubiCheck_Click"/>
+                    <Button x:Name="bt_FubiCheck" Content="審査処理" Width="192" Height="32" Margin="5" Click="bt_FubiCheck_Click"/>
                     <Grid>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <TextBlock Text="不備件数："/>

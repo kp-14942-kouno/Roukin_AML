@@ -136,13 +136,5 @@ namespace MyTemplate.RoukinForm
             form.ShowDialog();
             this.Visibility = Visibility.Visible;
         }
-
-        private void bt_Kinou_Click(object sender, RoutedEventArgs e)
-        {
-            string reg = @"^([6][2][0][0]([0-2][0-9]|[3][0-3])|[\-][9][9][9])$";
-            bool isMatch = System.Text.RegularExpressions.Regex.IsMatch("620034", reg);
-
-            MyMessageBox.Show($"正規表現マッチ: {isMatch}", "確認", MyEnum.MessageBoxButtons.Ok, MyEnum.MessageBoxIcon.Info);
-        }
     }
 }

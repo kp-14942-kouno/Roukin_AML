@@ -98,22 +98,27 @@ roukin_setting:
     fubi_img_data_name: 'ANS_IMAGEKANRI_KINKOJIMU_@ymd@.txt'    #不備対象イメージ管理データ
     fubi_img_zip_name: 'ANS_IAMGE_KINKOJIMU_@ymd@.zip'          #不備対象イメージZIPファイル
 
-    dp_file_name: 'ANS_DP_RENKEI_@ymd@.txt' #DP連携データ
+
+    dp_dir: 'DP連携@ymd@'                        #DP連携データのディレクトリ
+    dp_file_kojin: '個人_本人確認記録書.txt'     #DP連携データ個人
+    dp_file_dantai: '法人_本人確認記録書.txt'    #DP連携団体データ
 
     match_name: 'MATCHING_@ymd@.txt' #マッチングデータ
-    siwake_name: 'SIWAKE_@ymd@.txt' #仕訳データ
+    siwake_name: 'SIWAKE_@ymd@.txt'  #仕訳データ
 
     industry_etc_code: '620050' #（個人）業種その他コード
     jpn_code: '0100' #日本国コード
 
-    fubi_print_name: "10_不備状印刷_@ymd@_@hms@.txt"
-    exp_webcas_file_name: "PER_01_data_@ymd@_@hms@_@#@.csv"
+    exp_webcas_file_name: "個人_10_WEBデータ_@ymd@_@hms@_@#@.csv"    #個人WEBデータ
     exp_webcas_file_delimiter: ","
     exp_webcas_file_mojicode: "utf8bom"
-    exp_grp_res_file_name: "GRP_51_data_@ymd@_@hms@_@#@.csv"
-    exp_per_res_file_name: "PER_21_data_@ymd@_@hms@_@#@.csv"
-    exp_rew_ok_file_name: "団体_40_data_@ymd@_@hms@_@#@.csv"
-    exp_rew_ng_file_name: "団体_30_data_@ymd@_@hms@_@#@.csv"
+
+    allow1byte: '[0x00,0x00][0x20,0x20][0x28,0x28][0x29,0x29][0x2C,0x39][0x41,0x54][0x5C,0x5C][0xA2,0xA2][0xA3,0xA3][0xA6,0xDF]'
+    allow2byte: '[8140,84BE][889F,EAA2]'
+
+    exp_rew_ok_file_name: "団体_40_審査結果正常_@ymd@_@hms@_@#@.csv"    #団体審査正常
+    exp_rew_ng_file_name: "団体_30_審査結果不備_@ymd@_@hms@_@#@.csv"    #団体審査不備
+    fubi_print_name: "団体_32_不備状印刷結果_@ymd@_@hms@.txt"        #団体不備状印刷結果
 
 
 

@@ -11,6 +11,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using static MyTemplate.RoukinClass.RoukinModules;
+
 namespace MyTemplate.RoukinClass
 {
     /// <summary>
@@ -25,6 +27,12 @@ namespace MyTemplate.RoukinClass
         private DataTable _table = new DataTable(); // データテーブル
         private string _msg = string.Empty; // メッセージ
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="operation"></param>
+        /// <param name="msg"></param>
         public FubiNouhinClass(DataTable table, int operation, string msg)
         {
             _table = table;
@@ -32,6 +40,10 @@ namespace MyTemplate.RoukinClass
             _msg = msg;
         }
 
+        /// <summary>
+        /// 排他処理
+        /// </summary>
+        /// <returns></returns>
         public override int MultiThreadMethod()
         {
             //try
@@ -62,6 +74,11 @@ namespace MyTemplate.RoukinClass
             return 0;
         }
 
+        /// <summary>
+        /// 実行
+        /// </summary>
+        /// <param name="codeDb"></param>
+        /// <exception cref="Exception"></exception>
         private void Run(MyDbData codeDb)
         {
             // 出力先パスを取得
@@ -110,7 +127,7 @@ namespace MyTemplate.RoukinClass
                 System.IO.Directory.CreateDirectory(expDir);
 
                 var table = _table.AsEnumerable()
-                    .Where(x => x["bpo_bank_code"].ToString() == bank)
+                    .Where(x => x["bpo_bank_code"].ToString().Trim() == bank)
                     .CopyToDataTable();
 
                 // 不備納品データの作成
@@ -149,6 +166,15 @@ namespace MyTemplate.RoukinClass
             using (var fubiStrm = new StreamWriter(Path.Combine(expDir, fubiName), false, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Sjis)))
             using (var imgStrm = new StreamWriter(Path.Combine(expDir, fubiImgName), false, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Sjis)))
             {
+                // 不備対象データのヘッダーを書き込む
+                fubiStrm.WriteLine("金融機関コード,支店番号,顧客番号,カナ氏名,漢字氏名,案件毎番号," +
+                                   string.Join(delimiter, Enumerable.Range(1, 42)
+                                   .Select(i => $"不備事由{string.Concat(i.ToString().Select(c => c >= '0' && c <= '9' ? (char)('０' + (c - '0')) : c))}")));
+
+                // 不備対象イメージ管理データのヘッダーを書き込む
+                imgStrm.WriteLine("\"金融機関コード\",\"支店番号\",\"顧客番号\",\"案件毎番号\",\"代表書類区分\",\"イメージ毎番号\"");
+
+                // データ分繰り返す
                 foreach (DataRow row in table.Rows)
                 {
                     ProgressValue++;
@@ -161,11 +187,11 @@ namespace MyTemplate.RoukinClass
                     string caseNo = bank + "_" + branchNo + "_" + date + "_" + count.ToString("D4");
 
                     // 不備納品データの作成
-                    fubi.Append(row["bpo_bank_code"].ToString() + delimiter); // 金融機関コード
+                    fubi.Append(row["bpo_bank_code"].ToString().Trim() + delimiter); // 金融機関コード
                     fubi.Append(branchNo + delimiter); // 支店番号
-                    fubi.Append(row["bpo_cust_no"].ToString() + delimiter); // 顧客番号
-                    fubi.Append(row["bpo_kana_name"].ToString() + delimiter); // カナ氏名
-                    fubi.Append(row["bpo_org_kanji"].ToString() + delimiter); // 漢字氏名
+                    fubi.Append(row["bpo_cust_no"].ToString().Trim() + delimiter); // 顧客番号
+                    fubi.Append(row["bpo_kana_name"].ToString().Trim() + delimiter); // カナ氏名
+                    fubi.Append(row["bpo_org_kanji"].ToString().Trim() + delimiter); // 漢字氏名
                     fubi.Append(caseNo + delimiter); // 案件毎番号
 
                     // 不備コード
@@ -193,12 +219,12 @@ namespace MyTemplate.RoukinClass
                     // 画像ファイル枚数分レコードを作成する
                     for (int x = 1; x <= imgCount; x++)
                     {
-                        img.Append(row["bpo_bank_code"].ToString() + delimiter); // 金融機関コード
-                        img.Append(branchNo + delimiter); // 支店番号
-                        img.Append(row["bpo_cust_no"].ToString() + delimiter); // 顧客番号
-                        img.Append(caseNo + delimiter); // 案件毎番号
-                        img.Append("2" + delimiter); // 代表書類区分
-                        img.Append(x.ToString("D4")); // イメージ毎番号
+                        img.Append(SetDc(row["bpo_bank_code"].ToString().Trim()) + delimiter); // 金融機関コード
+                        img.Append(SetDc(branchNo) + delimiter); // 支店番号
+                        img.Append(SetDc(row["bpo_cust_no"].ToString().Trim()) + delimiter); // 顧客番号
+                        img.Append(SetDc(caseNo) + delimiter); // 案件毎番号
+                        img.Append(SetDc("2") + delimiter); // 代表書類区分
+                        img.Append(SetDc(x.ToString("D4"))); // イメージ毎番号
 
                         // 書出し
                         imgStrm.WriteLine(img.ToString());

@@ -20,7 +20,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="納品データ作成" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
+                <TextBlock Grid.Row="0" Text="勘定系・本人確認納品" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
 
                 <StackPanel Grid.Row="1" Margin="5">
                     <Button x:Name="bt_InsDantai" Content="（団体）納品対象データ読込" Width="192" Height="32" Margin="5" Click="bt_InsDantaiData_Click"/>
@@ -30,6 +30,7 @@
 
                     <CheckBox x:Name="chk_Kanjou" Content="勘定系" Margin="5,5,0,0" IsChecked="True"/>
                     <CheckBox x:Name="chk_Honnin" Content="本人確認システム" Margin="5,5,0,0" IsChecked="True"/>
+                    <CheckBox x:Name="chk_Dp" Content="本人確認記録書" Margin="5,5,0,0" IsChecked="True"/>
 
                     <Button x:Name="bt_ExpData" Content="納品データ作成" Width="192" Height="32" Margin="5" Click="bt_ExpNouhin_Click"/>
                 </StackPanel>

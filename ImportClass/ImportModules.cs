@@ -304,7 +304,6 @@ namespace MyTemplate.ImportClass
 
     }
 
-
     /// <summary>
     /// 文字の検証クラス
     /// </summary>

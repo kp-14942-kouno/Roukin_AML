@@ -96,7 +96,7 @@ namespace MyTemplate.RoukinClass
 
                 // 実質的支配者のチェック要否
                 // 人格コード
-                string personCode = row["bpo_persona_cd"].ToString().Trim();
+                string personCode = row["bpo_person_cd"].ToString().Trim();
                 // 実質的支配者1～3
                 string[] person1 = GetPersonData(row, "ubo1");
                 string[] person2 = GetPersonData(row, "ubo2");

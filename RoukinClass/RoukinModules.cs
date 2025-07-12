@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MyTemplate.RoukinClass
 {
-    public static class RokinModules
+    public static class RoukinModules
     {
         /// <summary>
         /// 半角カナ小文字wを半角カナ大文字に変換
@@ -31,6 +31,18 @@ namespace MyTemplate.RoukinClass
                     span[i] = idx >= 0 ? large[idx] : src[i];
                 }
             });
+        }
+
+        /// <summary>
+        /// 囲い文字を付与（ダブルクォーテーション）
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="separator"></param>
+        /// <returns></returns>
+        public static string SetDc(string value)
+        {
+            // valueをダブルクォーテーションで囲む
+            return $"\"{value}\"";
         }
     }
 }

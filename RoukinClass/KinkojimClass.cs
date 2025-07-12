@@ -253,7 +253,7 @@ namespace MyTemplate.RoukinClass
             record += row["bpo_bank_code"].ToString() + delimiter;  // 金融機関コード
             record += row["bpo_cust_no"].ToString() + delimiter;  // 顧客番号
             record += row["bpo_member_no"].ToString() + delimiter;  // 会員番号
-            record += row["bpo_persona_cd"].ToString() + delimiter;  // 人格コード
+            record += row["bpo_person_cd"].ToString() + delimiter;  // 人格コード
             record += row["bpo_kana_name"].ToString() + delimiter;  // カナ氏名
             record += row["bpo_org_kanji"].ToString() + delimiter;  // 漢字氏名
 
@@ -436,7 +436,7 @@ namespace MyTemplate.RoukinClass
             // 実質的支配者1～3
             for (int ubo = 1; ubo <= 3; ubo++)
             {
-                if (personCodes.Contains(row["bpo_persona_cd"].ToString().Trim()))
+                if (personCodes.Contains(row["bpo_person_cd"].ToString().Trim()))
                 {
                     record += row[$"ubo{ubo}_name"].ToString().Trim() + delimiter; // 実質的支配者の氏名
                     record += row[$"ubo{ubo}_kana"].ToString().Trim() + delimiter; // 実質的支配者のカナ氏名
@@ -682,7 +682,7 @@ namespace MyTemplate.RoukinClass
             record += row["bpo_bank_code"].ToString() + delimiter;  // 金融機関コード
             record += row["bpo_cust_no"].ToString() + delimiter;  // 顧客番号
             record += row["bpo_member_no"].ToString() + delimiter;  // 会員番号
-            record += row["bpo_persona_cd"].ToString() + delimiter;  // 人格コード
+            record += row["bpo_person_cd"].ToString() + delimiter;  // 人格コード
             record += row["bpo_kana_name"].ToString() + delimiter;  // カナ氏名
             record += row["bpo_org_kanji"].ToString() + delimiter;  // 漢字氏名
             record += parsedDate.ToString("yyyyMMdd") + delimiter; // 回答日

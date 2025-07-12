@@ -67,6 +67,18 @@ namespace MyTemplate.RoukinForm
         /// <param name="e"></param>
         private void bt_ExpNouhin_Click(object sender, RoutedEventArgs e)
         {
+            int operation = 0;
+
+            operation |= chk_Kanjou.IsChecked == true ? NouhinClass.OP_KANJOUKEI : 0;
+            operation |= chk_Honnin.IsChecked == true ? NouhinClass.OP_HONKAKUSYS : 0;
+            operation |= chk_Dp.IsChecked == true ? NouhinClass.OP_DP : 0;
+
+            if (operation == 0)
+            {
+                MyMessageBox.Show("出力対象が選択されていません。");
+                return;
+            }
+
             List<string> zero = new();
 
             if(_dantai.Rows.Count == 0) zero.Add("団体");
@@ -84,6 +96,20 @@ namespace MyTemplate.RoukinForm
                                             MyEnum.MessageBoxButtons.YesNo, window:this) != MyEnum.MessageBoxResult.Yes) return;
             }
 
+            string msg = string.Empty;
+            if ((operation & NouhinClass.OP_KANJOUKEI) != 0)
+            {
+                msg += "・勘定系用ファイル\r\n";
+            }
+            if ((operation & NouhinClass.OP_HONKAKUSYS) != 0)
+            {
+                msg += "・本人確認システム用ファイル\r\n";
+            }
+            if ((operation & NouhinClass.OP_DP) != 0)
+            {
+                msg += "・本人確認記録書用ファイル\r\n";
+            }
+
             // 出力先設定を取得
             string expPath = MyUtilityModules.AppSetting("roukin_setting", "exp_root_path");
 
@@ -92,14 +118,14 @@ namespace MyTemplate.RoukinForm
             // 出力先が指定されていない場合は処理を中止
             if (string.IsNullOrEmpty(expPath)) return;
             // 確認
-            if (MyMessageBox.Show("納品データを出力します。よろしいですか？", "確認", 
+            if (MyMessageBox.Show($"{msg}データを出力します。よろしいですか？", "確認", 
                 MyEnum.MessageBoxButtons.YesNo, MyEnum.MessageBoxIcon.None) != MyEnum.MessageBoxResult.Yes) return;
 
             // ローディングダイアログを表示
             using (var dlg = new MyLibrary.MyLoading.Dialog(this))
             {
                 // 処理実行
-                var exp = new NouhinClass(_dantai, _kojin, expPath);
+                var exp = new NouhinClass(_dantai, _kojin, expPath, msg);
                 dlg.ThreadClass(exp);
                 dlg.ShowDialog();
                 // 結果を確認

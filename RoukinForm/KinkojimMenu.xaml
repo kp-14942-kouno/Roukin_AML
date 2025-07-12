@@ -20,7 +20,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="納品データ作成" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
+                <TextBlock Grid.Row="0" Text="金庫事務用納品" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
 
                 <StackPanel Grid.Row="1" Margin="5">
                     <Button x:Name="bt_InsDantai" Content="（団体）金庫事務用データ読込" Width="192" Height="32" Margin="5" Click="bt_InsDantaiData_Click"/>

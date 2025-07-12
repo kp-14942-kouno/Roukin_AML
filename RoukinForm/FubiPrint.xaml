@@ -37,8 +37,8 @@
 
         <Border Grid.Row="2" Grid.Column="0" BorderThickness="1" BorderBrush="Black" SnapsToDevicePixels="True" Margin="5">
             <StackPanel Orientation="Vertical">
-                <Label Content="不備状対象読込" FontSize="10" Background="LightSeaGreen" Foreground="White" HorizontalContentAlignment="Center"/>
-                <Button x:Name="bt_InpFubiData" Content="不備状データ読込" Width="196" Height="32" Margin="5" Click="bt_InpFubiData_Click"/>
+                <Label Content="データ処理" FontSize="11" Background="LightSeaGreen" Foreground="White" HorizontalContentAlignment="Center"/>
+                <Button x:Name="bt_InpFubiData" Content="不備状対象読込" Width="196" Height="32" Margin="5" Click="bt_InpFubiData_Click"/>
                 <TextBlock x:Name="tb_fubiCount" Text="100件" Margin="0,0,5,0" HorizontalAlignment="Right"/> 
             </StackPanel>
         </Border>
@@ -46,7 +46,7 @@
         <Grid Grid.Row="1" Grid.RowSpan="2" Grid.Column="2">
             <Border BorderThickness="1" BorderBrush="Black" Margin="5" SnapsToDevicePixels="True">
                 <StackPanel Orientation="Vertical">
-                    <Label Content="一括処理" FontSize="10" Background="CornflowerBlue" Foreground="White" HorizontalContentAlignment="Center"/>
+                    <Label Content="印刷・作成処理" FontSize="11" Background="CornflowerBlue" Foreground="White" HorizontalContentAlignment="Center"/>
                     <CheckBox x:Name="chk_FubiPrint" Content="不備状印刷" Margin="5,5,0,0" IsChecked="True"/>
                     <CheckBox x:Name="chk_FubiImage" Content="不備状画像作成" Margin="5,5,0,0" IsChecked="True"/>
                     <CheckBox x:Name="chk_ExpData" Content="ビートル用データ作成" Margin="5,5,0,0" IsChecked="True"/>
