@@ -35,6 +35,7 @@
             <StackPanel Orientation="Vertical">
                 <Label Content="データ処理" FontSize="11" Background="LightSeaGreen" Foreground="White" HorizontalContentAlignment="Center"/>
                 <Button x:Name="bt_InpShiwakeData" Content="仕分け対象読込み" Width="196" Height="32" Margin="5" Click="bt_InpShiwake_Click"/>
+                <TextBlock Text="団体_60_申請書仕分対象_" HorizontalAlignment="Right" FontSize="11" Foreground="OrangeRed" Margin="0,0,5,0"/>
                 <TextBlock x:Name="tb_ShiwakeCount" Text="100件" Margin="0,0,5,0" HorizontalAlignment="Right"/>
             </StackPanel>
         </Border>

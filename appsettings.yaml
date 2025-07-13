@@ -97,14 +97,18 @@ roukin_setting:
     fubi_data_name: 'ANS_KOKYAKUKANRI_KINKOJIMU_@ymd@.txt'      #不備対象データ
     fubi_img_data_name: 'ANS_IMAGEKANRI_KINKOJIMU_@ymd@.txt'    #不備対象イメージ管理データ
     fubi_img_zip_name: 'ANS_IAMGE_KINKOJIMU_@ymd@.zip'          #不備対象イメージZIPファイル
-
+    fubi_call_zip_name: 'ANS_CALL_KINKOJIMU_@ymd@.zip'          #不備対象コールZIPファイル
+    fubi_call_zip_password: 'fubi' #不備対象コールZIPファイルのパスワード
 
     dp_dir: 'DP連携@ymd@'                        #DP連携データのディレクトリ
     dp_file_kojin: '個人_本人確認記録書.txt'     #DP連携データ個人
     dp_file_dantai: '法人_本人確認記録書.txt'    #DP連携団体データ
 
-    match_name: 'MATCHING_@ymd@.txt' #マッチングデータ
-    siwake_name: 'SIWAKE_@ymd@.txt'  #仕訳データ
+    panch_zip_name: 'PANCHIMAGES_@ymd@.zip' #パンチ画像連携ファイル名
+    panch_zip_password: 'panch' #パンチ画像連携ファイルのパスワード
+
+    match_name: 'MATCHING_@ymd@_@hms@.txt' #マッチングデータ
+    siwake_name: 'SIWAKE_@ymd@_@hms@.txt'  #仕訳データ
 
     industry_etc_code: '620050' #（個人）業種その他コード
     jpn_code: '0100' #日本国コード
@@ -113,7 +117,9 @@ roukin_setting:
     exp_webcas_file_delimiter: ","
     exp_webcas_file_mojicode: "utf8bom"
 
+    #1Byte文字コードの許可範囲
     allow1byte: '[0x00,0x00][0x20,0x20][0x28,0x28][0x29,0x29][0x2C,0x39][0x41,0x54][0x5C,0x5C][0xA2,0xA2][0xA3,0xA3][0xA6,0xDF]'
+    #2Byte文字コードの許可範囲
     allow2byte: '[8140,84BE][889F,EAA2]'
 
     exp_rew_ok_file_name: "団体_40_審査結果正常_@ymd@_@hms@_@#@.csv"    #団体審査正常

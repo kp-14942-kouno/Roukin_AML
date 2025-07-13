@@ -136,5 +136,44 @@ namespace MyTemplate.RoukinForm
             form.ShowDialog();
             this.Visibility = Visibility.Visible;
         }
+
+        /// <summary>
+        /// パンチ画像作成ボタンクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void bt_Punc_Click(object sender, RoutedEventArgs e)
+        {
+            using(ImportClass.FileLoadProperties load = new ImportClass.FileLoadProperties())
+            {
+                // ファイル読込み設定取得
+                if(!ImportClass.FileLoadClass.GetFileLoadSetting(2, load)) return;
+                // ファイル読込み実行
+                if (ImportClass.FileLoadClass.FileLoad(this, load) != MyEnum.MyResult.Ok) return;
+
+                // 確認
+                if (MyMessageBox.Show("パンチ画像をZIP化します。", "確認", MyEnum.MessageBoxButtons.YesNo, MyEnum.MessageBoxIcon.None) != MyEnum.MessageBoxResult.Yes) return;
+
+                // 出力先パス
+                string expPath = MyUtilityModules.AppSetting("roukin_setting", "exp_root_path");
+                // パスが存在しない場合はダイアログで取得
+                expPath = MyTemplate.Modules.MyFolderDialog(expPath);
+                if (string.IsNullOrEmpty(expPath)) return;
+
+                using(var dlg = new MyLibrary.MyLoading.Dialog(this))
+                {
+                    // パンチ画像作成クラスを生成
+                    var exp = new ExpPunchImage(load.LoadData, expPath);
+                    // スレッド実行
+                    dlg.ThreadClass(exp);
+                    // ダイアログを表示
+                    dlg.ShowDialog();
+                    // 結果確認
+                    if (exp.Result != MyEnum.MyResult.Ok) return;
+                    // 結果メッセージを表示
+                    MyMessageBox.Show(exp.ResultMessage);
+                }
+            }
+        }
     }
 }

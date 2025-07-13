@@ -48,7 +48,7 @@ namespace MyTemplate.RoukinClass
         /// <returns></returns>
         public override int MultiThreadMethod()
         {
-            //try
+#if DEBUG
             {
                 // 開始ログ出力
                 MyLogger.SetLogger($"{_msg}データ作成を開始", MyEnum.LoggerType.Info, false);
@@ -57,22 +57,38 @@ namespace MyTemplate.RoukinClass
                 {
                     // 実行
                     Run(codeDb);
-
                     // 結果メッセージ
                     ResultMessage = $"{_msg}納品データ作成完了";
-
                     // 終了ログ出力
                     MyLogger.SetLogger(ResultMessage, MyEnum.LoggerType.Info, false);
 
                     Result = MyLibrary.MyEnum.MyResult.Ok;
                 }
-
             }
-            //catch (Exception ex)
-            //{
-            //    MyLogger.SetLogger(ex, MyLibrary.MyEnum.LoggerType.Error);
-            //    Result = MyLibrary.MyEnum.MyResult.Error;
-            //}
+#else
+            try
+            {
+                // 開始ログ出力
+                MyLogger.SetLogger($"{_msg}データ作成を開始", MyEnum.LoggerType.Info, false);
+
+                using (var codeDb = new MyDbData("code"))
+                {
+                    // 実行
+                    Run(codeDb);
+                    // 結果メッセージ
+                    ResultMessage = $"{_msg}納品データ作成完了";
+                    // 終了ログ出力
+                    MyLogger.SetLogger(ResultMessage, MyEnum.LoggerType.Info, false);
+
+                    Result = MyLibrary.MyEnum.MyResult.Ok;
+                }
+            }
+            catch (Exception ex)
+            {
+                MyLogger.SetLogger(ex, MyLibrary.MyEnum.LoggerType.Error);
+                Result = MyLibrary.MyEnum.MyResult.Error;
+            }
+#endif
             Completed = true;
             return 0;
         }
@@ -84,6 +100,11 @@ namespace MyTemplate.RoukinClass
         /// <exception cref="Exception"></exception>
         private void Run(MyDbData codeDb)
         {
+            ProgressBarType = MyEnum.MyProgressBarType.Percent;
+            ProcessName = $"納品データ作成中...";
+            ProgressMax = _dantai.Rows.Count + _kojin.Rows.Count;
+            ProgressValue = 0;
+
             var allow1Byte = MyUtilityModules.AppSetting("roukin_setting", "allow1byte");
             var allow2Byte = MyUtilityModules.AppSetting("roukin_setting", "allow2byte");
             var charValidator = new MyClass.MyCharValidator(allow1Byte, allow2Byte, null);
@@ -118,15 +139,15 @@ namespace MyTemplate.RoukinClass
             StringBuilder dpDantai = new StringBuilder();   // DP連携用の団体データ
 
             // 顧客情報変更データ
-            using (var customer = new StreamWriter(Path.Combine(customerPath, customerFile), false, Encoding.GetEncoding("Shift_Jis")))
+            using(var fsCustomer = new FileStream(Path.Combine(customerPath, customerFile), FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var customer = new StreamWriter(fsCustomer, Encoding.GetEncoding("Shift_Jis")))
             // 回答顧客情報データ
-            using (var resuponse = new StreamWriter(Path.Combine(ansPath, resuponseFile), false, Encoding.GetEncoding("Shift_Jis")))
+            using (var fsResuponse = new FileStream(Path.Combine(ansPath, resuponseFile), FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var resuponse = new StreamWriter(fsResuponse, Encoding.GetEncoding("Shift_Jis")))
             // 回答結果イメージ管理データ
-            using (var answerImage = new StreamWriter(Path.Combine(ansPath, answerImageFile), false, Encoding.GetEncoding("Shift_Jis")))
+            using (var fsAnswerImage = new FileStream(Path.Combine(ansPath, answerImageFile), FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var answerImage = new StreamWriter(fsAnswerImage, Encoding.GetEncoding("Shift_Jis")))
             {
-                ProgressMax = _dantai.Rows.Count + _kojin.Rows.Count;
-                ProgressValue = 0;
-
                 foreach (string bankCode in bankCodes)
                 {
                     // 金融機関コードから金融機関名を取得
@@ -165,7 +186,8 @@ namespace MyTemplate.RoukinClass
                     // ディレクトリ作成
                     Directory.CreateDirectory(Path.Combine(_expPath, dpDir));
                     // 団体の本人確認記録書データを出力
-                    using (StreamWriter writer = new StreamWriter(Path.Combine(_expPath, dpDir, dpDantaiName), false, Encoding.GetEncoding("Shift_Jis")))
+                    using(var fsWriter = new FileStream(Path.Combine(_expPath, dpDir, dpDantaiName), FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                    using (StreamWriter writer = new StreamWriter(fsWriter, Encoding.GetEncoding("Shift_Jis")))
                     {
                         writer.Write(dpDantai.ToString());
                     }
@@ -177,7 +199,8 @@ namespace MyTemplate.RoukinClass
                     // ディレクトリ作成
                     Directory.CreateDirectory(Path.Combine(_expPath, dpDir));
                     // 個人の本人確認記録書データを出力
-                    using (StreamWriter writer = new StreamWriter(Path.Combine(_expPath, dpDir, dpKojinName), false, Encoding.GetEncoding("Shift_Jis")))
+                    using var fsWriter = new FileStream(Path.Combine(_expPath, dpDir, dpKojinName), FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                    using (StreamWriter writer = new StreamWriter(fsWriter, Encoding.GetEncoding("Shift_Jis")))
                     {
                         writer.Write(dpKojin.ToString());
                     }
@@ -200,11 +223,14 @@ namespace MyTemplate.RoukinClass
         private void SetDantai(MyDbData codeDb, EnumerableRowCollection<DataRow> dantaiRows, StreamWriter customer, StreamWriter resuponse, 
                                                                     StreamWriter answerImage, string branchNo, StringBuilder dpDantai, MyClass.MyCharValidator charValidator)
         {
+            int recordNum = 0; // レコード番号
+
             // 人格コード（実質的支配者のデータが必要なコード）
             HashSet<string> personCodes = new HashSet<string> { "21", "31", "81" };
 
             foreach (DataRow row in dantaiRows)
             {
+                recordNum++;
                 ProgressValue++;
 
                 // 業種
@@ -225,7 +251,7 @@ namespace MyTemplate.RoukinClass
                     // 業種コード取得
                     var blzRow = codeDb.ExecuteQuery($"select * from t_business_code_organization where code='{blz[0].ToString()}';");
                     // データが無ければエラー
-                    if (blzRow.Rows.Count == 0) throw new Exception($"（団体）業種・職業コードが取得できません。：{blz[0].ToString()}");
+                    if (blzRow.Rows.Count == 0) throw new Exception($"（団体）業種・職業コードが取得できません。 {recordNum}行目：{blz[0].ToString()}");
 
                     industry = blzRow.Rows[0]["industry_code"].ToString().Trim();    // 業務コード
                     bussiness = blzRow.Rows[0]["bussiness_code"].ToString().Trim();   // 職業コード
@@ -252,7 +278,7 @@ namespace MyTemplate.RoukinClass
                     // 国名から国コードを取得
                     hqCode = codeDb.ExecuteScalar($"select code from t_country_code where country_name = '{hqCountry}'") as string;
                     // 国コードが見つからない場合は例外を投げる
-                    if (string.IsNullOrEmpty(hqCode)) throw new Exception($"（団体）本店所在国コードが見つかりません: {hqCountry}");
+                    if (string.IsNullOrEmpty(hqCode)) throw new Exception($"（団体）本店所在国コードが見つかりません {recordNum}行目: {hqCountry}");
                 }
                 // 国コードの取得有無で変更あり・なしフラグを設定
                 hqFlg = string.IsNullOrEmpty(hqCode) ? "0" : "1";
@@ -287,10 +313,10 @@ namespace MyTemplate.RoukinClass
                 string caseNo = $"{row["bpo_bank_code"].ToString()}-{branchNo}-{ProgressValue.ToString("0000")}";
 
                 // 団体の顧客情報変更データを取得
-                string customerInfo = GetCustomerInfoDantai(codeDb, row, answerDate, bussiness, industry, hqFlg, hqCode, purposeFlg, purpose, purposeTxt, charValidator);
+                string customerInfo = GetCustomerInfoDantai(codeDb, row, answerDate, bussiness, industry, hqFlg, hqCode, purposeFlg, purpose, purposeTxt, charValidator, recordNum);
                 customer.WriteLine(customerInfo);
                 // 団体の回答結果顧客管理データを取得
-                string responseDantai = GetResuponseDantai(codeDb, row, branchNo, caseNo, answerDate, ProgressValue, charValidator);
+                string responseDantai = GetResuponseDantai(codeDb, row, branchNo, caseNo, answerDate, ProgressValue, charValidator, recordNum);
                 resuponse.Write(responseDantai);
 
                 // 人格コードで回答結果イメージ管理データの種類を決定
@@ -298,7 +324,7 @@ namespace MyTemplate.RoukinClass
                 for (int i = 1; i <= typeNum; i++)
                 {
                     // 団体の回答結果イメージ管理データを取得
-                    string answerImageDantai = GetAnswerImageDantai(codeDb, row, branchNo, caseNo, answerDate, i.ToString(), ProgressValue);
+                    string answerImageDantai = GetAnswerImageDantai(codeDb, row, branchNo, caseNo, answerDate, i.ToString(), ProgressValue, recordNum);
                     answerImage.Write(answerImageDantai);
                 }
 
@@ -322,7 +348,7 @@ namespace MyTemplate.RoukinClass
             // 人格コードが12,22の場合のみ処理
             if (new string[] { "12", "22" }.Contains(row["bpo_person_cd"].ToString().Trim()))
             {
-                string delimiter = ",";
+                string delimiter = "";
 
                 // 取引目的有無フラグが0の場合はBPOデータから取得する
                 if (purposeFlg == "0")
@@ -399,9 +425,9 @@ namespace MyTemplate.RoukinClass
         /// <param name="answerDate"></param>
         /// <param name="num"></param>
         /// <returns></returns>
-        private string GetAnswerImageDantai(MyDbData codeDb, DataRow row, string brancNo, string caseNo, string answerDate,string typeNum, int num)
+        private string GetAnswerImageDantai(MyDbData codeDb, DataRow row, string brancNo, string caseNo, string answerDate,string typeNum, int num, int recordNum)
         {
-            string delimiter = ",";
+            string delimiter = "";
 
             string record = string.Empty;
             record += row["bpo_bank_code"].ToString() + delimiter;  // 金融機関コード
@@ -415,7 +441,7 @@ namespace MyTemplate.RoukinClass
             // レコードデータが40Byte以外はエラー
             if (record.LenBSjis() != 40)
             {
-                //throw new Exception($"（個人）個人回答結果イメージ管理データのレコード長が40Byteではありません: {record.LenBSjis()}");
+                throw new Exception($"（個人）個人回答結果イメージ管理データ {recordNum}行目のレコード長が40Byteではありません: {record.LenBSjis()}");
             }
             return record;
         }
@@ -430,9 +456,9 @@ namespace MyTemplate.RoukinClass
         /// <param name="answerDate"></param>
         /// <param name="num"></param>
         /// <returns></returns>
-        private string GetResuponseDantai(MyDbData codeDb, DataRow row, string brancNo, string caseNo, string answerDate, int num, MyClass.MyCharValidator charValidator)
+        private string GetResuponseDantai(MyDbData codeDb, DataRow row, string brancNo, string caseNo, string answerDate, int num, MyClass.MyCharValidator charValidator, int recordNum)
         {
-            string delimiter = ",";
+            string delimiter = "";
 
             // カナ団体名
             string kanaName = string.IsNullOrEmpty(row["org_kana_new"].ToString().Trim()) ? row["bpo_kana_name"].ToString().Trim() : row["org_kana_new"].ToString().Trim();
@@ -457,14 +483,14 @@ namespace MyTemplate.RoukinClass
             // レコードデータが160Byte以外はエラー
             if (record.LenBSjis() != 160)
             {
-                //throw new Exception($"（団体）回答結果顧客管理データのレコード長が160Byteではありません: {record.LenBSjis()}");
+                throw new Exception($"（団体）回答結果顧客管理データ {recordNum}行目のレコード長が160Byteではありません: {record.LenBSjis()}");
             }
 
             // 不正な文字チェック（終端の改行を除外）
             var charError = charValidator.GetInvalidMixedChars(record.TrimEnd('\r', '\n'));
             if (!string.IsNullOrEmpty(charError))
             {
-                throw new Exception($"（団体）回答結果顧客管理データに不正な文字が含まれています: {charError}");
+                throw new Exception($"（団体）回答結果顧客管理データ {recordNum}行目に不正な文字が含まれています: {charError}");
             }
 
             return record;
@@ -484,10 +510,10 @@ namespace MyTemplate.RoukinClass
         /// <param name="purpose"></param>
         /// <returns></returns>
         private string GetCustomerInfoDantai(MyDbData codeDb, DataRow row, string answerDate, string bussiness, string industry, string hqFlg, string? hqCode, 
-                                                                            string purposeFlg, string[] purpose, string purposeTxt, MyClass.MyCharValidator charValidator)
+                                                                            string purposeFlg, string[] purpose, string purposeTxt, MyClass.MyCharValidator charValidator, int recordNum)
         {
             var record = string.Empty;
-            string delimiter = ",";
+            string delimiter = "";
 
             // 取引目的有無フラグが0の場合はBPOデータから取得する
             if (purposeFlg == "0")
@@ -598,14 +624,14 @@ namespace MyTemplate.RoukinClass
             // レコードデータが700Byte以外はエラー
             if (record.LenBSjis() != 700)
             {
-                //throw new Exception($"（個人）顧客情報変更データのレコード長が700Byteではありません: {record.LenBSjis()}");
+                throw new Exception($"（個人）顧客情報変更データ {recordNum}行目のレコード長が700Byteではありません: {record.LenBSjis()}");
             }
 
             // 不正な文字チェック
             var charError = charValidator.GetInvalidMixedChars(record);
             if(!string.IsNullOrEmpty(charError))
             {
-                throw new Exception($"（団体）顧客情報変更データに不正な文字が含まれています: {charError}");
+                throw new Exception($"（団体）顧客情報変更データ {recordNum}行目に不正な文字が含まれています: {charError}");
             }
 
             return record;
@@ -625,11 +651,15 @@ namespace MyTemplate.RoukinClass
         private void SetKojin(MyDbData codeDb, EnumerableRowCollection<DataRow> kojinRows, StreamWriter customer, StreamWriter resuponse, StreamWriter answerImage, 
                                                                                                     string branchNo, StringBuilder dpKojin, MyClass.MyCharValidator charValidator)
         {
+
+            int recordNum = 0; // レコード番号
+
             // 業種その他コード
             string industryEtc = MyUtilityModules.AppSetting("roukin_setting", "industry_etc_code");
 
             foreach (DataRow row in kojinRows)
             {
+                recordNum++;
                 ProgressValue++;
 
                 // 国籍
@@ -666,10 +696,10 @@ namespace MyTemplate.RoukinClass
                         };
                     }
                     // 国籍コードを取得
-                    nationCode = codeDb.ExecuteScalar($"select code from t_country_code_person where region_code = '{region}' and country_code = '{country}'") as string;
+                    nationCode = codeDb.ExecuteScalar($"select code from t_country_code where region_code = '{region}' and country_code = '{country}'") as string;
 
                     // 国籍コードが見つからない場合は例外を投げる
-                    if (string.IsNullOrEmpty(nationCode)) throw new Exception($"（個人）国籍コードが見つかりません: region={region}, country={country}");
+                    if (string.IsNullOrEmpty(nationCode)) throw new Exception($"（個人）国籍コードが見つかりません{recordNum}行目: region={region}, country={country}");
                 }
 
                 // 取引目的コードを配列で取得
@@ -690,7 +720,7 @@ namespace MyTemplate.RoukinClass
                     .ToArray();
 
                 // 取引目的コードが設定されていない場合は例外を投げる
-                if (purpose.Count() == 0) throw new Exception("（個人）取引目的コードが設定されていません。");
+                if (purpose.Count() == 0) throw new Exception($"（個人）取引目的コードが設定されていません。{recordNum}行目");
 
                 // 取引目的コードに"006"が含まれている場合は、その他の取引目的を取得
                 string purposeTxt = purpose.Contains("006") ? row["tx_othr_txt"].ToString() : string.Empty;
@@ -720,17 +750,17 @@ namespace MyTemplate.RoukinClass
                 // 回答日が日時に変換できない場合はエラー
                 if (DateTime.TryParse(row["answer_date"].ToString(), out DateTime parsedDate) == false)
                 {
-                    throw new Exception($"（個人）回答日が不正です: {row["answer_date"].ToString()}");
+                    throw new Exception($"（個人）回答日が不正です {recordNum}行目: {row["answer_date"].ToString()}");
                 }
 
                 // 案件毎番号
                 string caseNo = $"{row["bpo_bank_code"].ToString()}-{branchNo}-{ProgressValue.ToString("0000")}";
 
                 // 個人の顧客情報変更データを取得
-                string customerInfo = GetCustomerInfoKojin(codeDb, row, parsedDate, industryEtc, industry, industryTxt, nationCode, purpose, purposeTxt, tel1st, tel3rd, job, jobTxt, charValidator);
+                string customerInfo = GetCustomerInfoKojin(codeDb, row, parsedDate, industryEtc, industry, industryTxt, nationCode, purpose, purposeTxt, tel1st, tel3rd, job, jobTxt, charValidator, recordNum);
                 customer.WriteLine(customerInfo);
                 // 個人の回答結果顧客管理データを取得
-                string responseKojin = GetResuponseKojin(codeDb, row, branchNo, caseNo, parsedDate, ProgressValue, charValidator);
+                string responseKojin = GetResuponseKojin(codeDb, row, branchNo, caseNo, parsedDate, ProgressValue, charValidator, recordNum);
                 resuponse.Write(responseKojin);
 
                 // 人格コードで回答結果イメージ管理データの種類を決定
@@ -738,7 +768,7 @@ namespace MyTemplate.RoukinClass
                 for (int i = 1; i <= typeNum; i++)
                 {
                     // 個人の回答結果イメージ管理データを取得
-                    string answerImageKojin = GetAnswerImageKojin(codeDb, row, branchNo, caseNo, parsedDate, i.ToString(), ProgressValue);
+                    string answerImageKojin = GetAnswerImageKojin(codeDb, row, branchNo, caseNo, parsedDate, i.ToString(), ProgressValue, recordNum);
                     answerImage.Write(answerImageKojin);
                 }
 
@@ -808,7 +838,7 @@ namespace MyTemplate.RoukinClass
         /// <param name="parsedDate"></param>
         /// <param name="num"></param>
         /// <returns></returns>
-        private string GetAnswerImageKojin(MyDbData codeDb, DataRow row, string brancNo, string caseNo, DateTime parsedDate, string typeNum, int num)
+        private string GetAnswerImageKojin(MyDbData codeDb, DataRow row, string brancNo, string caseNo, DateTime parsedDate, string typeNum, int num, int recordNum)
         {
             string delimiter = "";
 
@@ -824,7 +854,7 @@ namespace MyTemplate.RoukinClass
             // レコードデータが40Byte以外はエラー
             if (record.LenBSjis() != 40)
             {
-                throw new Exception($"（個人）個人回答結果イメージ管理データのレコード長が40Byteではありません: {record.LenBSjis()}");
+                throw new Exception($"（個人）個人回答結果イメージ管理データ {recordNum}行目のレコード長が40Byteではありません: {record.LenBSjis()}");
             }
             return record;
         }
@@ -839,9 +869,9 @@ namespace MyTemplate.RoukinClass
         /// <param name="parsedDate"></param>
         /// <param name="num"></param>
         /// <returns></returns>
-        private string GetResuponseKojin(MyDbData codeDb, DataRow row, string brancNo, string caseNo, DateTime parsedDate, int num, MyClass.MyCharValidator charValidator)
+        private string GetResuponseKojin(MyDbData codeDb, DataRow row, string brancNo, string caseNo, DateTime parsedDate, int num, MyClass.MyCharValidator charValidator, int recordNum)
         {
-            string delimiter = ",";
+            string delimiter = "";
 
             // カナ氏名
             string kanaName = string.Empty;
@@ -879,14 +909,14 @@ namespace MyTemplate.RoukinClass
             // レコードデータが160Byte以外はエラー
             if (record.LenBSjis() != 160)
             {
-                //throw new Exception($"（個人）回答結果顧客管理データのレコード長が160Byteではありません: {record.LenBSjis()}");
+                throw new Exception($"（個人）回答結果顧客管理データ {recordNum}行目のレコード長が160Byteではありません: {record.LenBSjis()}");
             }
 
             // 不正な文字チェック（終端の改行を除外）
             var charError = charValidator.GetInvalidMixedChars(record.TrimEnd('\r', '\n'));
             if (!string.IsNullOrEmpty(charError))
             {
-                throw new Exception($"（個人）回答結果顧客管理データに不正な文字が含まれています: {charError}");
+                throw new Exception($"（個人）回答結果顧客管理データ {recordNum}行目に不正な文字が含まれています: {charError}");
             }
 
             return record;
@@ -901,7 +931,7 @@ namespace MyTemplate.RoukinClass
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         private string GetCustomerInfoKojin(MyDbData codeDb, DataRow row, DateTime parsedDate, string industryEtc, string industry, string industryTxt,
-                        string nationCode, string[] sortedPurpose, string purposeTxt, string tel1st, string tel3rd, string job, string jobTxt, MyClass.MyCharValidator charValidator)
+                        string nationCode, string[] sortedPurpose, string purposeTxt, string tel1st, string tel3rd, string job, string jobTxt, MyClass.MyCharValidator charValidator, int recordNum)
         {
             var record = string.Empty;
             string delimiter = "";
@@ -1023,14 +1053,14 @@ namespace MyTemplate.RoukinClass
             // レコードデータが700Byte以外はエラー
             if (record.LenBSjis() != 700)
             {
-                //throw new Exception($"（個人）顧客情報変更データのレコード長が700Byteではありません: {record.LenBSjis()}");
+                throw new Exception($"（個人）顧客情報変更データ {recordNum}行目のレコード長が700Byteではありません: {record.LenBSjis()}");
             }
 
             // 不正な文字チェック
             var charError = charValidator.GetInvalidMixedChars(record);
             if (!string.IsNullOrEmpty(charError))
             {
-                throw new Exception($"（個人）顧客情報変更データに不正な文字が含まれています: {charError}");
+                throw new Exception($"（個人）顧客情報変更データ {recordNum}行目に不正な文字が含まれています: {charError}");
             }
 
             return record;

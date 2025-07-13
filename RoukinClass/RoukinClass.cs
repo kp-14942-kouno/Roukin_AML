@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Presentation;
+using ICSharpCode.SharpZipLib.Zip;
 using MyLibrary;
 using MyLibrary.MyClass;
 using MyLibrary.MyModules;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
@@ -23,6 +25,11 @@ namespace MyTemplate
         DataTable _table;
         string _fileDir = string.Empty; // 出力先ディレクトリ
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="fileDir"></param>
         public EpxWebcasData(DataTable table, string fileDir)
         {
             _fileDir = fileDir;
@@ -63,7 +70,8 @@ namespace MyTemplate
             ProgressMax = _table.Rows.Count;
             ProcessName = "WEBCASデータ変換出力";
 
-            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(System.IO.Path.Combine(_fileDir, fileName), false, MyUtilityModules.GetEncoding(mojiCode)))
+            using(var fsWriter = new System.IO.FileStream(System.IO.Path.Combine(_fileDir, fileName), System.IO.FileMode.CreateNew, System.IO.FileAccess.Write))
+            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(fsWriter, MyUtilityModules.GetEncoding(mojiCode)))
             {
                 StringBuilder builder = new StringBuilder();
 
@@ -145,7 +153,7 @@ namespace MyTemplate
                     builder.Append(row["src_home"].ToString().Trim() + delimiter);
                     builder.Append(row["src_loan"].ToString().Trim() + delimiter);
                     builder.Append(row["src_other"].ToString().Trim() + delimiter);
-                    builder.Append(row["src_oth_txt"].ToString().Trim() + delimiter);
+                    builder.Append(row["src_oth_txt"].ToString().Trim());
 
                     // 書き込み
                     writer.WriteLine(builder);
@@ -223,7 +231,8 @@ namespace MyTemplate
             string fileName = MyUtilityModules.AppSetting("roukin_setting", "exp_rew_ng_file_name", true, _fubiData.Rows.Count);
             string expPath = System.IO.Path.Combine(_filePath, fileName);
 
-            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(expPath, false, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Utf8Bom)))
+            using(var fsWriter = new System.IO.FileStream(expPath, System.IO.FileMode.CreateNew, System.IO.FileAccess.Write))
+            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(fsWriter, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Utf8Bom)))
             {
                 foreach (DataRow row in _fubiData.Rows)
                 {
@@ -253,7 +262,8 @@ namespace MyTemplate
             string fileName = MyUtilityModules.AppSetting("roukin_setting", "exp_rew_ok_file_name", true, _FixData.Rows.Count);
             string expPath = System.IO.Path.Combine(_filePath, fileName);
 
-            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(expPath, false, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Utf8Bom)))
+            using (var fsWriter = new System.IO.FileStream(expPath, System.IO.FileMode.CreateNew, System.IO.FileAccess.Write))
+            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(fsWriter, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Utf8Bom)))
             {
                 foreach (DataRow row in _FixData.Rows)
                 {
@@ -268,5 +278,116 @@ namespace MyTemplate
         }
     }
 
+    /// <summary>
+    /// パンチ連携画像作成クラス
+    /// </summary>
+    public class ExpPunchImage : MyLibrary.MyLoading.Thread
+    {
+        DataTable _table = new DataTable();
+        string _expPath = string.Empty; // 出力先パス
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        /// <param name="table"></param>
+        public ExpPunchImage(DataTable table, string expPath)
+        {
+            _expPath = expPath;
+            _table = table;
+        }
+
+        /// <summary>
+        /// 排他処理
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public override int MultiThreadMethod()
+        {
+#if DEBUG
+            {
+                // 開始ログ
+                MyLogger.SetLogger("パンチ連携画像作成処理を開始", MyEnum.LoggerType.Info, false);
+                // 実行
+                Run();
+
+                // 完了メッセージ
+                ResultMessage = $"パンチ連携画像の作成完了";
+                // 完了ログ
+                MyLogger.SetLogger(ResultMessage, MyEnum.LoggerType.Info, false);
+                Result = MyEnum.MyResult.Ok;
+            }
+#else
+            try
+            {
+                // 開始ログ
+                MyLogger.SetLogger("パンチ連携画像作成処理を開始", MyEnum.LoggerType.Info, false);
+                // 実行
+                Run();
+
+                // 完了メッセージ
+                ResultMessage = $"パンチ連携画像の作成完了";
+                // 完了ログ
+                MyLogger.SetLogger(ResultMessage, MyEnum.LoggerType.Info, false);
+                Result = MyEnum.MyResult.Ok;
+            }
+            catch (Exception ex)
+            {
+                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
+                Result = MyEnum.MyResult.Error;
+            }
+#endif
+            Completed = true;
+            return 0;
+        }
+
+        /// <summary>
+        /// パンチ画像作成
+        /// </summary>
+        private void Run()
+        {
+            ProcessName = "パンチ連携画像作成中...";
+            ProgressBarType = MyEnum.MyProgressBarType.Percent;
+            ProgressMax = _table.Rows.Count;
+            ProgressValue = 0;
+
+            // 画像ファイルパス
+            string imgPath = MyUtilityModules.AppSetting("roukin_setting", "img_root_path");
+            // パンチ画像ZIPファイル名
+            string zipName = MyUtilityModules.AppSetting("roukin_setting", "panch_zip_name", true, _table.Rows.Count);
+            // パスワード
+            string zipPassword = MyUtilityModules.AppSetting("roukin_setting", "panch_zip_password");
+
+            using (var fsWriter = new System.IO.FileStream(Path.Combine(_expPath, zipName), System.IO.FileMode.CreateNew, System.IO.FileAccess.Write, FileShare.None))
+            using (var zipOutput = new ZipOutputStream(fsWriter))
+            {
+                zipOutput.Password = zipPassword; // ZIPファイルのパスワード設定
+
+                foreach (DataRow row in _table.Rows)
+                {
+                    ProgressValue++;
+
+                    int imgCount = int.Parse(row["img_num"].ToString());
+
+                    for (int i = 1; i <= imgCount; i++)
+                    {
+                        // 画像ファイル名の取得
+                        string imgName = row["bpo_num"].ToString() + (i == 1 ? string.Empty : "_" + i.ToString()) + ".jpg";
+                        // 画像ファイルパス
+                        string imgFilePath = Path.Combine(imgPath,row["taba_num"].ToString(), imgName);
+
+                        // ZIPエントリの作成
+                        ZipEntry entry = new ZipEntry(imgName);
+                        zipOutput.PutNextEntry(entry);
+                        // 画像ファイルをZIPに追加
+                        using (var fsReader = new FileStream(imgFilePath, FileMode.Open, FileAccess.Read))
+                        {
+                            fsReader.CopyTo(zipOutput);
+                        }
+                        zipOutput.CloseEntry();
+                    }
+                }
+                fsWriter.Flush(); 
+            }
+        }
+    }
 }

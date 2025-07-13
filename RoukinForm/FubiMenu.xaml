@@ -25,6 +25,7 @@
 
                 <StackPanel Grid.Row="1" Margin="5">
                     <Button x:Name="bt_InsPnch" Content="審査対象データ読込" Width="192" Height="32" Margin="5" Click="bt_InsPnch_Click"/>
+                    <TextBlock Text="団体_27_審査対象_" HorizontalAlignment="Right" FontSize="11" Foreground="OrangeRed" Margin="0,0,5,0"/>
                     <TextBlock x:Name="tb_PnchCount" Text="0件" Margin="0,0,5,0" TextAlignment="Right"/>
                     <Button x:Name="bt_FubiCheck" Content="審査処理" Width="192" Height="32" Margin="5" Click="bt_FubiCheck_Click"/>
                     <Grid>

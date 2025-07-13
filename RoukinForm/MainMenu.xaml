@@ -52,7 +52,8 @@
                     <TextBlock Grid.Row="0" Text="団体（申請書）" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
 
                     <StackPanel Grid.Row="1" Orientation="Vertical">
-                        <Button x:Name="bt_Punc" Content="パンチ画像作成" Width="192" Height="32" Margin="5" Click="bt_FubiCheck_Click"/>
+                        <Button x:Name="bt_Punc" Content="パンチ画像作成" Width="192" Height="32" Margin="5" Click="bt_Punc_Click"/>
+                        <TextBlock Text="団体_25_パンチ連携_" HorizontalAlignment="Right" FontSize="11" Foreground="OrangeRed" Margin="0,0,5,0"/>
                         <Button x:Name="bt_FubiCheck" Content="審査 MENU" Width="192" Height="32" Margin="5" Click="bt_FubiCheck_Click"/>
                         <Button x:Name="bt_FubiPrint" Content="不備状印刷 MENU" Width="192" Height="32" Margin="5" Click="bt_FubiPrint_Click"/>
                         <Button x:Name="bt_ShiwakeList" Content="申請書仕分リスト MENU" Width="192" Height="32" Margin="5" Click="bt_ShiwakeList_Click"/>

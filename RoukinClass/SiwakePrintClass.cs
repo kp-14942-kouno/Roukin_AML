@@ -86,7 +86,6 @@ namespace MyTemplate.RoukinClass
                 MyLogger.SetLogger($"{_msg}作成完了", MyEnum.LoggerType.Info, false);
 
                 Result = MyEnum.MyResult.Ok;
-
             }
             catch (Exception ex)
             {

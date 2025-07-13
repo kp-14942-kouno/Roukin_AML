@@ -24,6 +24,7 @@
 
                 <StackPanel Grid.Row="1" Margin="5">
                     <Button x:Name="bt_InsDantai" Content="不備納品対象データ読込" Width="192" Height="32" Margin="5" Click="bt_InsFubiData_Click"/>
+                    <TextBlock Text="団体_51_不備納品対象_" HorizontalAlignment="Right" FontSize="11" Foreground="OrangeRed" Margin="0,0,5,0"/>
                     <TextBlock x:Name="tb_FubiCount" Text="0件" Margin="0,0,5,0" TextAlignment="Right"/>
 
                     <CheckBox x:Name="chk_ExpFubiData" Content="不備納品ファイル" Margin="5,5,0,0" IsChecked="True"/>

@@ -254,6 +254,8 @@ namespace MyTemplate.ImportClass
                     // エラーログがあれば表示
                     if (thread.Result == MyEnum.MyResult.Ng && showErrorLog)
                     {
+                        MyLogger.SetLogger($"{fileLoadProperties.FileSetting.process_name}\r\nデータエラーで中断", MyEnum.LoggerType.Info, false);
+
                         MyLibrary.MyDataViewer viewr = new MyDataViewer(window, fileLoadProperties.ErrorLog.DefaultView,
                             columnNames: fileLoadProperties.ErrorLog.ErrorLogField(), columnHeaders: fileLoadProperties.ErrorLog.ErrorLogCaption());
 

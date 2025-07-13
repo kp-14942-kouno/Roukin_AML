@@ -26,6 +26,7 @@
 
                 <StackPanel Grid.Row="1" Margin="5">
                     <Button x:Name="bt_InsWebcas" Content="WEBCASデータ読込" Width="192" Height="32" Margin="5" Click="bt_InsWebcas_Click"/>
+                    <TextBlock Text="answer_" HorizontalAlignment="Right" FontSize="11" Foreground="OrangeRed" Margin="0,0,5,0"/>
                     <TextBlock x:Name="tb_WebcasCount" Text="0件" Margin="0,0,5,0" TextAlignment="Right"/>
                     <Button x:Name="bt_ExpWebcas" Content="WEBCASデータ変策出力" Width="192" Height="32" Margin="5" Click="bt_ExpWebcas_Click"/>
                 </StackPanel>
