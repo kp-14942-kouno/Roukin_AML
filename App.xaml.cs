@@ -1,6 +1,7 @@
 ﻿using MyTemplate.Forms;
 using System.Configuration;
 using System.Data;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Documents;
@@ -13,7 +14,8 @@ namespace MyTemplate
     public partial class App : Application
     {
         // Mutex発行
-        private System.Threading.Mutex _mutex = new System.Threading.Mutex(false, MyLibrary.MyModules.MyUtilityModules.AppSetting("projectSettings", "projectName"));
+        //private System.Threading.Mutex _mutex = new System.Threading.Mutex(false, MyLibrary.MyModules.MyUtilityModules.AppSetting("projectSettings", "projectName"));
+        private System.Threading.Mutex _mutex = new System.Threading.Mutex(false, Assembly.GetExecutingAssembly().GetName().Name);
 
         /// <summary>
         /// アプリケーション開始

@@ -12,8 +12,6 @@
 
 #プロジェクト設定（削除禁止）
 projectSettings:
-    projectName: "労働金庫連合会　AML業務"
-    projectVersion: "1.0.0"
     login_id: 1
 
 #システム設定（削除禁止）

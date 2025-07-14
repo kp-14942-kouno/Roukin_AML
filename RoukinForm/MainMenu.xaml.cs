@@ -5,6 +5,7 @@ using MyTemplate.Report.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -30,8 +31,16 @@ namespace MyTemplate.RoukinForm
         {
             InitializeComponent();
 
-            var title = MyUtilityModules.AppSetting("projectSettings", "projectName");
-            var version = MyUtilityModules.AppSetting("projectSettings", "projectVersion");
+            //var title = MyUtilityModules.AppSetting("projectSettings", "projectName");
+            //var version = MyUtilityModules.AppSetting("projectSettings", "projectVersion");
+
+            var title = Assembly
+                            .GetExecutingAssembly()
+                            .GetCustomAttribute<AssemblyTitleAttribute>()?
+                            .Title;
+
+            var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+            Console.WriteLine(version);
 
             Title = $"{title} 　Ver.{version}";
         }
