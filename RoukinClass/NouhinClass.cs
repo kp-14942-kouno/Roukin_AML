@@ -308,6 +308,13 @@ namespace MyTemplate.RoukinClass
 
                 // 記入日
                 string answerDate = "20" + row["entry_date"].ToString().Trim();
+                // 記入日を（yyyymmdd）をyyyy/MM/dd形式に変換
+                DateTime? formattedDate = MyLibrary.MyModules.MyUtilityModules.ParseDateString(answerDate, "yyyyMMdd");
+                // 記入日がnullの場合はエラー
+                if (formattedDate == null)
+                {
+                    throw new Exception($"（団体）記入日が不正です。 {recordNum}行目: {answerDate}");
+                }
 
                 // 案件毎番号
                 string caseNo = $"{row["bpo_bank_code"].ToString()}-{branchNo}-{ProgressValue.ToString("0000")}";
