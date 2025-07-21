@@ -436,21 +436,21 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiCode"></param>
         private void FubiCheck_08(DataRow row, StringBuilder fubiCode)
         {
-            string cngFlg = row["addr_chg"].ToString().Trim();
-            string hqFlg = row["hq_ctry_chg"].ToString().Trim();
+            string hqChg = row["hq_ctry_chg"].ToString().Trim();
+            string hqFlg = row["hq_ctry_nat"].ToString().Trim();
             string hqCountry = row["hq_country"].ToString().Trim();
             // 日本コード
             string jpn = MyUtilityModules.AppSetting("roukin_setting", "jpn_code");
 
             // 変更なしで
-            if (cngFlg == "0")
+            if (hqChg == "0")
             {
                 // 日本・日本以外未選択・国名未記入はOK
                 if (string.IsNullOrEmpty(hqFlg) && string.IsNullOrEmpty(hqCountry)) return;
             }
 
             // 変更ありで
-            if (cngFlg == "1")
+            if (hqChg == "1")
             {
                 // 日本選択・国名未記入はOK
                 if (hqFlg == "01" && string.IsNullOrEmpty(hqCountry)) return;

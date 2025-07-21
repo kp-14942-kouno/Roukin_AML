@@ -335,7 +335,8 @@ namespace MyTemplate.RoukinClass
                 }
 
                 // 本店所在国
-                string hqFlg = row["hq_ctry_chg"].ToString().Trim();
+                string hqCnge = row["hq_ctry_chg"].ToString().Trim();   // 変更有無
+                string hqFlg = row["hq_ctry_nat"].ToString().Trim();    // 日本日本以外
                 string hqCountry = row["hq_country"].ToString().Trim();
                 string? hqCode = null;
 
