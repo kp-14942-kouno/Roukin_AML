@@ -125,6 +125,10 @@ namespace MyTemplate.RoukinClass
             string dpDantaiName = MyUtilityModules.AppSetting("roukin_setting", "dp_file_dantai", true);
             string dpKojinName = MyUtilityModules.AppSetting("roukin_setting", "dp_file_kojin", true);
 
+            // 納品済みビートル用
+            string dantaiBtlName = MyUtilityModules.AppSetting("roukin_setting", "nouhinzumi_dantai_blt", true);
+            string kojinBtlName = MyUtilityModules.AppSetting("roukin_setting", "nouhinzumi_kojin_blt", true);
+
             string customerPath = Path.Combine(_expPath, customerDir);
             string ansPath = Path.Combine(_expPath, ansDir);
 
@@ -138,8 +142,17 @@ namespace MyTemplate.RoukinClass
             StringBuilder dpKojin = new StringBuilder();    // DP連携用の個人データ
             StringBuilder dpDantai = new StringBuilder();   // DP連携用の団体データ
 
+            int totalCount = 0;
+            int maxCount = int.Parse(MyUtilityModules.AppSetting("roukin_setting", "max_count"));
+            
+            // 団体納品済みビートル用
+            using (var fsDantaiBtl = new FileStream(Path.Combine(_expPath, dantaiBtlName), FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var dantaiBtl = new StreamWriter(fsDantaiBtl, Encoding.GetEncoding("Shift_Jis")))
+            // 個人納品済みビートル用
+            using (var fsKojinBtl = new FileStream(Path.Combine(_expPath, kojinBtlName), FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var kojinBtl = new StreamWriter(fsKojinBtl, Encoding.GetEncoding("Shift_Jis")))
             // 顧客情報変更データ
-            using(var fsCustomer = new FileStream(Path.Combine(customerPath, customerFile), FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var fsCustomer = new FileStream(Path.Combine(customerPath, customerFile), FileMode.CreateNew, FileAccess.Write, FileShare.None))
             using (var customer = new StreamWriter(fsCustomer, Encoding.GetEncoding("Shift_Jis")))
             // 回答顧客情報データ
             using (var fsResuponse = new FileStream(Path.Combine(ansPath, resuponseFile), FileMode.CreateNew, FileAccess.Write, FileShare.None))
@@ -174,10 +187,10 @@ namespace MyTemplate.RoukinClass
                     var kojin = _kojin.AsEnumerable()
                         .Where(row => row.Field<string>("bpo_bank_code") == bankCode);
 
-                    // 個人データ作成
-                    SetKojin(codeDb, kojin, customer, resuponse, answerImage, branchNo, dpKojin, charValidator);
                     // 団体データ作成
-                    SetDantai(codeDb, dantai, customer, resuponse, answerImage, branchNo, dpDantai, charValidator);
+                    SetDantai(codeDb, dantai, customer, resuponse, answerImage, dantaiBtl, branchNo, dpDantai, charValidator, maxCount, ref totalCount);
+                    // 個人データ作成
+                    SetKojin(codeDb, kojin, customer, resuponse, answerImage, kojinBtl, branchNo, dpKojin, charValidator, maxCount, ref totalCount);
                 }
 
                 // 団体の本人確認記録書データがあれば出力
@@ -220,8 +233,8 @@ namespace MyTemplate.RoukinClass
         /// <param name="resGrp"></param>
         /// <param name="branchNo"></param>
         /// <exception cref="Exception"></exception>
-        private void SetDantai(MyDbData codeDb, EnumerableRowCollection<DataRow> dantaiRows, StreamWriter customer, StreamWriter resuponse, 
-                                                                    StreamWriter answerImage, string branchNo, StringBuilder dpDantai, MyClass.MyCharValidator charValidator)
+        private void SetDantai(MyDbData codeDb, EnumerableRowCollection<DataRow> dantaiRows, StreamWriter customer, StreamWriter resuponse, StreamWriter answerImage, StreamWriter dantaiBlt,
+                                                                                string branchNo, StringBuilder dpDantai, MyClass.MyCharValidator charValidator, int maxCount, ref int totalCount)
         {
             int recordNum = 0; // レコード番号
 
@@ -338,6 +351,16 @@ namespace MyTemplate.RoukinClass
 
                 // 本人確認記録書（団体）を作成
                 DpDnatai(row, dpDantai, answerDate, branchNo, caseNo, bussiness, industry, purposeFlg, purpose);
+
+                // 団体の納品済みビートル用データを作成
+                dantaiBlt.WriteLine(row["bpo_num"].ToString().Trim());
+
+                totalCount++;
+                if(totalCount == maxCount)
+                {
+                    // 最大件数に達したら処理を終了
+                    break;
+                }
             }
         }
 
@@ -356,7 +379,7 @@ namespace MyTemplate.RoukinClass
             // 人格コードが12,22の場合のみ処理
             if (new string[] { "12", "22" }.Contains(row["bpo_person_cd"].ToString().Trim()))
             {
-                string delimiter = "";
+                string delimiter = ",";
 
                 // 取引目的有無フラグが0の場合はBPOデータから取得する
                 if (purposeFlg == "0")
@@ -656,10 +679,9 @@ namespace MyTemplate.RoukinClass
         /// <param name="safeBox"></param>
         /// <param name="branchNo"></param>
         /// <exception cref="Exception"></exception>
-        private void SetKojin(MyDbData codeDb, EnumerableRowCollection<DataRow> kojinRows, StreamWriter customer, StreamWriter resuponse, StreamWriter answerImage, 
-                                                                                                    string branchNo, StringBuilder dpKojin, MyClass.MyCharValidator charValidator)
+        private void SetKojin(MyDbData codeDb, EnumerableRowCollection<DataRow> kojinRows, StreamWriter customer, StreamWriter resuponse, StreamWriter answerImage, StreamWriter kojinBtl,
+                                                                    string branchNo, StringBuilder dpKojin, MyClass.MyCharValidator charValidator, int maxCount, ref int totalCount)
         {
-
             int recordNum = 0; // レコード番号
 
             // 業種その他コード
@@ -782,6 +804,16 @@ namespace MyTemplate.RoukinClass
 
                 // 本人確認記録書（個人）を作成
                 DpKojin(row, branchNo, caseNo, parsedDate.ToString("yyyyMMdd"), industry, job, purpose, dpKojin);
+
+                // 個人の納品済みビートル用データを作成
+                kojinBtl.WriteLine(row["bpo_num"].ToString().Trim());
+
+                totalCount++;
+                if(totalCount == maxCount)
+                {
+                    // 最大件数に達したら処理を終了
+                    break;
+                }
             }
         }
 

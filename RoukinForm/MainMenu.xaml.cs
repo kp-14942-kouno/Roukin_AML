@@ -184,5 +184,10 @@ namespace MyTemplate.RoukinForm
                 }
             }
         }
+
+        private void bt_FubiFuchakuMenu_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

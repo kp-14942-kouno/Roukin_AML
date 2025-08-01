@@ -785,6 +785,8 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiCode"></param>
         private void FubiCheck_22(DataRow row, StringBuilder fubiCode)
         {
+            // 変更有無
+            string flg = row["rep_chg"].ToString().Trim();
             // 国籍
             string nat = row["rep_nat"].ToString().Trim();
             // 国名
@@ -792,26 +794,33 @@ namespace MyTemplate.RoukinClass
             // 日本コード
             string jpn = MyUtilityModules.AppSetting("roukin_setting", "jpn_code");
 
-            // 日本選択で国名が未記入はOK
-            if (nat == "01" && string.IsNullOrEmpty(natname)) return;
-            // 日本・日本以外未選択で国名未記入はOK
-            if(nat == "" && string.IsNullOrEmpty(natname)) return;
+            // 変更有無未選択で日本・日本以外未選択・国名未記入はOK
+            if (string.IsNullOrEmpty(flg) && string.IsNullOrEmpty(nat) && string.IsNullOrEmpty(natname)) return;
+            // 変更なしで日本日本以外未選択・国名未記入はOK
+            if (flg == "0" && string.IsNullOrEmpty(nat) && string.IsNullOrEmpty(natname)) return;
 
-            // 国籍テーブルから国コードを取得
-            string? code = _contoryCode.AsEnumerable()
-                .Where(x => x.Field<string>("country_name") == natname)
-                .Select(x => x.Field<string>("code"))
-                .FirstOrDefault();
+            // 変更あり
+            if (flg == "1")
+            {
+                // 日本選択で国名が未記入はOK
+                if (nat == "01" && string.IsNullOrEmpty(natname)) return;
 
-            // 日本以外選択で日本以外の国名が存在する場合はOK
-            if (nat == "02" && !string.IsNullOrEmpty(code) && code != jpn) return;
-            // 日本・日本以外とも選択で国名が存在する場合はOK
-            if(nat == "0102" && !string.IsNullOrEmpty(code)) return;
-            // 日本・日本以外とも未選択で国名が存在する場合はOK
-            if(string.IsNullOrEmpty(nat) && !string.IsNullOrEmpty(code)) return;
-            // 日本選択・国名記入はOK
-            if (nat == "01" && !string.IsNullOrEmpty(code)) return;
-   
+                // 国籍テーブルから国コードを取得
+                string? code = _contoryCode.AsEnumerable()
+                    .Where(x => x.Field<string>("country_name") == natname)
+                    .Select(x => x.Field<string>("code"))
+                    .FirstOrDefault();
+
+                // 日本以外選択で日本以外の国名が存在する場合はOK
+                if (nat == "02" && !string.IsNullOrEmpty(code) && code != jpn) return;
+                // 日本・日本以外とも選択で国名が存在する場合はOK
+                if (nat == "0102" && !string.IsNullOrEmpty(code)) return;
+                // 日本・日本以外とも未選択で国名が存在する場合はOK
+                if (string.IsNullOrEmpty(nat) && !string.IsNullOrEmpty(code)) return;
+                // 日本選択・国名記入はOK
+                if (nat == "01" && !string.IsNullOrEmpty(code)) return;
+            }
+
             // それ以外は不備コードをセット
             fubiCode.Append("22;");
         }

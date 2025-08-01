@@ -91,6 +91,10 @@ roukin_setting:
     answer_dir: '本人確認システム@ymd@'                 #本人確認システム用データのディレクトリ
     safe_box_admin_name: 'ANS_DATA_KINKOJIMU_@ymd@.txt' #金庫事務用データ
     safe_box_admin_dir: '金庫事務用@ymd@'               #金庫事務用データのディレクトリ
+    max_count: '2500' #1納品当たりの最大件数
+
+    nouhinzumi_dantai_blt: '団体_50_正常納品済み_@ymd@_@hms@.txt' #団体納品済みデータ
+    nouhinzumi_kojin_blt: '個人_20_納品済み_@ymd@_@hms@.txt'  #個人納品済みデータ
 
     fubi_data_name: 'ANS_KOKYAKUKANRI_KINKOJIMU_@ymd@.txt'      #不備対象データ
     fubi_img_data_name: 'ANS_IMAGEKANRI_KINKOJIMU_@ymd@.txt'    #不備対象イメージ管理データ

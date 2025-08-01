@@ -273,7 +273,7 @@ namespace MyTemplate.RoukinClass
 
                 // 金庫事務用データ
                 using(var fsBox = new FileStream(Path.Combine(bankDir, safeBoxFile), FileMode.CreateNew, FileAccess.Write, FileShare.None))
-                using (var safeBox = new StreamWriter(Path.Combine(bankDir, safeBoxFile), false, Encoding.GetEncoding("Shift_Jis")))
+                using (var safeBox = new StreamWriter(Path.Combine(bankDir, safeBoxFile), false, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Utf8Bom)))
                 {
                     // ヘッダー行を書き込む
                     safeBox.WriteLine(header);
@@ -424,7 +424,6 @@ namespace MyTemplate.RoukinClass
             record += SetDc((string.IsNullOrEmpty(row["org_name_new"].ToString().Trim()) ? "0" : "1")) + delimiter;
             record += SetDc(row["org_kana_new"].ToString().Trim()) + delimiter; // カナ氏名（団体名）
             record += SetDc(row["org_name_new"].ToString().Trim()) + delimiter; // 漢字氏名（団体名）
-
 
             // 住所変更有無判定用
             StringBuilder addr = new StringBuilder();

@@ -76,6 +76,7 @@
                         <Button x:Name="bt_RoukinNouhinMenu" Content="勘定系・本人確認納品 MENU" Width="192" Height="32" Margin="5" Click="bt_RoukinNouhinMenu_Click"/>
                         <Button x:Name="bt_KinkoNouhinMenu" Content="金庫事務納品 MENU" Width="192" Height="32" Margin="5" Click="bt_KinkoNouhinMenu_Click"/>
                         <Button x:Name="bt_FubiNouhinMenu" Content="不備納品 MENU" Width="192" Height="32" Margin="5" Click="bt_FubiNouhinMenu_Click"/>
+                        <Button x:Name="bt_FubiFuchakuMenu" Content="不備状還付 MENU" Width="192" Height="32" Margin="5" Click="bt_FubiFuchakuMenu_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>
