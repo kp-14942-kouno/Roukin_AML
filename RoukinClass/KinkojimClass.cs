@@ -115,6 +115,7 @@ namespace MyTemplate.RoukinClass
 
                 // 金融機関名を取得
                 string bankName = bankData.Rows[0]["financial_name"].ToString().Trim();
+                bankName = bankName.Replace("労金",""); // 労金を除去
                 // 支店番号を取得
                 string branchNo = bankData.Rows[0]["branch_number"].ToString().Trim();
 
@@ -122,7 +123,7 @@ namespace MyTemplate.RoukinClass
                 bankData.Dispose();
 
                 // 金融機関名のディレクトリを作成
-                string bankDir = Path.Combine(_expPath, safeBoxDir, bankCode + bankName);
+                string bankDir = Path.Combine(_expPath, safeBoxDir, bankName);
                 Directory.CreateDirectory(bankDir);
 
                 // 団体と個人のDataTableから金融機関コードに一致する行を抽出
@@ -273,7 +274,7 @@ namespace MyTemplate.RoukinClass
 
                 // 金庫事務用データ
                 using(var fsBox = new FileStream(Path.Combine(bankDir, safeBoxFile), FileMode.CreateNew, FileAccess.Write, FileShare.None))
-                using (var safeBox = new StreamWriter(Path.Combine(bankDir, safeBoxFile), false, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Utf8Bom)))
+                using (var safeBox = new StreamWriter(fsBox, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Utf8Bom)))
                 {
                     // ヘッダー行を書き込む
                     safeBox.WriteLine(header);
@@ -849,7 +850,7 @@ namespace MyTemplate.RoukinClass
 
             // 氏名変更有無　WEBCASデータでは1・2 ⇒ 0・1 に置換え
             record += SetDc((row["namechg_flg"].ToString() == "1" ? "0" : "1")) + delimiter;
-            record += SetDc((row["lname_kana"].ToString() == "2" ? row["fname_kana"].ToString() + " " + row["fname_kanji"].ToString() : "")) + delimiter; // カナ氏名
+            record += SetDc((row["namechg_flg"].ToString() == "2" ? row["fname_kana"].ToString() + " " + row["fname_kanji"].ToString() : "")) + delimiter; // カナ氏名
             record += SetDc((row["namechg_flg"].ToString() == "2" ? row["lname_kanji"].ToString() + "　" + row["fname_kanji"].ToString() : "")) + delimiter; // 漢字氏名
 
             // 住所変更有無　WEBCASデータでは1・2 ⇒ 0・1 に置換え

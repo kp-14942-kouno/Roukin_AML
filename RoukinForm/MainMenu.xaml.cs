@@ -185,9 +185,54 @@ namespace MyTemplate.RoukinForm
             }
         }
 
-        private void bt_FubiFuchakuMenu_Click(object sender, RoutedEventArgs e)
+        private void bt_FubiFuchakuList_Click(object sender, RoutedEventArgs e)
         {
+            this.Visibility = Visibility.Hidden;
+            var form = new RoukinForm.FubiFuchakuPrint();
+            form.ShowDialog();
+            this.Visibility = Visibility.Visible;
+        }
 
+        private void bt_FuchakuMenu_Click(object sender, RoutedEventArgs e)
+        {
+            this.Visibility = Visibility.Hidden;
+            var form = new RoukinForm.FuchakuNouhinMenu();
+            form.ShowDialog();
+            this.Visibility = Visibility.Visible;
+        }
+
+        private void bt_CreateZip_Click(object sender, RoutedEventArgs e)
+        {
+            // 確認
+            if (MyMessageBox.Show("不備納品ファイルをZIP化します。", "確認", MyEnum.MessageBoxButtons.YesNo, MyEnum.MessageBoxIcon.None) != MyEnum.MessageBoxResult.Yes) return;
+
+            // 出力先パス
+            string expPath = MyUtilityModules.AppSetting("roukin_setting", "exp_root_path");
+            // パスが存在しない場合はダイアログで取得
+            expPath = MyTemplate.Modules.MyFolderDialog(expPath);
+            if (string.IsNullOrEmpty(expPath)) return;
+
+            using (var dlg = new MyLibrary.MyLoading.Dialog(this))
+            {
+                // パンチ画像作成クラスを生成
+                var exp = new FubiZipCreate(expPath);
+                // スレッド実行
+                dlg.ThreadClass(exp);
+                // ダイアログを表示
+                dlg.ShowDialog();
+                // 結果確認
+                if (exp.Result != MyEnum.MyResult.Ok) return;
+                // 結果メッセージを表示
+                MyMessageBox.Show(exp.ResultMessage);
+            }
+        }
+
+        private void bt_SinseishoMeisaiList_Click(object sender, RoutedEventArgs e)
+        {
+            this.Visibility = Visibility.Hidden;
+            var form = new RoukinForm.SinseishoMeisaiPrint();
+            form.ShowDialog();
+            this.Visibility = Visibility.Visible;
         }
     }
 }

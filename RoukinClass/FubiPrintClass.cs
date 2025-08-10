@@ -38,6 +38,7 @@ namespace MyTemplate.RoukinClass
         private PrintQueue _printer; // 印刷するプリンター
         private string _msg; // メッセージ
         private List<Report.Models.DefectModel> _defectModels; // 不備文言のモデルリスト
+        private List<BankModel> _bankModel; // 銀行情報のモデルリスト
 
         /// <summary>
         /// コンストラクタ
@@ -46,11 +47,12 @@ namespace MyTemplate.RoukinClass
         /// <param name="defectDic"></param>
         /// <param name="printer"></param>
         /// <param name="operation"></param>
-        public FubiPrintDocument(DataTable table, PrintQueue printer, List<DefectModel> defectModels, int operation, string msg)
+        public FubiPrintDocument(DataTable table, PrintQueue printer, List<DefectModel> defectModels, List<BankModel> bankModel, int operation, string msg)
         {
             _table = table;
             _printer = printer;
             _defectModels = defectModels;
+            _bankModel = bankModel;
             _operation = operation;
             _msg = msg;
         }
@@ -77,7 +79,7 @@ namespace MyTemplate.RoukinClass
                 MyLogger.SetLogger($"{_msg}作成開始", MyEnum.LoggerType.Info, false);
 
                 // 実行
-                Run(_defectModels, btl, maching);
+                Run(_defectModels, _bankModel, btl, maching);
 
                 // ビートルデータの保存
                 if (btl.Length > 0 && (_operation & OP_BEETLE) != 0)
@@ -115,7 +117,7 @@ namespace MyTemplate.RoukinClass
         /// 実行
         /// </summary>
         /// <param name="sb"></param>
-        private void Run(List<Report.Models.DefectModel> defectModels, StringBuilder blt, StringBuilder maching)
+        private void Run(List<Report.Models.DefectModel> defectModels, List<Report.Models.BankModel> bankModel, StringBuilder blt, StringBuilder maching)
         {
             // 不備状データをtaba_numでグループ化
             var tabas = _table.AsEnumerable().Select(x => x["taba_num"].ToString()).Distinct().OrderBy(x => x).ToList();
@@ -152,7 +154,7 @@ namespace MyTemplate.RoukinClass
                         // Dispatcher.Invokeを使用してUIスレッドでFixedDocumentを作成
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            document = FubiHelper.CreateFixedDocument(row, defectModels);
+                            document = FubiHelper.CreateFixedDocument(row, defectModels, bankModel);
                         });
 
                         if ((_operation & OP_PRINT) != 0)

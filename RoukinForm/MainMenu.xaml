@@ -56,7 +56,9 @@
                         <TextBlock Text="団体_25_パンチ連携_" HorizontalAlignment="Right" FontSize="11" Foreground="OrangeRed" Margin="0,0,5,0"/>
                         <Button x:Name="bt_FubiCheck" Content="審査 MENU" Width="192" Height="32" Margin="5" Click="bt_FubiCheck_Click"/>
                         <Button x:Name="bt_FubiPrint" Content="不備状印刷 MENU" Width="192" Height="32" Margin="5" Click="bt_FubiPrint_Click"/>
+                        <Button x:Name="bt_FubiFuchakuList" Content="不備状不着仕分リスト MENU" Width="192" Height="32" Margin="5" Click="bt_FubiFuchakuList_Click"/>
                         <Button x:Name="bt_ShiwakeList" Content="申請書仕分リスト MENU" Width="192" Height="32" Margin="5" Click="bt_ShiwakeList_Click"/>
+                        <Button x:Name="bt_SinseishoMeisaiList" Content="申請書明細リスト MENU" Width="192" Height="32" Margin="5" Click="bt_SinseishoMeisaiList_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -68,15 +70,23 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="20"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Text="納品処理" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Text="日次納品処理" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
 
                     <StackPanel Grid.Row="1" Orientation="Vertical">
                         <Button x:Name="bt_RoukinNouhinMenu" Content="勘定系・本人確認納品 MENU" Width="192" Height="32" Margin="5" Click="bt_RoukinNouhinMenu_Click"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="2" Text="週次納品処理" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
+
+                    <StackPanel Grid.Row="3" Orientation="Vertical">
                         <Button x:Name="bt_KinkoNouhinMenu" Content="金庫事務納品 MENU" Width="192" Height="32" Margin="5" Click="bt_KinkoNouhinMenu_Click"/>
                         <Button x:Name="bt_FubiNouhinMenu" Content="不備納品 MENU" Width="192" Height="32" Margin="5" Click="bt_FubiNouhinMenu_Click"/>
-                        <Button x:Name="bt_FubiFuchakuMenu" Content="不備状還付 MENU" Width="192" Height="32" Margin="5" Click="bt_FubiFuchakuMenu_Click"/>
+                        <Button x:Name="bt_FubiFuchakuMenu" Content="不着納品 MENU" Width="192" Height="32" Margin="5" Click="bt_FuchakuMenu_Click"/>
+                        <Button x:Name="bt_CreateZip" Content="ZIP圧縮処理" Width="192" Height="32" Margin="5" Click="bt_CreateZip_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>

@@ -1,0 +1,50 @@
+﻿<Window x:Class="MyTemplate.RoukinForm.SinseishoMeisaiPrint"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MyTemplate.RoukinForm"
+        SizeToContent="WidthAndHeight"
+        mc:Ignorable="d"
+        Loaded="Window_Loaded"
+        Title="申請書明細印刷">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="220"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="48"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="2" Grid.Column="0" BorderThickness="1" BorderBrush="Black" SnapsToDevicePixels="True" Margin="5">
+            <StackPanel Orientation="Vertical">
+                <Label Content="データ処理" FontSize="11" Background="LightSeaGreen" Foreground="White" HorizontalContentAlignment="Center"/>
+                <Button x:Name="bt_InpMeisaiData" Content="明細対象読込み" Width="196" Height="32" Margin="5" Click="bt_InpMeisaiData_Click"/>
+                <TextBlock Text="団体_60_申請書仕分対象_" HorizontalAlignment="Right" FontSize="11" Foreground="OrangeRed" Margin="0,0,5,0"/>
+                <TextBlock x:Name="tb_MeisaiCount" Text="100件" Margin="0,0,5,0" HorizontalAlignment="Right"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="2" Grid.Column="1">
+            <Border BorderThickness="1" BorderBrush="Black" Margin="5" SnapsToDevicePixels="True">
+                <StackPanel Orientation="Vertical">
+                    <Label Content="印刷処理" FontSize="11" Background="CornflowerBlue" Foreground="White" HorizontalContentAlignment="Center"/>
+                    <Button x:Name="bt_Print" Content="明細印刷" Width="196" Height="32" Margin="5" Click="bt_Print_Click"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+            <StackPanel Orientation="Horizontal">
+                <ComboBox x:Name="cmb_PrinterList" DisplayMemberPath="Name" Grid.Row="1" Grid.Column="1" Height="24" Width="192" Margin="5,0,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <Button x:Name="bt_Close" Grid.Row="3" Grid.Column="1" Content="閉じる" Width="196" Height="32" Click="bt_Close_Click"/>
+
+    </Grid>
+</Window>

@@ -85,6 +85,9 @@ namespace MyTemplate.Class
     }
 
 
+    /// <summary>
+    /// 
+    /// </summary>
     public static class DataTableExtensions
     {
         public static List<T> ToList<T>(string providerName, string tableName) where T : new()

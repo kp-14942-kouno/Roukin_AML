@@ -79,11 +79,12 @@ code_Connection:
 #ろうきんAML案件設定
 #sjis, utf8, utf8bom, utf16le, utf16lebom, utf16be, utf16bebom
 roukin_setting:
-    img_root_path: 'D:\04.VisualStudio\ろうきん\img'
+    img_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\テストデータ\画像'
     exp_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\テストデータ'
     match_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\マッチングデータ'
-    siwake_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\仕訳データ'
-    fubi_img_dir: '不備画像'
+    siwake_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\仕分データ'
+    fubifuchaku_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\不備状不着仕分データ'
+    fubi_img_dir: '不備画像'     #不備画像ディレクトリ        
     customer_info_name: 'KJOUHOUKOUSHINA'               #顧客情報変更データ
     customer_dir: '勘定系@ymd@'                         #勘定系用データのディレクトリ
     resuponse_res_name: 'ANS_KOKYAKUKANRI.txt'          #回答結果顧客管理データ
@@ -99,18 +100,22 @@ roukin_setting:
     fubi_data_name: 'ANS_KOKYAKUKANRI_KINKOJIMU_@ymd@.txt'      #不備対象データ
     fubi_img_data_name: 'ANS_IMAGEKANRI_KINKOJIMU_@ymd@.txt'    #不備対象イメージ管理データ
     fubi_img_zip_name: 'ANS_IAMGE_KINKOJIMU_@ymd@.zip'          #不備対象イメージZIPファイル
-    fubi_call_zip_name: 'ANS_CALL_KINKOJIMU_@ymd@.zip'          #不備対象コールZIPファイル
+    fubi_call_zip_name: '不備データ_@ymd@.zip'          #不備対象コールZIPファイル
     fubi_call_zip_password: 'fubi' #不備対象コールZIPファイルのパスワード
+
+    fuchaku_name: '還付データ_@ymd@_xxx.txt' #不着データ
 
     dp_dir: 'DP連携@ymd@'                        #DP連携データのディレクトリ
     dp_file_kojin: '個人_本人確認記録書.txt'     #DP連携データ個人
     dp_file_dantai: '法人_本人確認記録書.txt'    #DP連携団体データ
 
-    panch_zip_name: 'PANCHIMAGES_@ymd@.zip' #パンチ画像連携ファイル名
-    panch_zip_password: 'panch' #パンチ画像連携ファイルのパスワード
+    punch_img_dir: 'パンチ画像'   #パンチ画像ディレクトリ
+    punch_zip_name: 'PANCHIMAGES_@ymd@.zip' #パンチ画像連携ファイル名
+    punch_zip_password: 'panch' #パンチ画像連携ファイルのパスワード
 
     match_name: 'MATCHING_@ymd@_@hms@.txt' #マッチングデータ
-    siwake_name: 'SIWAKE_@ymd@_@hms@.txt'  #仕訳データ
+    siwake_name: 'SIWAKE_@ymd@_@hms@.txt'  #申請書仕分データ
+    fubifuchaku_name: 'FUBIFUCHAKU_@ymd@_@hms@.txt' #不備状不着仕分データ
 
     industry_etc_code: '620050' #（個人）業種その他コード
     jpn_code: '0100' #日本国コード

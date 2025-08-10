@@ -173,7 +173,6 @@ namespace MyTemplate.RoukinForm
             return selectedRows.CopyToDataTable();
         }
 
-
         /// <summary>
         /// 全選択ボタンクリックイベント
         /// </summary>

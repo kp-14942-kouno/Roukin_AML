@@ -32,6 +32,7 @@ namespace MyTemplate.Report.Views
             tb_Addr.Text = model.addr;
             tb_Name.Text = model.name;
             img_QR.Source = items.qr_image;
+            tb_BankName.Text = model.bank_name;
 
             FubiList.ItemsSource = items.fubi;
 

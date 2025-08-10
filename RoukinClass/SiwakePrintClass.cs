@@ -58,7 +58,7 @@ namespace MyTemplate.RoukinClass
         public override int MultiThreadMethod()
         {
             ProgressBarType = MyEnum.MyProgressBarType.None;
-            ProcessName = $"仕分けリスト処理中...";
+            ProcessName = $"申請書仕分けリスト処理中...";
             ProgressMax = _table.Rows.Count;
             ProgressValue = 0;
 

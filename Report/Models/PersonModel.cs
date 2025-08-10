@@ -16,6 +16,7 @@ namespace MyTemplate.Report.Models
         public string name { get; set; }
         public string post_num { get; set; }
         public string addr { get; set; }
+        public string bank_name { get; set; }               // 金融機関名
     }
 
     /// <summary>
@@ -24,10 +25,10 @@ namespace MyTemplate.Report.Models
     public class PersonItems
     {
         public string qr_code { get; set; }
-        public int page { get; set; }                           // ページ数
-        public int pages { get; set; }                          // 最大ページ数
-        public List<FubiText> fubi { get; set; } = new();       // 不備内容のテキスト
-        public BitmapImage qr_image { get; set; }                     // QRコード画像
+        public int page { get; set; }                       // ページ数
+        public int pages { get; set; }                      // 最大ページ数
+        public List<FubiText> fubi { get; set; } = new();   // 不備内容のテキスト
+        public BitmapImage qr_image { get; set; }           // QRコード画像
     }
 
     /// <summary>
@@ -74,5 +75,17 @@ namespace MyTemplate.Report.Models
         public string code { get; set; } // 金融機関コード
         public string branch_number { get; set; } // 支店番号
         public string financial_name { get; set; } // 金融機関名
+    }
+
+    /// <summary>
+    /// 申請書明細モデル
+    /// </summary>
+    public class Meisai
+    {
+        public string no { get; set; } // 通番
+        public string bpo_num { get; set; } // BPO番号
+        public string bpo_persona_cd { get; set; } // 人格コード
+        public string bpo_org_kanji { get; set; } // 団体名
+        public string bpo_cust_no { get; set; } // 顧客番号
     }
 }

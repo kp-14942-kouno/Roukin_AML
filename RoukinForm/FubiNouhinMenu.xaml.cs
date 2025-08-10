@@ -26,7 +26,6 @@ namespace MyTemplate.RoukinForm
     {
         DataTable _table = new DataTable();
 
-
         /// <summary>
         /// デストラクタ
         /// </summary>
@@ -123,7 +122,7 @@ namespace MyTemplate.RoukinForm
             using (var dlg = new MyLibrary.MyLoading.Dialog(this))
             {
                 // 処理実行
-                var exp = new FubiNouhinClass(_table, operation, msg);
+                var exp = new FubiNouhinClass(_table, operation, msg, expPath);
                 dlg.ThreadClass(exp);
                 dlg.ShowDialog();
                 // 結果を確認

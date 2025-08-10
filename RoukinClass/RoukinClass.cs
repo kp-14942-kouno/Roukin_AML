@@ -3,15 +3,19 @@ using ICSharpCode.SharpZipLib.Zip;
 using MyLibrary;
 using MyLibrary.MyClass;
 using MyLibrary.MyModules;
+using MyTemplate.MyClass;
+using Org.BouncyCastle.Bcpg.OpenPgp;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Interop;
 using System.Windows.Markup;
 
 namespace MyTemplate
@@ -352,41 +356,123 @@ namespace MyTemplate
 
             // 画像ファイルパス
             string imgPath = MyUtilityModules.AppSetting("roukin_setting", "img_root_path");
+            // パンチ画像ディレクトリ
+            string punchDir = MyUtilityModules.AppSetting("roukin_setting", "punch_img_dir");
             // パンチ画像ZIPファイル名
-            string zipName = MyUtilityModules.AppSetting("roukin_setting", "panch_zip_name", true, _table.Rows.Count);
+            string zipName = MyUtilityModules.AppSetting("roukin_setting", "punch_zip_name", true, _table.Rows.Count);
             // パスワード
-            string zipPassword = MyUtilityModules.AppSetting("roukin_setting", "panch_zip_password");
+            string zipPassword = MyUtilityModules.AppSetting("roukin_setting", "punch_zip_password");
 
-            using (var fsWriter = new System.IO.FileStream(Path.Combine(_expPath, zipName), System.IO.FileMode.CreateNew, System.IO.FileAccess.Write, FileShare.None))
-            using (var zipOutput = new ZipOutputStream(fsWriter))
+            // ZIPの作成
+            using (var zipStream = new MyArchiveWriter(Path.Combine(_expPath, zipName), true, true))
             {
-                zipOutput.Password = zipPassword; // ZIPファイルのパスワード設定
-
                 foreach (DataRow row in _table.Rows)
                 {
                     ProgressValue++;
 
-                    int imgCount = int.Parse(row["img_num"].ToString());
+                    // 対象パンチ画像のパスを取得
+                    string sourcePath = Path.Combine(imgPath, punchDir, row["taba_num"].ToString(), row["bpo_num"].ToString() + ".PDF");
+                    // ZIPに書出し
+                    zipStream.WriteFile(row["bpo_num"].ToString() + ".PDF", sourcePath, zipPassword);
+                }
+            }
+        }   
+    }
 
-                    for (int i = 1; i <= imgCount; i++)
+    /// <summary>
+    /// 不備納品データのZIP作成クラス
+    /// </summary>
+    public class FubiZipCreate : MyLibrary.MyLoading.Thread
+    {
+        private string _expPath = string.Empty; // 出力先パス
+
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        /// <param name="expPath"></param>
+        public FubiZipCreate(string expPath)
+        {
+            _expPath = expPath;
+        }
+
+        public override int MultiThreadMethod()
+        {
+#if DEBUG
+            {
+                string msg = "不備納品ファイルのZIP作成";
+                // 開始ログ出力
+                MyLogger.SetLogger($"{msg}を開始", MyEnum.LoggerType.Info, false);
+
+                using (var codeDb = new MyDbData("code"))
+                {
+                    // 実行
+                    Run(codeDb);
+                    // 結果メッセージ
+                    ResultMessage = $"{msg}完了";
+                    // 終了ログ出力
+                    MyLogger.SetLogger(ResultMessage, MyEnum.LoggerType.Info, false);
+
+                    Result = MyLibrary.MyEnum.MyResult.Ok;
+                }
+            }
+#else
+            try
+            {
+                string msg = "不備納品ファイルのZIP作成";
+                // 開始ログ出力
+                MyLogger.SetLogger($"{msg}を開始", MyEnum.LoggerType.Info, false);
+
+                using (var codeDb = new MyDbData("code"))
+                {
+                    // 実行
+                    Run(codeDb);
+                    // 結果メッセージ
+                    ResultMessage = $"{msg}納品データ作成完了";
+                    // 終了ログ出力
+                    MyLogger.SetLogger(ResultMessage, MyEnum.LoggerType.Info, false);
+
+                    Result = MyLibrary.MyEnum.MyResult.Ok;
+                }
+            }
+            catch (Exception ex)
+            {
+                MyLogger.SetLogger(ex, MyLibrary.MyEnum.LoggerType.Error);
+                Result = MyLibrary.MyEnum.MyResult.Error;
+            }
+#endif
+            Completed = true;
+            return 0;
+        }
+
+        private void Run(MyDbData codeDb)
+        {
+            ProgressBarType = MyEnum.MyProgressBarType.None;
+            ProcessName = "不備納品ファイルのZIP作成中...";
+
+            // 金庫事務用ディレクトリ
+            string safeBoxDir = MyUtilityModules.AppSetting("roukin_setting", "safe_box_admin_dir", true);
+
+            using (DbDataReader reader = codeDb.ExecuteReader("select * from t_financial_code order by code;"))
+            {
+                while (reader.Read())
+                {
+                    // 金庫名を取得
+                    string bankName = reader["financial_name"].ToString();
+                    bankName = bankName.Replace("労金", ""); // 労金を削除
+                    // ZIP用パスワード
+                    string password = reader["password"].ToString();
+
+                    // 対象フォルダが存在するか確認
+                    if (Directory.Exists(Path.Combine(_expPath, safeBoxDir, bankName)))
                     {
-                        // 画像ファイル名の取得
-                        string imgName = row["bpo_num"].ToString() + (i == 1 ? string.Empty : "_" + i.ToString()) + ".jpg";
-                        // 画像ファイルパス
-                        string imgFilePath = Path.Combine(imgPath,row["taba_num"].ToString(), imgName);
-
-                        // ZIPエントリの作成
-                        ZipEntry entry = new ZipEntry(imgName);
-                        zipOutput.PutNextEntry(entry);
-                        // 画像ファイルをZIPに追加
-                        using (var fsReader = new FileStream(imgFilePath, FileMode.Open, FileAccess.Read))
+                        // ZIP作成
+                        using(var archive = new MyArchiveWriter(Path.Combine(_expPath, safeBoxDir, bankName + ".zip"), true, true))
                         {
-                            fsReader.CopyTo(zipOutput);
+                            // ZIPに書き込み
+                            archive.AddFolder(Path.Combine(_expPath, safeBoxDir, bankName), bankName, true, password);
                         }
-                        zipOutput.CloseEntry();
                     }
                 }
-                fsWriter.Flush(); 
             }
         }
     }

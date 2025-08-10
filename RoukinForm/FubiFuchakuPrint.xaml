@@ -1,0 +1,65 @@
+﻿<Window x:Class="MyTemplate.RoukinForm.FubiFuchakuPrint"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MyTemplate.RoukinForm"
+        SizeToContent="WidthAndHeight"
+        mc:Ignorable="d"
+        Loaded="Window_Loaded"
+        Title="不着封筒仕分けリスト">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="220"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="48"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+            <DataGrid x:Name="dg_List" Height="260" AutoGenerateColumns="False" CanUserAddRows="False" Width="440">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Header="選択" Width="50" Binding="{Binding IsSelected, Mode=TwoWay}" IsReadOnly="False"/>
+                    <DataGridTextColumn Header="BPO管理番号" Binding="{Binding bpo_num}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="金融機関コード" Binding="{Binding bpo_bank_code}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="団体名" Binding="{Binding bpo_org_kanji}" IsReadOnly="True"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <Border Grid.Row="2" Grid.Column="0" BorderThickness="1" BorderBrush="Black" SnapsToDevicePixels="True" Margin="5">
+            <StackPanel Orientation="Vertical">
+                <Label Content="データ処理" FontSize="11" Background="LightSeaGreen" Foreground="White" HorizontalContentAlignment="Center"/>
+                <Button x:Name="bt_InpShiwakeData" Content="仕分け対象読込み" Width="196" Height="32" Margin="5" Click="bt_InpShiwake_Click"/>
+                <TextBlock Text="団体_60_申請書仕分対象_" HorizontalAlignment="Right" FontSize="11" Foreground="OrangeRed" Margin="0,0,5,0"/>
+                <TextBlock x:Name="tb_ShiwakeCount" Text="100件" Margin="0,0,5,0" HorizontalAlignment="Right"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="2" Grid.Column="1">
+            <Border BorderThickness="1" BorderBrush="Black" Margin="5" SnapsToDevicePixels="True">
+                <StackPanel Orientation="Vertical">
+                    <Label Content="印刷・作成処理" FontSize="11" Background="CornflowerBlue" Foreground="White" HorizontalContentAlignment="Center"/>
+                    <CheckBox x:Name="chk_ShiwakePrint" Content="仕分けリスト印刷" Margin="5,5,0,0" IsChecked="True"/>
+                    <CheckBox x:Name="chk_ShiwakeData" Content="仕分けデータ作成" Margin="5,5,0,0" IsChecked="True"/>
+                    <Button x:Name="bt_Print" Content="印刷・データ作成処理" Width="196" Height="32" Margin="5" Click="bt_Print_Click"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="bt_AllSelect" Content="全選択" Width="98" Height="24" Click="bt_AllSelect_Click"/>
+                <Button x:Name="bt_AllUnSelect" Content="全解除" Width="98" Height="24" Margin="5,0,0,0" Click="bt_AllUnSelect_Click"/>
+                <ComboBox x:Name="cmb_PrinterList" DisplayMemberPath="Name" Grid.Row="1" Grid.Column="1" Height="24" Width="192" Margin="5,0,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <Button x:Name="bt_Close" Grid.Row="3" Grid.Column="1" Content="閉じる" Width="196" Height="32" Click="bt_Close_Click"/>
+
+    </Grid>
+</Window>

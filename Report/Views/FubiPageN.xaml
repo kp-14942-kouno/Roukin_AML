@@ -13,7 +13,7 @@
             <RowDefinition Height="1.5cm"/>
         </Grid.RowDefinitions>
 
-        <Image x:Name="imb_QR"  Width="30" Height="30" HorizontalAlignment="Right"/>
+        <Image x:Name="imb_QR"  Width="1cm" Height="1cm" HorizontalAlignment="Right"/>
 
         <Border Grid.Row="1" BorderThickness="1" BorderBrush="Black">
             <ItemsControl x:Name="FubiList">

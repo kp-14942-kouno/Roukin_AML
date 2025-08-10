@@ -24,13 +24,13 @@ namespace MyTemplate.Report.Helpers
         /// <param name="dataTable"></param>
         /// <param name="defectDic"></param>
         /// <returns></returns>
-        public static FixedDocument CreateFixedDocument(DataTable dataTable, List<Report.Models.DefectModel> defectModels)
+        public static FixedDocument CreateFixedDocument(DataTable dataTable, List<Report.Models.DefectModel> defectModels, List<Report.Models.BankModel> bankModel)
         {
             var document = new FixedDocument();
 
             foreach (DataRow row in dataTable.Rows)
             {
-                var pageContents = CreatePageContent(row, defectModels);
+                var pageContents = CreatePageContent(row, defectModels, bankModel);
                 foreach(PageContent page in pageContents)
                 {
                     // PageContentをFixedDocumentに追加
@@ -46,7 +46,7 @@ namespace MyTemplate.Report.Helpers
         /// <param name="dataRow"></param>
         /// <param name="defectDic"></param>
         /// <returns></returns>
-        private static List<PageContent> CreatePageContent(DataRow dataRow, List<Report.Models.DefectModel> defectModels)
+        private static List<PageContent> CreatePageContent(DataRow dataRow, List<Report.Models.DefectModel> defectModels, List<Report.Models.BankModel> bankModel)
         {
             var pageContents = new List<PageContent>();
 
@@ -67,6 +67,10 @@ namespace MyTemplate.Report.Helpers
             person.post_num = post_num;
             person.addr = dataRow["bpo_address"].ToString();
 
+            // 金融機関名を取得
+            var bankName = bankModel.FirstOrDefault(x => x.code == dataRow["bpo_bank_code"].ToString())?.financial_name;
+            person.bank_name = bankName;
+
             var pages = new List<PersonItems>();
             var fubiAry = dataRow["fubi_code"].ToString().Split(';');
 
@@ -74,6 +78,7 @@ namespace MyTemplate.Report.Helpers
             var currentLine = 0; // 現在の行数
             var lineLimit = firstPageLimit; // 行数の上限を初期化
             var personItem = new PersonItems();
+
             personItem.fubi.Add(new FubiText { Fubi = "" }); // 開始行を1段下げる
 
             foreach (var code in fubiAry)
@@ -165,11 +170,11 @@ namespace MyTemplate.Report.Helpers
         /// <param name="dataRow"></param>
         /// <param name="defectDic"></param>
         /// <returns></returns>
-        public static FixedDocument CreateFixedDocument(DataRow dataRow, List<Report.Models.DefectModel> defectModels)
+        public static FixedDocument CreateFixedDocument(DataRow dataRow, List<Report.Models.DefectModel> defectModels, List<Report.Models.BankModel> bankModel)
         {
             var document = new FixedDocument();
 
-            var pageContents = CreatePageContent(dataRow, defectModels);
+            var pageContents = CreatePageContent(dataRow, defectModels, bankModel);
             foreach (PageContent page in pageContents)
             {
                 // PageContentをFixedDocumentに追加

@@ -41,6 +41,8 @@ namespace MyTemplate.RoukinForm
         private DataTable _table = new();
         // 不備文言
         private List<DefectModel> _defectModels = new();
+        // 金融機関情報
+        private List<BankModel> _bankModel = new();
 
         /// <summary>
         /// リソースの開放
@@ -128,6 +130,10 @@ namespace MyTemplate.RoukinForm
                 _defectModels = MyTemplate.Class.DataTableExtensions.ToList<DefectModel>("code", "t_fubi_code");
                 // 不備文言が取得できていない場合は例外を投げる
                 if (_defectModels.Count == 0) throw new Exception("不備文言の取得に失敗しました。");
+                // 金融機関情報を取得
+                _bankModel = MyTemplate.Class.DataTableExtensions.ToList<BankModel>("code", "t_financial_code");
+                // 不備文言が取得できていない場合は例外を投げる
+                if (_bankModel.Count == 0) throw new Exception("金融機関情報の取得に失敗しました。");
             }
             catch (Exception ex)
             {
@@ -208,7 +214,7 @@ namespace MyTemplate.RoukinForm
                 return;
             }
             // 選択された行の不備状のFixedDocumentを作成
-            var document = FubiHelper.CreateFixedDocument(selectedRows.Rows[0], _defectModels);
+            var document = FubiHelper.CreateFixedDocument(selectedRows.Rows[0], _defectModels, _bankModel);
             // FixedDocumentをReportPreivewに渡して表示
             var form = new ReportPreivew(document);
             form.ShowDialog();
@@ -303,7 +309,7 @@ namespace MyTemplate.RoukinForm
             using (MyLibrary.MyLoading.Dialog dlg = new MyLibrary.MyLoading.Dialog(this))
             {
                 // 不備状印刷・画像作成スレッドを実行
-                var thread = new FubiPrintDocument(selectedRows, printer, _defectModels, operation, msg);
+                var thread = new FubiPrintDocument(selectedRows, printer, _defectModels, _bankModel, operation, msg);
                 dlg.ThreadClass(thread);
                 dlg.ShowDialog();
                 if (thread.Result != MyLibrary.MyEnum.MyResult.Ok)

@@ -6,6 +6,7 @@ using MyLibrary;
 using MyLibrary.MyClass;
 using MyLibrary.MyModules;
 using Mysqlx.Expr;
+using MyTemplate.MyClass;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -13,7 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Windows.Markup;
 using static MyTemplate.RoukinClass.RoukinModules;
 
 namespace MyTemplate.RoukinClass
@@ -29,6 +30,7 @@ namespace MyTemplate.RoukinClass
         private int _operation = 0; // 操作フラグ
         private DataTable _table = new DataTable(); // データテーブル
         private string _msg = string.Empty; // メッセージ
+        private string _expPath = string.Empty; // 出力先パス
 
         /// <summary>
         /// コンストラクタ
@@ -36,11 +38,12 @@ namespace MyTemplate.RoukinClass
         /// <param name="table"></param>
         /// <param name="operation"></param>
         /// <param name="msg"></param>
-        public FubiNouhinClass(DataTable table, int operation, string msg)
+        public FubiNouhinClass(DataTable table, int operation, string msg, string expPath)
         {
             _table = table;
             _operation = operation;
             _msg = msg;
+            _expPath = expPath;
         }
 
         /// <summary>
@@ -110,8 +113,6 @@ namespace MyTemplate.RoukinClass
             ProgressMax = _table.Rows.Count;
             ProgressValue = 0;
 
-            // 出力先パスを取得
-            string expPath = MyUtilityModules.AppSetting("roukin_setting", "exp_root_path");
             // 金庫事務用ディレクトリ
             string safeBoxDir = MyUtilityModules.AppSetting("roukin_setting", "safe_box_admin_dir", true);
             // 不備対象者データファイル名
@@ -134,11 +135,9 @@ namespace MyTemplate.RoukinClass
             // 作成日
             var date = DateTime.Now.ToString("yyyyMMdd");
 
-            using (var zipStream = new FileStream(Path.Combine(expPath, callFubiZipName), FileMode.CreateNew, FileAccess.Write))
-            using (var zipOutput = new ZipOutputStream(zipStream))
+            // コール用画像のZIPファイル作成
+            using (var archive = new MyArchiveWriter(Path.Combine(_expPath, callFubiZipName), true, true))
             {
-                zipOutput.Password = callFubiZipPass; // ZIPのパスワード設定
-
                 // 金融機関コードごとに処理
                 foreach (string bank in banks)
                 {
@@ -153,17 +152,22 @@ namespace MyTemplate.RoukinClass
 
                     // 金融機関名を取得
                     string bankName = bankData.Rows[0]["financial_name"].ToString().Trim();
-                    // 支店番号を取得
+                    bankName = bankName.Replace("労金", ""); // 金融機関名から「労金」を削除
+                                                           // 支店番号を取得
                     string branchNo = bankData.Rows[0]["branch_number"].ToString().Trim();
 
                     bankData.Dispose(); // データテーブルを破棄
 
                     // 出力先パス作成
-                    string expDir = System.IO.Path.Combine(expPath, safeBoxDir, bank + bankName);
+                    string expDir = System.IO.Path.Combine(_expPath, safeBoxDir, bankName);
+                    // 画像パス
+                    string expImgDir = System.IO.Path.Combine(expDir, "画像");
 
                     // 出力先作成
                     System.IO.Directory.CreateDirectory(expDir);
+                    System.IO.Directory.CreateDirectory(expImgDir);
 
+                    // 対象の金融機関コードのデータを抽出
                     var table = _table.AsEnumerable()
                         .Where(x => x["bpo_bank_code"].ToString().Trim() == bank)
                         .CopyToDataTable();
@@ -171,11 +175,9 @@ namespace MyTemplate.RoukinClass
                     // 不備納品データの作成
                     if ((_operation & OP_DATA) != 0)
                     {
-                        CreateData(table, bank, bankName, branchNo, expDir, imgPath, fubiImgDir, fubiName, fubiImgName, fubiZipName, date ,zipOutput);
+                        CreateData(table, bank, bankName, branchNo, expDir, expImgDir, imgPath, fubiImgDir, fubiName, fubiImgName, fubiZipName, date, archive, callFubiZipPass);
                     }
                 }
-                zipOutput.CloseEntry(); // ZIPエントリを閉じる
-                zipStream.Flush(); // ZIPストリームをフラッシュ
             }
         }
 
@@ -192,26 +194,19 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiImgName"></param>
         /// <param name="fubiZipName"></param>
         /// <param name="date"></param>
-        private void CreateData(DataTable table, string bank, string bankName, string branchNo, string expDir, string imgPath, string fubiImgDir, string fubiName, string fubiImgName, string fubiZipName, string date, ZipOutputStream callZip)
+        private void CreateData(DataTable table, string bank, string bankName, string branchNo, string expDir, string expImgDir, string imgPath, string fubiImgDir, string fubiName, string fubiImgName, string fubiZipName, string date, MyArchiveWriter archive, string callFubiZipPass)
         {
             int count = 0;
             string delimiter = ","; // 区切り文字
-            using (var zipStream = new FileStream(Path.Combine(expDir, fubiZipName), FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            using (var zipOutput = new ZipOutputStream(zipStream))
+
             // 不備対象データのファイルストリームを作成
             using (var fsFubi = new FileStream(Path.Combine(expDir, fubiName), FileMode.CreateNew, FileAccess.Write, FileShare.None))
             using (var fubiStrm = new StreamWriter(fsFubi, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Sjis)))
-            // 不備対象イメージ管理データのファイルストリームを作成
-            using(var fsFubiImg = new FileStream(Path.Combine(expDir, fubiImgName), FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            using (var imgStrm = new StreamWriter(fsFubiImg, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Sjis)))
             {
                 // 不備対象データのヘッダーを書き込む
                 fubiStrm.WriteLine("金融機関コード,支店番号,顧客番号,カナ氏名,漢字氏名,案件毎番号," +
                                    string.Join(delimiter, Enumerable.Range(1, 42)
                                    .Select(i => $"不備事由{string.Concat(i.ToString().Select(c => c >= '0' && c <= '9' ? (char)('０' + (c - '0')) : c))}")));
-
-                // 不備対象イメージ管理データのヘッダーを書き込む
-                imgStrm.WriteLine("\"金融機関コード\",\"支店番号\",\"顧客番号\",\"案件毎番号\",\"代表書類区分\",\"イメージ毎番号\"");
 
                 // データ分繰り返す
                 foreach (DataRow row in table.Rows)
@@ -220,7 +215,6 @@ namespace MyTemplate.RoukinClass
                     count++;
 
                     StringBuilder fubi = new StringBuilder();
-                    StringBuilder img = new StringBuilder();
 
                     // 案件毎番号
                     string caseNo = bank + "_" + branchNo + "_" + date + "_" + count.ToString("D4");
@@ -251,53 +245,17 @@ namespace MyTemplate.RoukinClass
                     fubiStrm.WriteLine(fubi.ToString());
                     fubi.Clear(); // StringBuilderをクリア
 
-                    // 不備対象イメージ管理データ作成
-                    // 画像ファイル枚数
-                    int imgCount = int.Parse(row["img_num"].ToString());
-
-                    // 画像ファイル枚数分レコードを作成する
-                    for (int x = 1; x <= imgCount; x++)
-                    {
-                        img.Append(SetDc(row["bpo_bank_code"].ToString().Trim()) + delimiter); // 金融機関コード
-                        img.Append(SetDc(branchNo) + delimiter); // 支店番号
-                        img.Append(SetDc(row["bpo_cust_no"].ToString().Trim()) + delimiter); // 顧客番号
-                        img.Append(SetDc(caseNo) + delimiter); // 案件毎番号
-                        img.Append(SetDc("2") + delimiter); // 代表書類区分
-                        img.Append(SetDc(x.ToString("D4"))); // イメージ毎番号
-
-                        // 書出し
-                        imgStrm.WriteLine(img.ToString());
-                        img.Clear(); // StringBuilderをクリア
-
-                        // 画像ファイルをZIPへ書出し
-                        // 画像ファイルのパスを作成
-                        string sourceFile = Path.Combine(imgPath, row["taba_num"].ToString(), $"{row["bpo_num"].ToString()}{(x == 1 ? "" : "_" + x)}.jpg");
-                        // 書出し画像ファイル名
-                        string imgName = caseNo + "_" + x.ToString("D4") + ".jpg";
-                        // ZIPファイルに追加
-                        var entry = new ZipEntry(imgName)
-                        {
-                            DateTime = DateTime.Now,
-                            Size = new FileInfo(sourceFile).Length
-                        };
-                        zipOutput.PutNextEntry(entry);
-                        // 画像ファイルをZIPに書き込む
-                        using var inputStrem = File.OpenRead(sourceFile);
-                        inputStrem.CopyTo(zipOutput);
-                        zipOutput.CloseEntry(); // ZIPエントリを閉じる
-                    }
-
-                    // コール用不備画像の作成（PDF化）
+                    // 申請書 +不備状作成（PDF化）
                     var pdfStream = ConvertImagesToPdf(row, imgPath, fubiImgDir);
-                    // ZIPに追加
-                    var zipEntry = new ZipEntry($"{row["bpo_num"].ToString()}.pdf")
-                    {
-                        DateTime = DateTime.Now,
-                    };
-                    callZip.PutNextEntry(zipEntry);
-                    pdfStream.CopyTo(callZip);
+                    // 書出し画像ファイル名
+                    string imgName = bank + "_" + branchNo + "_" + row["bpo_cust_no"].ToString().Trim() + ".PDF";
+
+                    using var fs = new FileStream(Path.Combine(expImgDir, imgName), FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                    pdfStream.CopyTo(fs); // PDFストリームをファイルに書き込む
+
+                    // コール用ZIPへ書出し
+                    archive.WriteBytes(row["bpo_num"].ToString() + ".PDF", pdfStream.ToArray(), callFubiZipPass);
                 }
-                zipStream.Flush(); // ZIPストリームをフラッシュ
             }
         }
 

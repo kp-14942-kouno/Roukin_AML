@@ -7,7 +7,7 @@
         SizeToContent="WidthAndHeight"
         mc:Ignorable="d"
         Loaded="Window_Loaded"
-        Title="仕分けリスト">
+        Title="申請書仕分けリスト">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="220"/>
