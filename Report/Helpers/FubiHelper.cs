@@ -52,7 +52,7 @@ namespace MyTemplate.Report.Helpers
 
             var size = ParperSize.A4.ToSSize(); // 用紙サイズを指定
 
-            const int firstPageLimit = 24; // 1ページ目の上限
+            const int firstPageLimit = 23; // 1ページ目の上限
             const int otherPageLimit = 55; // 2ページ目以降の上限
 
             var person = new Models.PersonModel();
@@ -69,7 +69,7 @@ namespace MyTemplate.Report.Helpers
 
             // 金融機関名を取得
             var bankName = bankModel.FirstOrDefault(x => x.code == dataRow["bpo_bank_code"].ToString())?.financial_name;
-            person.bank_name = bankName;
+            person.bank_name = bankName.Replace("労金","労働金庫");
 
             var pages = new List<PersonItems>();
             var fubiAry = dataRow["fubi_code"].ToString().Split(';');

@@ -61,14 +61,28 @@ namespace MyTemplate.RoukinClass
         {
             try
             {
+                var msg = "審査処理";
+
+                // ログ出力
+                MyLogger.SetLogger($"{msg}開始", MyEnum.LoggerType.Info, false);
                 // 各コードをテーブルで取得
                 GetCodeData();
                 // 実行
                 Run();
+
+                msg += "完了\r\n";
+                msg += $"正常件数：{FixData.Rows.Count}件\r\n";
+                msg += $"不備件数：{FubiData.Rows.Count}件\r\n";
+
+                Result = MyEnum.MyResult.Ok;
+                ResultMessage = msg;
+                // ログ出力
+                MyLogger.SetLogger(msg, MyEnum.LoggerType.Info, false);
+
             }
             catch (Exception ex)
             {
-                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
+                MyLogger.SetLogger("審査処理", ex, MyEnum.LoggerType.Error);
                 Result = MyEnum.MyResult.Error;
             }
             Completed = true;
@@ -326,10 +340,6 @@ namespace MyTemplate.RoukinClass
             // 空欄は除外
             biz = biz.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
-            // 事業内容のコードで_bussinessCodeのコード以外が存在するか
-            //bool hasIvalid = biz.Any(x => !_bussinessCode.AsEnumerable()
-            //    .Any(y => y.Field<string>("code") == x));
-
             // 事業内容コードの選択が１つならOK
             if(biz.Count() == 1) return;
 
@@ -449,8 +459,8 @@ namespace MyTemplate.RoukinClass
                 if (string.IsNullOrEmpty(hqFlg) && string.IsNullOrEmpty(hqCountry)) return;
             }
 
-            // 変更ありで
-            if (hqChg == "1")
+            // 変更なし以外
+            if (hqChg != "0")
             {
                 // 日本選択・国名未記入はOK
                 if (hqFlg == "01" && string.IsNullOrEmpty(hqCountry)) return;
@@ -461,8 +471,15 @@ namespace MyTemplate.RoukinClass
                     .Select(x => x.Field<string>("code"))
                     .FirstOrDefault();
 
-                // 日本以外選択で国名が日本以外はOK
-                if (hqFlg == "02" && !string.IsNullOrEmpty(code) && code != jpn) return;
+                // 国名が存在し日本以外
+                if (!string.IsNullOrEmpty(code) && code != jpn)
+                {
+                    // 日本選択は変更有無選択か未選択でOK
+                    if (hqChg != "1" && hqFlg == "01") return;
+
+                    // 日本以外選択、日本・日本以外選択はOK
+                    if (hqFlg == "02" || hqFlg == "0102") return;
+                }
             }
 
             // それ以外は不備コードをセット
@@ -520,14 +537,6 @@ namespace MyTemplate.RoukinClass
             // 取引目的7に値があっても取引目的1～6の入力数が1以上6未満ならOK
             if(trans.Count() >=1 && trans.Count() < 6 && !string.IsNullOrEmpty(purpCd7)) return;
 
-            // 正常取引目的コードハッシュリスト
-            //var validCOdes = new HashSet<string> { "001", "002", "003", "004", "005", "006" };
-            // ハッシュリストのコード以外が存在するかチェック
-            //bool hasIvalid = trans.Any(x => !validCOdes.Contains(x));
-
-            // 取引目的コードが存在し内容が001～006で入力数が6以下ならOK
-            //if (!hasIvalid && trans.Count() > 0 && trans.Count() <= 6) return;
-
             // 取引目的コードの選択数が6を超えていた場合は不備コード11それ以外は10
             fubiCode.Append(trans.Count() == 0 ? "10;" : "11;");
         }
@@ -548,11 +557,6 @@ namespace MyTemplate.RoukinClass
 
             // 空欄は除外
             trans = trans.Where(x => !string.IsNullOrEmpty(x)).ToArray();
-
-            // 正常取引形態コードハッシュリスト
-            //var validCOdes = new HashSet<string> { "1", "2", "3", "4", "5" };
-            // ハッシュリストのコード以外が存在するかチェック
-            //bool hasIvalid = trans.Any(x => !validCOdes.Contains(x));
 
             // 選択が1つならOK
             if (trans.Count() == 1) return;
@@ -577,11 +581,6 @@ namespace MyTemplate.RoukinClass
             // 空欄は除外
             trans = trans.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
-            // 正常取引形態コードハッシュリスト
-            //var validCOdes = new HashSet<string> { "1", "2", "3", "4", "5", "6" };
-            // ハッシュリストのコード以外が存在するかチェック
-            //bool hasIvalid = trans.Any(x => !validCOdes.Contains(x));
-
             // 選択が1つはOK
             if (trans.Count() == 1) return;
 
@@ -605,11 +604,6 @@ namespace MyTemplate.RoukinClass
             // 空欄は除外
             trans = trans.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
-            // 正常取引形態コードハッシュリスト
-            //var validCOdes = new HashSet<string> { "1", "2", "3", "4", "5", "6" };
-            // ハッシュリストのコード以外が存在するかチェック
-            //bool hasIvalid = trans.Any(x => !validCOdes.Contains(x));
-
             // 選択が1つはOK
             if (trans.Count() == 1) return;
 
@@ -624,12 +618,7 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiCode"></param>
         private void FubiCheck_15(DataRow row, string[] freq, StringBuilder fubiCode)
         {
-            // 正常取引形態コードハッシュリスト
-            //var validCOdes = new HashSet<string> { "1", "2", "3", "4", "5", "6" };
-            // ハッシュリストのコード以外が存在するかチェック
-            //bool hasIvalid = freq.Any(x => !validCOdes.Contains(x));
-
-            // 選択が1つで正しいコードはOK
+            // 選択が1つはOK
             if (freq.Count() == 1) return;
 
             fubiCode.Append("15;");
@@ -643,11 +632,6 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiCode"></param>
         private void FubiCheck_16(DataRow row, string[] amt, StringBuilder fubiCode)
         {
-            // 正常取引形態コードハッシュリスト
-            //var validCOdes = new HashSet<string> { "1", "2", "3", "4" };
-            // ハッシュリストのコード以外が存在するかチェック
-            //bool hasIvalid = amt.Any(x => !validCOdes.Contains(x));
-
             // 選択が1つはOK
             if (amt.Count() == 1) return;
 
@@ -662,11 +646,6 @@ namespace MyTemplate.RoukinClass
         /// <param name="fubiCode"></param>
         private void FubiCheck_17(DataRow row, string[] src, StringBuilder fubiCode)
         {
-            // 正常取引形態コードハッシュリスト
-            //var validCOdes = new HashSet<string> { "1", "2", "3", "4", "6", "7", "8", "9", "10" };
-            // ハッシュリストのコード以外が存在するかチェック
-            //bool hasIvalid = src.Any(x => !validCOdes.Contains(x));
-
             // 選択が1つから3つでOK
             if (src.Count() >= 1 && src.Count() <=3) return;
 
@@ -794,31 +773,35 @@ namespace MyTemplate.RoukinClass
             // 日本コード
             string jpn = MyUtilityModules.AppSetting("roukin_setting", "jpn_code");
 
-            // 変更有無未選択で日本・日本以外未選択・国名未記入はOK
-            if (string.IsNullOrEmpty(flg) && string.IsNullOrEmpty(nat) && string.IsNullOrEmpty(natname)) return;
-            // 変更なしで日本日本以外未選択・国名未記入はOK
+            // 変更なしで日本・日本以外未選択・国名未記入はOK
             if (flg == "0" && string.IsNullOrEmpty(nat) && string.IsNullOrEmpty(natname)) return;
+
+            // 国籍テーブルから国コードを取得
+            string? code = _contoryCode.AsEnumerable()
+                .Where(x => x.Field<string>("country_name") == natname)
+                .Select(x => x.Field<string>("code"))
+                .FirstOrDefault();
+
+            // 変更有無未選択
+            if (string.IsNullOrEmpty(flg))
+            {
+                // 日本・国名未記入はOK
+                if (nat == "01" && string.IsNullOrEmpty(natname)) return;
+                // 日本以外・国名記入（日本国以外）はOK
+                if(nat == "0" && !string.IsNullOrEmpty(code) && !string.IsNullOrEmpty(code) && code != jpn) return;
+            }
 
             // 変更あり
             if (flg == "1")
             {
                 // 日本選択で国名が未記入はOK
                 if (nat == "01" && string.IsNullOrEmpty(natname)) return;
-
-                // 国籍テーブルから国コードを取得
-                string? code = _contoryCode.AsEnumerable()
-                    .Where(x => x.Field<string>("country_name") == natname)
-                    .Select(x => x.Field<string>("code"))
-                    .FirstOrDefault();
-
                 // 日本以外選択で日本以外の国名が存在する場合はOK
                 if (nat == "02" && !string.IsNullOrEmpty(code) && code != jpn) return;
                 // 日本・日本以外とも選択で国名が存在する場合はOK
                 if (nat == "0102" && !string.IsNullOrEmpty(code)) return;
                 // 日本・日本以外とも未選択で国名が存在する場合はOK
                 if (string.IsNullOrEmpty(nat) && !string.IsNullOrEmpty(code)) return;
-                // 日本選択・国名記入はOK
-                if (nat == "01" && !string.IsNullOrEmpty(code)) return;
             }
 
             // それ以外は不備コードをセット
@@ -908,11 +891,6 @@ namespace MyTemplate.RoukinClass
             // 空欄は除外
             rel = rel.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
-            // 正常コードハッシュリスト
-            //var validCOdes = new HashSet<string> { "1", "2", "3" };
-            // ハッシュリストのコード以外が存在するかチェック
-            //bool hasIvalid = rel.Any(x => !validCOdes.Contains(x));
-
             // 選択が1つはOK
             if (rel.Count() == 1) return;
 
@@ -938,10 +916,6 @@ namespace MyTemplate.RoukinClass
 
             // 空欄は除外
             job = job.Where(x => !string.IsNullOrEmpty(x)).ToArray();
-
-            // jobのコードで_bussinessCodePersonのコード以外が存在するか
-            //bool hasIvalid = job.Any(x => !_bussinessCodePerson.AsEnumerable()
-            //    .Any(y => y.Field<string>("code") == x));
 
             // 選択が1つはOK
             if (job.Count() == 1) return;
@@ -979,7 +953,7 @@ namespace MyTemplate.RoukinClass
             // 日本以外選択で日本外の国名記入はOK
             if (nat == "02" && !string.IsNullOrEmpty(code) && code != jpn) return;
             // 日本・日本以外未選択で国名記入はOK
-            if (nat == "" && !string.IsNullOrEmpty(code)) return;
+            if (string.IsNullOrEmpty(nat) && !string.IsNullOrEmpty(code)) return;
             // 日本・日本以外とも選択で国名記入はOK
             if (nat == "0102" && !string.IsNullOrEmpty(code)) return;
             // 日本選択で国名記入はOK

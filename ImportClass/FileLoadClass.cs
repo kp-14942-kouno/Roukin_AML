@@ -90,7 +90,7 @@ namespace MyTemplate.ImportClass
             }
             catch (Exception ex)
             {
-                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
+                MyLogger.SetLogger("ファイル読込設定取得", ex, MyEnum.LoggerType.Error);
                 return false;
             }
             return true;
@@ -156,7 +156,7 @@ namespace MyTemplate.ImportClass
             }
             catch (Exception ex)
             {
-                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
+                MyLogger.SetLogger("ファイル選択", ex, MyEnum.LoggerType.Error);
                 return MyEnum.MyResult.Error;
             }
         }
@@ -274,7 +274,7 @@ namespace MyTemplate.ImportClass
             }
             catch (Exception ex)
             {
-                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
+                MyLogger.SetLogger(fileLoadProperties.FileSetting.process_name, ex, MyEnum.LoggerType.Error);
                 return MyEnum.MyResult.Error;
             }
         }
@@ -467,7 +467,7 @@ namespace MyTemplate.ImportClass
             }
             catch (Exception ex)
             {
-                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
+                MyLogger.SetLogger("ファイル移動処理", ex, MyEnum.LoggerType.Error);
             }
         }
     }
@@ -518,7 +518,7 @@ namespace MyTemplate.ImportClass
             }
             catch (Exception ex)
             {
-                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
+                MyLogger.SetLogger(_fileLoadProperties.FileSetting.process_name, ex, MyEnum.LoggerType.Error);
                 Result = MyEnum.MyResult.Error;
             }
             finally

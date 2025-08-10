@@ -121,7 +121,7 @@ namespace MyTemplate.ImportClass
             }
             catch (Exception ex)
             {
-                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
+                MyLogger.SetLogger("ファイル取込み設定取得", ex, MyEnum.LoggerType.Error);
                 return false;
             }
             return true;
@@ -179,7 +179,7 @@ namespace MyTemplate.ImportClass
             catch (Exception ex)
             {
                 // 例外処理
-                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
+                MyLogger.SetLogger(import.ImportSetting.process_name, ex, MyEnum.LoggerType.Error);
                 return MyEnum.MyResult.Error;
             }
         }

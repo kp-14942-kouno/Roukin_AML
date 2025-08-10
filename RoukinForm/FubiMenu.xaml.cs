@@ -118,6 +118,9 @@ namespace MyTemplate.RoukinForm
                 _fubiData = chk.FubiData;
                 _fixData = chk.FixData;
 
+                if(chk.Result == MyEnum.MyResult.Ok) 
+                    MyMessageBox.Show(chk.ResultMessage, buttons: MyEnum.MessageBoxButtons.Ok, window: this);
+
                 SetCount();
             }
         }
