@@ -169,12 +169,16 @@ namespace MyTemplate.RoukinClass
                         }
                         if ((_operation & OP_IMAGE) != 0)
                         {
+                            var path = MyUtilityModules.AppSetting("roukin_setting", "img_root_path");
+                            var dir = MyUtilityModules.AppSetting("roukin_setting", "fubi_img_dir");
+                            var fullPath = System.IO.Path.Combine(path, dir, row["taba_num"].ToString());
+
                             // 画像作成処理
                             // Dispatcher.Invokeを使用してUIスレッドで画像作成処理を実行
                             Application.Current.Dispatcher.Invoke(() =>
                             {
-                                FixedDocumentAsJpeg(document, row);
-                                FixedDocumentAsTiff(document, row);
+                                FixedDocumentAsJpeg(document, fullPath);
+                                FixedDocumentAsTiff(document, fullPath);
                             });
                         }
                         if ((_operation & OP_BEETLE) != 0)
@@ -209,12 +213,8 @@ namespace MyTemplate.RoukinClass
         /// </summary>
         /// <param name="document"></param>
         /// <param name="row"></param>
-        private void FixedDocumentAsTiff(FixedDocument document, DataRow row)
+        private void FixedDocumentAsTiff(FixedDocument document, string fullPath)
         {
-            var path = MyUtilityModules.AppSetting("roukin_setting", "img_root_path");
-            var dir = "不備状";
-            var fullPath = System.IO.Path.Combine(path, dir, row["taba_num"].ToString());
-
             // フォルダが存在しない場合は作成
             System.IO.Directory.CreateDirectory(fullPath);
 
@@ -288,12 +288,8 @@ namespace MyTemplate.RoukinClass
         /// FixedDocumentをJPEG画像として保存するメソッド
         /// </summary>
         /// <param name="document"></param>
-        private void FixedDocumentAsJpeg(FixedDocument document, DataRow row)
+        private void FixedDocumentAsJpeg(FixedDocument document, string fullPath)
         {
-            var path = MyUtilityModules.AppSetting("roukin_setting", "img_root_path");
-            var dir = "不備状";
-            var fullPath = System.IO.Path.Combine(path, dir, row["taba_num"].ToString());
-
             // フォルダが存在しない場合は作成
             System.IO.Directory.CreateDirectory(fullPath);
 

@@ -108,9 +108,14 @@ namespace MyTemplate.RoukinForm
             }
         }
 
+        /// <summary>
+        /// 閉じるボタンクリックイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void bt_Close_Click(object sender, RoutedEventArgs e)
         {
-
+            this.Close();
         }
     }
 }

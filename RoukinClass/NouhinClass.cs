@@ -409,7 +409,7 @@ namespace MyTemplate.RoukinClass
                 string kanjiName = row["rep_name"].ToString().Trim();   // 代表者の漢字氏名
                 string kanaName = row["rep_kana"].ToString().Trim();    // 代表者のカナ氏名
 
-                // 代表者のカナ氏名が空の場合はBPOデータから取得
+                // 代表者の漢字氏名が空の場合はBPOデータから取得
                 kanjiName = string.IsNullOrEmpty(kanjiName) ? row["bpo_rep_kanji"].ToString().Trim() : kanjiName;
 
                 record += SetDc(kanjiName) + delimiter; // 代表者の漢字氏名

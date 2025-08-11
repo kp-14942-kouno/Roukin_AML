@@ -79,11 +79,11 @@ code_Connection:
 #ろうきんAML案件設定
 #sjis, utf8, utf8bom, utf16le, utf16lebom, utf16be, utf16bebom
 roukin_setting:
-    img_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\テストデータ\画像'
-    exp_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\テストデータ'
-    match_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\マッチングデータ'
-    siwake_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\仕分データ'
-    fubifuchaku_root_path: 'D:\04.VisualStudio\ろうきん\AML業務\Documents\不備状不着仕分データ'
+    img_root_path: 'D:\03.案件\ら\02.労働金庫連合会\01.AML業務\04.テストデータ\01.自前テスト\画像'
+    exp_root_path: 'D:\03.案件\ら\02.労働金庫連合会\01.AML業務\04.テストデータ\01.自前テスト'
+    match_root_path: 'D:\03.案件\ら\02.労働金庫連合会\01.AML業務\04.テストデータ\01.自前テスト\マッチングデータ'
+    siwake_root_path: 'D:\03.案件\ら\02.労働金庫連合会\01.AML業務\04.テストデータ\01.自前テスト\仕分データ'
+    fubifuchaku_root_path: 'D:\03.案件\ら\02.労働金庫連合会\01.AML業務\04.テストデータ\01.自前テスト\不備状不着仕分データ'
     fubi_img_dir: '不備画像'     #不備画像ディレクトリ        
     customer_info_name: 'KJOUHOUKOUSHINA'               #顧客情報変更データ
     customer_dir: '勘定系@ymd@'                         #勘定系用データのディレクトリ
@@ -94,8 +94,8 @@ roukin_setting:
     safe_box_admin_dir: '金庫事務用@ymd@'               #金庫事務用データのディレクトリ
     max_count: '2500' #1納品当たりの最大件数
 
-    nouhinzumi_dantai_blt: '団体_50_正常納品済み_@ymd@_@hms@.txt' #団体納品済みデータ
-    nouhinzumi_kojin_blt: '個人_20_納品済み_@ymd@_@hms@.txt'  #個人納品済みデータ
+    nouhinzumi_dantai_blt: '団体_50_勘定系納品済_@ymd@_@hms@.txt' #団体納品済みデータ
+    nouhinzumi_kojin_blt: '個人_20_勘定系納品済_@ymd@_@hms@.txt'  #個人納品済みデータ
 
     fubi_data_name: 'ANS_KOKYAKUKANRI_KINKOJIMU_@ymd@.txt'      #不備対象データ
     fubi_img_data_name: 'ANS_IMAGEKANRI_KINKOJIMU_@ymd@.txt'    #不備対象イメージ管理データ
@@ -113,7 +113,7 @@ roukin_setting:
     punch_zip_name: 'PANCHIMAGES_@ymd@.zip' #パンチ画像連携ファイル名
     punch_zip_password: 'panch' #パンチ画像連携ファイルのパスワード
 
-    match_name: 'MATCHING_@ymd@_@hms@.txt' #マッチングデータ
+    match_name: '労金_不備状丁合_@ymd@_@hms@.txt' #マッチングデータ
     siwake_name: 'SIWAKE_@ymd@_@hms@.txt'  #申請書仕分データ
     fubifuchaku_name: 'FUBIFUCHAKU_@ymd@_@hms@.txt' #不備状不着仕分データ
 

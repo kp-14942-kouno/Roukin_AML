@@ -279,7 +279,7 @@ namespace MyTemplate.RoukinClass
             for (int x = 1; x <= imgCount; x++)
             {
                 // 画像ファイルのパスを作成
-                string sourceFile = Path.Combine(imgPath, row["taba_num"].ToString(), $"{row["bpo_num"].ToString()}{(x == 1 ? "" : "_" + x)}.jpg");
+                string sourceFile = Path.Combine(imgPath, row["taba_num"].ToString(), $"{row["bpo_num"].ToString()}{(x == 1 ? "" : "_" + ( x - 1))}.jpg");
                 sourceFiles.Add(sourceFile);
             }
 

@@ -528,6 +528,9 @@ namespace MyTemplate.RoukinClass
             // 空欄は除外
             trans = trans.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
+            // 取引目的コードに重複がある場合は例外をスロー
+            if (trans.Distinct().Count() != trans.Length) throw new Exception($"取引目的コードに重複あり／BPO管理番号：{row["bpo_num"].ToString()}");
+
             // 変更なしで取引目的なしはOK
             if (flg == "0" && trans.Count() == 0) return;
 
