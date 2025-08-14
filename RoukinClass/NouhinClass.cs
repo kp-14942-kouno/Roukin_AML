@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.Cmp;
 using System.Data;
 using System.IO;
 using System.Text;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using static MyTemplate.RoukinClass.RoukinModules;
@@ -976,6 +977,7 @@ namespace MyTemplate.RoukinClass
             var record = string.Empty;
             string delimiter = "";
 
+            // 業種コードがその他の場合
             // BPOデータの業種コードもその他の場合はzeroで埋める
             if (industry == industryEtc && industry == row["bpo_biz_type_cd"].ToString())
             {
@@ -1093,14 +1095,16 @@ namespace MyTemplate.RoukinClass
             // レコードデータが700Byte以外はエラー
             if (record.LenBSjis() != 700)
             {
-                throw new Exception($"（個人）顧客情報変更データ {recordNum}行目のレコード長が700Byteではありません: {record.LenBSjis()}");
+                throw new Exception($"（個人）顧客情報変更データ {row["@record_num"]}行目のレコード長が700Byteではありません: {record.LenBSjis()}");
             }
 
             // 不正な文字チェック
             var charError = charValidator.GetInvalidMixedChars(record);
             if (!string.IsNullOrEmpty(charError))
             {
-                throw new Exception($"（個人）顧客情報変更データ {recordNum}行目に不正な文字が含まれています: {charError}");
+                MessageBox.Show($"（個人）顧客情報変更データ {row["@record_num"]}行目に不正な文字が含まれています: {charError}");
+
+                throw new Exception($"（個人）顧客情報変更データ {row["@record_num"]}行目に不正な文字が含まれています: {charError}");
             }
 
             return record;

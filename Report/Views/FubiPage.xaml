@@ -19,7 +19,7 @@
 
         <Grid Grid.Row="0" Height="9cm" Background="White">
             <Grid.RowDefinitions>
-                <RowDefinition Height="1.5cm"/>
+                <RowDefinition Height="1cm"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -28,7 +28,7 @@
                 <TextBlock x:Name="tb_QrCode"/>
             </StackPanel>
 
-            <Grid Grid.Row="1" Width="9cm" Height="5.5cm" HorizontalAlignment="Left" Margin="0.5cm,0,0,0">
+            <Grid Grid.Row="1" Width="9cm" Height="7cm" HorizontalAlignment="Left" Margin="0.5cm">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1cm"/>
                     <RowDefinition Height="Auto"/>

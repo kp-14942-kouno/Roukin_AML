@@ -9,25 +9,38 @@
     <Grid Margin="1cm" Background="White">
         <Grid.RowDefinitions>
             <RowDefinition Height="1.5cm"/>
-            <RowDefinition Height="5cm"/>
+            <RowDefinition Height="4cm"/>
             <RowDefinition Height="1.5cm"/>
-            <RowDefinition Height="18cm"/>
+            <RowDefinition Height="19cm"/>
             <RowDefinition Height="1.5cm"/>
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="ろうきん AML業務 申請書仕分けリスト" FontSize="24" TextAlignment="Center" VerticalAlignment="Center"/>
-        <Canvas Grid.Row="1" Margin="0.5cm">
-            <TextBlock Text="仕分け" FontSize="24" Canvas.Left="1cm" Width="2cm" TextAlignment="Center"/>
-            <Border BorderThickness="1" BorderBrush="Black" Width="2cm" Height="2cm" Canvas.Left="1cm" Canvas.Top="1cm">
-                <TextBlock Text="印" FontSize="36" Foreground="LightGray" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            </Border>
 
-            <TextBlock Text="確認" FontSize="24" Canvas.Left="3.5cm" Width="2cm" TextAlignment="Center"/>
-            <Border BorderThickness="1" BorderBrush="Black" Width="2cm" Height="2cm" Canvas.Left="3.5cm" Canvas.Top="1cm">
-                <TextBlock Text="印" FontSize="36" Foreground="LightGray" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            </Border>
-        </Canvas>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
+            <TextBlock Grid.Column="0" x:Name="tb_Type" Text="法人格あり" FontSize="64" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+            <Canvas Grid.Column="1" Margin="0.5cm">
+
+                <TextBlock Text="仕分け" FontSize="24" Canvas.Left="1cm" Width="2cm" TextAlignment="Center"/>
+                <Border BorderThickness="1" BorderBrush="Black" Width="2cm" Height="2cm" Canvas.Left="1cm" Canvas.Top="1cm">
+                    <TextBlock Text="印" FontSize="36" Foreground="LightGray" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Border>
+
+                <TextBlock Text="確認" FontSize="24" Canvas.Left="3.5cm" Width="2cm" TextAlignment="Center"/>
+                <Border BorderThickness="1" BorderBrush="Black" Width="2cm" Height="2cm" Canvas.Left="3.5cm" Canvas.Top="1cm">
+                    <TextBlock Text="印" FontSize="36" Foreground="LightGray" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Border>
+
+                <Image x:Name="img_QR" Width="1cm" Height="1cm" VerticalAlignment="Top" HorizontalAlignment="Right" Canvas.Left="6.5cm" Canvas.Top="1cm"/>
+            </Canvas>
+        </Grid>
+        
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0.1cm">
             <TextBlock Text="金融機関名：" FontSize="20" VerticalAlignment="Center"/>
             <TextBlock x:Name="tb_BankCode" FontSize="20" VerticalAlignment="Center"/>

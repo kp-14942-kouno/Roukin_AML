@@ -155,22 +155,20 @@ namespace MyTemplate
                                            PageOrientation orientation = PageOrientation.Portrait, Duplexing duplexing = Duplexing.OneSided,
                                                 InputBin inputBin = InputBin.AutoSelect)
         {
+            var pt = printer.DefaultPrintTicket;
+
+
             // 印刷チケットの作成
-            var ticket = new PrintTicket
-            {
-                // 用紙サイズ
-                PageMediaSize = Report.ParperSizeHelper.PageMediaSize(size),
-                // 印刷方向
-                PageOrientation = orientation,
-                // 片面・両面印刷設定
-                Duplexing = duplexing,
-                // 給紙方法
-                InputBin = inputBin
-            };
+            pt.PageMediaSize = Report.ParperSizeHelper.PageMediaSize(size); // 用紙サイズ
+            pt.PageOrientation = orientation;   // 印刷方向
+            pt.Duplexing = duplexing;   // 片面・両面印刷設定
+            pt.InputBin = inputBin; // 給紙方法
+
+            printer.DefaultPrintTicket = pt;
 
             // 印刷実行
             XpsDocumentWriter writer = PrintQueue.CreateXpsDocumentWriter(printer);
-            writer.Write(document, ticket);
+            writer.Write(document, pt);
         }
 
         /// <summary>

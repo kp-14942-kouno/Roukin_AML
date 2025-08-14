@@ -22,10 +22,16 @@ namespace MyTemplate.Report.Views
     /// </summary>
     public partial class FubiFuchakuSiwake : UserControl
     {
-        public FubiFuchakuSiwake(List<Models.Siwake> items, string bankCode, string finantialName, int page, int pages)
+        public FubiFuchakuSiwake(List<Models.Siwake> items, string bankCode, string finantialName, int page, int pages, BitmapImage qrCode)
         {
             InitializeComponent();
 
+            // 1ページ目にはQRコードを表示
+            if (page == 1)
+            {
+                img_QR.Source = qrCode;
+            }
+            
             tb_BankCode.Text = bankCode;
             tb_BankName.Text = finantialName;
             ItemList.ItemsSource = items;

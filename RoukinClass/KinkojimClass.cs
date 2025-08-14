@@ -1022,7 +1022,7 @@ namespace MyTemplate.RoukinClass
         }
 
         /// <summary>
-        /// 団体と個人のDataTableから緒副なしで金融機関コードを取得
+        /// 団体と個人のDataTableから重複なしで金融機関コードを取得
         /// </summary>
         /// <returns></returns>
         private List<string> GetBankCodes()

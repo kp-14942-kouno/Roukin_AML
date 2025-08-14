@@ -26,6 +26,8 @@
             <Border BorderThickness="1" BorderBrush="Black" Width="2cm" Height="2cm" Canvas.Left="3.5cm" Canvas.Top="1cm">
                 <TextBlock Text="印" FontSize="36" Foreground="LightGray" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Border>
+
+            <Image x:Name="img_QR" Width="1cm" Height="1cm" VerticalAlignment="Top" HorizontalAlignment="Right" Canvas.Left="6.5cm" Canvas.Top="1cm"/>
         </Canvas>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0.1cm">

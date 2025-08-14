@@ -450,7 +450,7 @@ namespace MyTemplate.RoukinClass
             string hqFlg = row["hq_ctry_nat"].ToString().Trim();
             string hqCountry = row["hq_country"].ToString().Trim();
             // 日本コード
-            string jpn = MyUtilityModules.AppSetting("roukin_setting", "jpn_code");
+            //string jpn = MyUtilityModules.AppSetting("roukin_setting", "jpn_code");
 
             // 変更なしで
             if (hqChg == "0")
@@ -471,8 +471,8 @@ namespace MyTemplate.RoukinClass
                     .Select(x => x.Field<string>("code"))
                     .FirstOrDefault();
 
-                // 国名が存在し日本以外
-                if (!string.IsNullOrEmpty(code) && code != jpn)
+                // 国名が存在
+                if (!string.IsNullOrEmpty(code))
                 {
                     // 日本選択は変更有無選択か未選択でOK
                     if (hqChg != "1" && hqFlg == "01") return;
@@ -774,7 +774,7 @@ namespace MyTemplate.RoukinClass
             // 国名
             string natname = row["rep_natname"].ToString().Trim();
             // 日本コード
-            string jpn = MyUtilityModules.AppSetting("roukin_setting", "jpn_code");
+            //string jpn = MyUtilityModules.AppSetting("roukin_setting", "jpn_code");
 
             // 変更なしで日本・日本以外未選択・国名未記入はOK
             if (flg == "0" && string.IsNullOrEmpty(nat) && string.IsNullOrEmpty(natname)) return;
@@ -790,8 +790,8 @@ namespace MyTemplate.RoukinClass
             {
                 // 日本・国名未記入はOK
                 if (nat == "01" && string.IsNullOrEmpty(natname)) return;
-                // 日本以外・国名記入（日本国以外）はOK
-                if(nat == "0" && !string.IsNullOrEmpty(code) && !string.IsNullOrEmpty(code) && code != jpn) return;
+                // 日本以外・国名記入はOK
+                if(nat == "02" && !string.IsNullOrEmpty(code)) return;
             }
 
             // 変更あり
@@ -800,7 +800,7 @@ namespace MyTemplate.RoukinClass
                 // 日本選択で国名が未記入はOK
                 if (nat == "01" && string.IsNullOrEmpty(natname)) return;
                 // 日本以外選択で日本以外の国名が存在する場合はOK
-                if (nat == "02" && !string.IsNullOrEmpty(code) && code != jpn) return;
+                if (nat == "02" && !string.IsNullOrEmpty(code)) return;
                 // 日本・日本以外とも選択で国名が存在する場合はOK
                 if (nat == "0102" && !string.IsNullOrEmpty(code)) return;
                 // 日本・日本以外とも未選択で国名が存在する場合はOK
@@ -942,7 +942,7 @@ namespace MyTemplate.RoukinClass
             // 国名
             string natname = row[$"{preFix}_natname"].ToString().Trim();
             // 日本コード
-            string jpn = MyUtilityModules.AppSetting("roukin_setting", "jpn_code");
+            //string jpn = MyUtilityModules.AppSetting("roukin_setting", "jpn_code");
 
             // 日本選択・国名未記入はOK
             if (nat == "01" && string.IsNullOrEmpty(natname)) return;
@@ -953,14 +953,15 @@ namespace MyTemplate.RoukinClass
                 .Select(x => x.Field<string>("code"))
                 .FirstOrDefault();
 
-            // 日本以外選択で日本外の国名記入はOK
-            if (nat == "02" && !string.IsNullOrEmpty(code) && code != jpn) return;
+            // 日本以外選択で国名記入はOK
+            if (nat == "02" && !string.IsNullOrEmpty(code)) return;
             // 日本・日本以外未選択で国名記入はOK
             if (string.IsNullOrEmpty(nat) && !string.IsNullOrEmpty(code)) return;
             // 日本・日本以外とも選択で国名記入はOK
             if (nat == "0102" && !string.IsNullOrEmpty(code)) return;
+
             // 日本選択で国名記入はOK
-            if (nat == "01" && !string.IsNullOrEmpty(code)) return;
+            //if (nat == "01" && !string.IsNullOrEmpty(code)) return;
 
             // それ以外は不備コードをセット
             fubiCode.Append(fubi + ";");

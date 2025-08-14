@@ -23,9 +23,13 @@
                 <TextBlock Grid.Row="0" Text="不着納品" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
 
                 <StackPanel Grid.Row="1" Margin="5">
-                    <Button x:Name="bt_InsDantai" Content="不着納品対象データ読込" Width="192" Height="32" Margin="5" Click="bt_InsFuchakuData_Click"/>
+                    <Button x:Name="bt_InsDantai" Content="団体・不着納品対象データ読込" Width="192" Height="32" Margin="5" Click="bt_InsDantai_Click"/>
                     <TextBlock Text="団体_53_不着納品対象_" HorizontalAlignment="Right" FontSize="11" Foreground="OrangeRed" Margin="0,0,5,0"/>
-                    <TextBlock x:Name="tb_FuchakuCount" Text="0件" Margin="0,0,5,0" TextAlignment="Right"/>
+                    <TextBlock x:Name="tb_DantaiCount" Text="0件" Margin="0,0,5,0" TextAlignment="Right"/>
+
+                    <Button x:Name="bt_InsKojin" Content="個人・不着納品対象データ読込" Width="192" Height="32" Margin="5,15,5,5" Click="bt_InsKojin_Click"/>
+                    <TextBlock Text="個人_06_不着納品対象_" HorizontalAlignment="Right" FontSize="11" Foreground="OrangeRed" Margin="0,0,5,0"/>
+                    <TextBlock x:Name="tb_KojinCount" Text="0件" Margin="0,0,5,0" TextAlignment="Right"/>
 
                     <Button x:Name="bt_ExpData" Content="納品データ作成" Width="192" Height="32" Margin="5" Click="bt_ExpNouhin_Click"/>
                 </StackPanel>

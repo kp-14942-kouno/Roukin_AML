@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MyTemplate.Report.Models;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace MyTemplate.Report.Helpers
         /// <param name="table"></param>
         /// <param name="taba"></param>
         /// <returns></returns>
-        public static FixedDocument CreateFixedDocument(DataTable table, string code, string financialName)
+        public static FixedDocument CreateFixedDocument(DataTable table, string code, string financialName, string typeName, string qrCode)
         {
             // 引抜リストのデータを変換
             List<Models.Siwake> siwakeList = ConvTable(table);
@@ -27,6 +28,9 @@ namespace MyTemplate.Report.Helpers
             // 引抜リストのデータを10件ずつのページに分割
             var pages = ReportModules.ChunkBy(siwakeList, 10);
 
+            // QRコードの生成
+            var qrCodeImage = QrCoderHelper.GenerateQrCode(qrCode, 50);
+
             var count = 0;
 
             // ページごとに分割してFixedDocumentを作成
@@ -34,8 +38,9 @@ namespace MyTemplate.Report.Helpers
             foreach (var pageData in pages)
             {
                 count++;
+
                 // ページ作成
-                var page = new Report.Views.SiwakePage(pageData, code, financialName,  count, pages.Count());
+                var page = new Report.Views.SiwakePage(pageData, code, financialName, typeName, count, pages.Count(), qrCodeImage);
 
                 // ページのサイズを設定
                 FixedPage fixedPage = new FixedPage { Height = size.Height, Width = size.Width };

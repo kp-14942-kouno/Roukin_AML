@@ -16,7 +16,7 @@ namespace MyTemplate.Report.Helpers
         /// <param name="table"></param>
         /// <param name="taba"></param>
         /// <returns></returns>
-        public static FixedDocument CreateFixedDocument(DataTable table, string code, string financialName)
+        public static FixedDocument CreateFixedDocument(DataTable table, string code, string financialName, string typeName)
         {
             // 引抜リストのデータを変換
             List<Models.Meisai> meisaiList = ConvTable(table);
@@ -35,7 +35,7 @@ namespace MyTemplate.Report.Helpers
             {
                 count++;
                 // ページ作成
-                var page = new Report.Views.SinseishoMeisai(pageData, financialName, count, pages.Count());
+                var page = new Report.Views.SinseishoMeisai(pageData, financialName, count, pages.Count(), typeName);
 
                 // ページのサイズを設定
                 FixedPage fixedPage = new FixedPage { Height = size.Height, Width = size.Width };

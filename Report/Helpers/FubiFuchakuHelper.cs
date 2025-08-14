@@ -27,6 +27,9 @@ namespace MyTemplate.Report.Helpers
             // 引抜リストのデータを10件ずつのページに分割
             var pages = ReportModules.ChunkBy(siwakeList, 10);
 
+            // QR画像の生成
+            var qrCode = QrCoderHelper.GenerateQrCode(code, 50);
+
             var count = 0;
 
             // ページごとに分割してFixedDocumentを作成
@@ -35,7 +38,7 @@ namespace MyTemplate.Report.Helpers
             {
                 count++;
                 // ページ作成
-                var page = new Report.Views.FubiFuchakuSiwake(pageData, code, financialName, count, pages.Count());
+                var page = new Report.Views.FubiFuchakuSiwake(pageData, code, financialName, count, pages.Count(), qrCode);
 
                 // ページのサイズを設定
                 FixedPage fixedPage = new FixedPage { Height = size.Height, Width = size.Width };

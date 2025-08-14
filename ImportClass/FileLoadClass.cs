@@ -156,7 +156,7 @@ namespace MyTemplate.ImportClass
             }
             catch (Exception ex)
             {
-                MyLogger.SetLogger("ファイル選択", ex, MyEnum.LoggerType.Error);
+                MyLogger.SetLogger($"{fileLoadProperties.FileSetting.process_name}：ファイル選択", ex, MyEnum.LoggerType.Error);
                 return MyEnum.MyResult.Error;
             }
         }
@@ -242,7 +242,7 @@ namespace MyTemplate.ImportClass
                 if (addResult != MyEnum.MyResult.Ok) return addResult;
 
                 // ログ作成
-                MyLogger.SetLogger($"{fileLoadProperties.FileSetting.process_name}を開始", MyEnum.LoggerType.Info, false);
+                MyLogger.SetLogger($"{fileLoadProperties.FileSetting.process_name}：処理開始", MyEnum.LoggerType.Info, false);
 
                 // ファイル読込処理
                 using (MyLibrary.MyLoading.Dialog dlg = new MyLibrary.MyLoading.Dialog(window))
@@ -467,7 +467,7 @@ namespace MyTemplate.ImportClass
             }
             catch (Exception ex)
             {
-                MyLogger.SetLogger("ファイル移動処理", ex, MyEnum.LoggerType.Error);
+                MyLogger.SetLogger($"{load.FileSetting.process_name}：ファイル移動処理", ex, MyEnum.LoggerType.Error);
             }
         }
     }

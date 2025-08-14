@@ -15,7 +15,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" x:Name="tb_BankName" FontSize="24" TextAlignment="Left" VerticalAlignment="Center"/>
-
+        
         <StackPanel Grid.Row="1">
             <Grid>
                 <Grid.RowDefinitions>

@@ -28,10 +28,17 @@ namespace MyTemplate.Report.Views
         /// <param name="finantialName"></param>
         /// <param name="page"></param>
         /// <param name="pages"></param>
-        public SiwakePage(List<Models.Siwake> items, string bankCode, string finantialName, int page, int pages)
+        public SiwakePage(List<Models.Siwake> items, string bankCode, string finantialName, string typeName, int page, int pages, BitmapImage qrCode)
         {
             InitializeComponent();
 
+            // 1ページ目にはQRコードを表示
+            if (page == 1)
+            {
+                img_QR.Source = qrCode;
+            }
+
+            tb_Type.Text = typeName;
             tb_BankCode.Text = bankCode;
             tb_BankName.Text = finantialName;
             ItemList.ItemsSource = items;

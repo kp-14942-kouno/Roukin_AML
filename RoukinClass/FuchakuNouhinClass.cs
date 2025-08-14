@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Vml;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Vml;
 using MyLibrary;
 using MyLibrary.MyClass;
 using MyLibrary.MyModules;
@@ -15,7 +16,9 @@ namespace MyTemplate.RoukinClass
 {
     public class FuchakuNouhinClass :  MyLibrary.MyLoading.Thread
     {
-        private DataTable _table = new DataTable(); // データテーブル
+        private DataTable _dantai = new DataTable();
+        private DataTable _kojin = new DataTable();
+
         string _msg = string.Empty; // メッセージ
         string _expPath = string.Empty; // 出力先パス
 
@@ -23,9 +26,10 @@ namespace MyTemplate.RoukinClass
         /// コンストラクタ
         /// </summary>
         /// <param name="table"></param>
-        public FuchakuNouhinClass(DataTable table, string msg, string expPath)
+        public FuchakuNouhinClass(DataTable dantai, DataTable kojin, string msg, string expPath)
         {
-            _table = table;
+            _dantai = dantai;
+            _kojin = kojin;
             _msg = msg;
             _expPath = expPath;
         }
@@ -35,7 +39,7 @@ namespace MyTemplate.RoukinClass
 #if DEBUG
             {
                 // 開始ログ出力
-                MyLogger.SetLogger($"{_msg}作成開始", MyEnum.LoggerType.Info, false);
+                MyLogger.SetLogger($"{_msg}納品データ作成開始", MyEnum.LoggerType.Info, false);
 
                 using (var codeDb = new MyDbData("code"))
                 {
@@ -43,7 +47,7 @@ namespace MyTemplate.RoukinClass
                     Run(codeDb);
 
                     // 結果メッセージ
-                    ResultMessage = $"{_msg}全：{_table.Rows.Count} 件の作成完了";
+                    ResultMessage = $"{_msg}全：{ProgressValue} 件の作成完了";
                     // 終了ログ出力
                     MyLogger.SetLogger(ResultMessage, MyEnum.LoggerType.Info, false);
 
@@ -90,7 +94,7 @@ namespace MyTemplate.RoukinClass
         {
             ProgressBarType = MyLibrary.MyEnum.MyProgressBarType.Percent;
             ProcessName = $"不着納品作成中..."; // 処理名設定
-            ProgressMax = _table.Rows.Count;
+            ProgressMax = _dantai.Rows.Count + _kojin.Rows.Count; // 最大値設定
             ProgressValue = 0;
 
             string delimiter = ","; // レコードの区切り文字
@@ -100,8 +104,8 @@ namespace MyTemplate.RoukinClass
             // 不備対象者データファイル名
             string fuchakuName = MyUtilityModules.AppSetting("roukin_setting", "fuchaku_name", true);
 
-            // 金融機関コードを重複除外して取得
-            var banks = _table.AsEnumerable().Select(x => x["bpo_bank_code"].ToString()).Distinct().ToList();
+            // 金融機関コードをリスト化
+            var banks = GetBankCodes();
             // 作成日
             var date = DateTime.Now.ToString("yyyyMMdd");
 
@@ -129,10 +133,6 @@ namespace MyTemplate.RoukinClass
                 // 出力先作成
                 System.IO.Directory.CreateDirectory(expDir);
 
-                var table = _table.AsEnumerable()
-                    .Where(x => x["bpo_bank_code"].ToString().Trim() == bank)
-                    .CopyToDataTable();
-
                 // ファイル名を金庫名で置換え
                 var fileName = fuchakuName.Replace("xxx", bankName);
 
@@ -146,17 +146,58 @@ namespace MyTemplate.RoukinClass
                     header += "顧客番号";                      // 顧客番号
                     writer.WriteLine(header);
 
-                    // データ行の作成
-                    foreach (DataRow row in table.Rows)
-                    {
-                        var record = string.Empty;
-                        record += row["bpo_bank_code"].ToString() + delimiter;          // 金融機関コード
-                        record += row["bpo_branch_no"].ToString().Trim() + delimiter;   // 顧客管理店番号
-                        record += row["bpo_cust_no"].ToString().Trim();                 // 顧客番号
-                        writer.WriteLine(record);
-                    }
+                    var dantai = _dantai.AsEnumerable()
+                        .Where(x => x["bpo_bank_code"].ToString().Trim() == bank);
+
+                    var kojin = _kojin.AsEnumerable()
+                        .Where(x => x["bpo_bank_code"].ToString().Trim() == bank);
+
+                    CreateData(dantai, writer, delimiter); // 団体データの作成
+                    CreateData(kojin, writer, delimiter);  // 個人データの作成
                 }
             }
+        }
+
+        /// <summary>
+        /// データレコード作成
+        /// </summary>
+        /// <param name="rows"></param>
+        /// <param name="writer"></param>
+        private void CreateData(EnumerableRowCollection<DataRow> rows, StreamWriter writer, string delimiter)
+        {
+            // データ行の作成
+            foreach (DataRow row in rows)
+            {
+                ProgressValue++; // 進捗値を更新
+
+                var record = string.Empty;
+                record += row["bpo_bank_code"].ToString() + delimiter;          // 金融機関コード
+                record += row["bpo_branch_no"].ToString().Trim() + delimiter;   // 顧客管理店番号
+                record += row["bpo_cust_no"].ToString().Trim();                 // 顧客番号
+                writer.WriteLine(record);
+            }
+        }
+
+        /// <summary>
+        /// 団体と個人のDataTableから重複なしで金融機関コードを取得
+        /// </summary>
+        /// <returns></returns>
+        private List<string> GetBankCodes()
+        {
+            var dantaiCodes = _dantai.AsEnumerable()
+                .Select(row => row.Field<string>("bpo_bank_code"))
+                .Where(code => !string.IsNullOrEmpty(code));
+
+            var kojinCodes = _kojin.AsEnumerable()
+                .Select(row => row.Field<string>("bpo_bank_code"))
+                .Where(code => !string.IsNullOrEmpty(code));
+
+            var result = dantaiCodes
+                .Concat(kojinCodes)
+                .Distinct()
+                .ToList();
+
+            return result;
         }
     }
 }

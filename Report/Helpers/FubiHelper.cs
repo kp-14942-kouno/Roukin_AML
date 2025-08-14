@@ -110,7 +110,6 @@ namespace MyTemplate.Report.Helpers
                 }
                 // 不備文言
                 personItem.fubi.Add(new FubiText { Fubi = line.ToString().Replace(@"\n", Environment.NewLine) + Environment.NewLine });
-
                 // ページ数
                 personItem.page = pageNum;
                 // 現在行
@@ -136,7 +135,6 @@ namespace MyTemplate.Report.Helpers
                 UserControl view = i == 0
                     ? new Views.FubiPage(person, pages[i], pages.Count)
                     : new Views.FubiPageN(pages[i], pages.Count);
-
 
                 // レイアウトの設定
                 view.Width = size.Width;

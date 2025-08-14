@@ -44,6 +44,7 @@
             <Border BorderThickness="1" BorderBrush="Black" Margin="5" SnapsToDevicePixels="True">
                 <StackPanel Orientation="Vertical">
                     <Label Content="印刷・作成処理" FontSize="11" Background="CornflowerBlue" Foreground="White" HorizontalContentAlignment="Center"/>
+                    <CheckBox x:Name="chk_MeisaiPrint" Content="明細書印刷" Margin="5,5,0,0" IsChecked="True"/>
                     <CheckBox x:Name="chk_ShiwakePrint" Content="仕分けリスト印刷" Margin="5,5,0,0" IsChecked="True"/>
                     <CheckBox x:Name="chk_ShiwakeData" Content="仕分けデータ作成" Margin="5,5,0,0" IsChecked="True"/>
                     <Button x:Name="bt_Print" Content="印刷・データ作成処理" Width="196" Height="32" Margin="5" Click="bt_Print_Click"/>

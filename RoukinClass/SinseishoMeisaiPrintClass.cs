@@ -89,7 +89,7 @@ namespace MyTemplate.RoukinClass
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     // FixedDocumentを作成
-                    document = SinseishoMeisaiHelper.CreateFixedDocument(rows, code, financial.financial_name);
+                    document = SinseishoMeisaiHelper.CreateFixedDocument(rows, code, financial.financial_name, "");
                 });
 
                 // 印刷処理

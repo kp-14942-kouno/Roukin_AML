@@ -114,8 +114,8 @@ roukin_setting:
     punch_zip_password: 'panch' #パンチ画像連携ファイルのパスワード
 
     match_name: '労金_不備状丁合_@ymd@_@hms@.txt' #マッチングデータ
-    siwake_name: 'SIWAKE_@ymd@_@hms@.txt'  #申請書仕分データ
-    fubifuchaku_name: 'FUBIFUCHAKU_@ymd@_@hms@.txt' #不備状不着仕分データ
+    siwake_name: '労金_申請書仕分'  #申請書仕分データ
+    fubifuchaku_name: '労金_不備不着仕分_@ymd@_@hms@.txt' #不備状不着仕分データ
 
     industry_etc_code: '620050' #（個人）業種その他コード
     jpn_code: '0100' #日本国コード
@@ -125,7 +125,7 @@ roukin_setting:
     exp_webcas_file_mojicode: "utf8bom"
 
     #1Byte文字コードの許可範囲
-    allow1byte: '[0x00,0x00][0x20,0x20][0x28,0x28][0x29,0x29][0x2C,0x39][0x41,0x54][0x5C,0x5C][0xA2,0xA2][0xA3,0xA3][0xA6,0xDF]'
+    allow1byte: '[0x00,0x00][0x20,0x20][0x28,0x28][0x29,0x29][0x2C,0x39][0x41,0x5A][0x5C,0x5C][0xA2,0xA2][0xA3,0xA3][0xA6,0xDF]'
     #2Byte文字コードの許可範囲
     allow2byte: '[8140,84BE][889F,EAA2]'
 

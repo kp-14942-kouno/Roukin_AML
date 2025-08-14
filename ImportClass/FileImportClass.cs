@@ -151,6 +151,9 @@ namespace MyTemplate.ImportClass
                     "確認", MyEnum.MessageBoxButtons.OkCancel,
                     window: window) == MyEnum.MessageBoxResult.Cancel) return MyEnum.MyResult.Cancel;
 
+                // ログ出力
+                MyLogger.SetLogger($"{import.ImportSetting.process_name}：処理開始", MyEnum.LoggerType.Info, false);
+
                 // DB接続
                 using var db = new MyDbData(import.TableSetting.schema);
 
@@ -239,7 +242,7 @@ namespace MyTemplate.ImportClass
             }
             catch (Exception ex)
             {
-                MyLogger.SetLogger(ex, MyEnum.LoggerType.Error);
+                MyLogger.SetLogger(import.FileSetting.process_name, ex, MyEnum.LoggerType.Error);
                 return (MyEnum.MyResult.Error, string.Empty);
             }
         }

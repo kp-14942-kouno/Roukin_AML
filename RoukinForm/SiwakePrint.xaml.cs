@@ -100,6 +100,7 @@ namespace MyTemplate.RoukinForm
 
             oparation |= chk_ShiwakePrint.IsChecked == true ? SiwakePrintClass.OP_PRINT : 0;
             oparation |= chk_ShiwakeData.IsChecked == true ? SiwakePrintClass.OP_MACHING : 0;
+            oparation |= chk_MeisaiPrint.IsChecked == true ? SiwakePrintClass.OP_MEISAI : 0;
 
             // チェックが無ければ中断
             if (oparation == 0) return;
@@ -115,6 +116,10 @@ namespace MyTemplate.RoukinForm
         {
             var msg = string.Empty;
 
+            if((operation & SiwakePrintClass.OP_MEISAI) != 0)
+            {
+                msg += "・明細\r\n";
+            }
             if ((operation & SiwakePrintClass.OP_PRINT) != 0)
             {
                 msg += "・印刷\r\n";

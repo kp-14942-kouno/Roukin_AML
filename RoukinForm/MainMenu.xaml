@@ -64,7 +64,6 @@
                         <Button x:Name="bt_FubiPrint" Content="不備状印刷 MENU" Width="192" Height="32" Margin="5" Click="bt_FubiPrint_Click"/>
                         <Button x:Name="bt_FubiFuchakuList" Content="不備状不着仕分リスト MENU" Width="192" Height="32" Margin="5" Click="bt_FubiFuchakuList_Click"/>
                         <Button x:Name="bt_ShiwakeList" Content="申請書仕分リスト MENU" Width="192" Height="32" Margin="5" Click="bt_ShiwakeList_Click"/>
-                        <Button x:Name="bt_SinseishoMeisaiList" Content="申請書明細リスト MENU" Width="192" Height="32" Margin="5" Click="bt_SinseishoMeisaiList_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>

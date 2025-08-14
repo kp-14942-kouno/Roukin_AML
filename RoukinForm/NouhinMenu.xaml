@@ -23,10 +23,10 @@
                 <TextBlock Grid.Row="0" Text="勘定系・本人確認納品" Background="SteelBlue" Foreground="White" FontSize="14" TextAlignment="Center"/>
 
                 <StackPanel Grid.Row="1" Margin="5">
-                    <Button x:Name="bt_InsDantai" Content="（団体）納品対象データ読込" Width="192" Height="32" Margin="5" Click="bt_InsDantaiData_Click"/>
+                    <Button x:Name="bt_InsDantai" Content="団体・納品対象データ読込" Width="192" Height="32" Margin="5" Click="bt_InsDantaiData_Click"/>
                     <TextBlock Text="団体_41_勘定系納品対象_" HorizontalAlignment="Right" FontSize="11" Foreground="OrangeRed" Margin="0,0,5,0"/> 
                     <TextBlock x:Name="tb_DantaiCount" Text="0件" Margin="0,0,5,0" TextAlignment="Right"/>
-                    <Button x:Name="bt_InsKojin" Content="（個人）納品対象データ読込" Width="192" Height="32" Margin="5" Click="bt_InsKojinData_Click"/>
+                    <Button x:Name="bt_InsKojin" Content="個人・納品対象データ読込" Width="192" Height="32" Margin="5" Click="bt_InsKojinData_Click"/>
                     <TextBlock Text="個人_15_勘定系納品対象_" HorizontalAlignment="Right" FontSize="11" Foreground="OrangeRed" Margin="0,0,5,0"/>
                     <TextBlock x:Name="tb_KojinCount" Text="0件" Margin="0,0,5,0" TextAlignment="Right"/>
 
