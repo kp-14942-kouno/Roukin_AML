@@ -188,10 +188,12 @@ namespace MyTemplate.RoukinClass
                     var kojin = _kojin.AsEnumerable()
                         .Where(row => row.Field<string>("bpo_bank_code") == bankCode);
 
+                    int brancCount = 0;
+
                     // 団体データ作成
-                    SetDantai(codeDb, dantai, customer, resuponse, answerImage, dantaiBtl, branchNo, dpDantai, charValidator, maxCount, ref totalCount);
+                    SetDantai(codeDb, dantai, customer, resuponse, answerImage, dantaiBtl, branchNo, dpDantai, charValidator, maxCount, ref totalCount, ref brancCount);
                     // 個人データ作成
-                    SetKojin(codeDb, kojin, customer, resuponse, answerImage, kojinBtl, branchNo, dpKojin, charValidator, maxCount, ref totalCount);
+                    SetKojin(codeDb, kojin, customer, resuponse, answerImage, kojinBtl, branchNo, dpKojin, charValidator, maxCount, ref totalCount, ref brancCount);
                 }
 
                 // 団体の本人確認記録書データがあれば出力
@@ -235,7 +237,7 @@ namespace MyTemplate.RoukinClass
         /// <param name="branchNo"></param>
         /// <exception cref="Exception"></exception>
         private void SetDantai(MyDbData codeDb, EnumerableRowCollection<DataRow> dantaiRows, StreamWriter customer, StreamWriter resuponse, StreamWriter answerImage, StreamWriter dantaiBlt,
-                                                                                string branchNo, StringBuilder dpDantai, MyClass.MyCharValidator charValidator, int maxCount, ref int totalCount)
+                                                                                string branchNo, StringBuilder dpDantai, MyClass.MyCharValidator charValidator, int maxCount, ref int totalCount, ref int brancCount)
         {
             int recordNum = 0; // レコード番号
 
@@ -246,6 +248,14 @@ namespace MyTemplate.RoukinClass
             {
                 recordNum++;
                 ProgressValue++;
+
+                if (totalCount == maxCount)
+                {
+                    // 最大件数に達したら処理を終了
+                    break;
+                }
+
+                totalCount++;
 
                 // 業種
                 string industry = string.Empty;   // 業務コード
@@ -325,43 +335,45 @@ namespace MyTemplate.RoukinClass
                 string answerDate = "20" + row["entry_date"].ToString().Trim();
                 // 記入日を（yyyymmdd）をyyyy/MM/dd形式に変換
                 DateTime? formattedDate = MyLibrary.MyModules.MyUtilityModules.ParseDateString(answerDate, "yyyyMMdd");
-                // 記入日がnullの場合はエラー
+                // 記入日の日付が正しくない場合は処理日をセット
                 if (formattedDate == null)
                 {
-                    throw new Exception($"（団体）記入日が不正です。 {recordNum}行目: {answerDate}");
+                    answerDate = DateTime.Now.ToString("yyyyMMdd");
+                    //throw new Exception($"（団体）記入日が不正です。 {recordNum}行目: {answerDate}");
                 }
-
-                // 案件毎番号
-                string caseNo = $"{row["bpo_bank_code"].ToString()}-{branchNo}-{ProgressValue.ToString("0000")}";
 
                 // 団体の顧客情報変更データを取得
                 string customerInfo = GetCustomerInfoDantai(codeDb, row, answerDate, bussiness, industry, hqFlg, hqCode, purposeFlg, purpose, purposeTxt, charValidator, recordNum);
                 customer.WriteLine(customerInfo);
-                // 団体の回答結果顧客管理データを取得
-                string responseDantai = GetResuponseDantai(codeDb, row, branchNo, caseNo, answerDate, ProgressValue, charValidator, recordNum);
-                resuponse.Write(responseDantai);
 
                 // 人格コードで回答結果イメージ管理データの種類を決定
                 int typeNum = HonkakuType(row["bpo_person_cd"].ToString().Trim());
-                for (int i = 1; i <= typeNum; i++)
+
+                // 対象人格コードのみ回答結果顧客管理データ、回答結果イメージデータ、本人確認記録書用データを作成
+                if (typeNum != 0)
                 {
-                    // 団体の回答結果イメージ管理データを取得
-                    string answerImageDantai = GetAnswerImageDantai(codeDb, row, branchNo, caseNo, answerDate, i.ToString(), ProgressValue, recordNum);
-                    answerImage.Write(answerImageDantai);
+                    brancCount++;
+
+                    // 案件毎番号
+                    string caseNo = $"{row["bpo_bank_code"].ToString()}-{branchNo}-{brancCount.ToString("0000")}";
+
+                    // 団体の回答結果顧客管理データを取得
+                    string responseDantai = GetResuponseDantai(codeDb, row, branchNo, caseNo, answerDate, ProgressValue, charValidator, recordNum);
+                    resuponse.Write(responseDantai);
+
+                    for (int i = 1; i <= typeNum; i++)
+                    {
+                        // 団体の回答結果イメージ管理データを取得
+                        string answerImageDantai = GetAnswerImageDantai(codeDb, row, branchNo, caseNo, answerDate, i.ToString(), i, recordNum);
+                        answerImage.Write(answerImageDantai);
+                    }
+
+                    // 本人確認記録書（団体）を作成
+                    DpDnatai(row, dpDantai, answerDate, branchNo, caseNo, bussiness, industry, purposeFlg, purpose);
                 }
-
-                // 本人確認記録書（団体）を作成
-                DpDnatai(row, dpDantai, answerDate, branchNo, caseNo, bussiness, industry, purposeFlg, purpose);
-
+                
                 // 団体の納品済みビートル用データを作成
                 dantaiBlt.WriteLine(row["bpo_num"].ToString().Trim());
-
-                totalCount++;
-                if(totalCount == maxCount)
-                {
-                    // 最大件数に達したら処理を終了
-                    break;
-                }
             }
         }
 
@@ -377,74 +389,71 @@ namespace MyTemplate.RoukinClass
         /// <param name="num"></param>
         private void DpDnatai(DataRow row, StringBuilder dpDantai, string answerDate, string branchNo, string caseNo, string bussiness, string industry, string purposeFlg, string[] purpose)
         {
-            // 人格コードが12,22の場合のみ処理
-            if (new string[] { "12", "22" }.Contains(row["bpo_person_cd"].ToString().Trim()))
-            {
-                string delimiter = ",";
+            string delimiter = ",";
 
-                // 取引目的有無フラグが0の場合はBPOデータから取得する
-                if (purposeFlg == "0")
+            // 取引目的有無フラグが0の場合はBPOデータから取得する
+            if (purposeFlg == "0")
+            {
+                purpose = new string[]
                 {
-                    purpose = new string[]
-                    {
                     row["bpo_purp_1"].ToString().Trim(),
                     row["bpo_purp_2"].ToString().Trim(),
                     row["bpo_purp_3"].ToString().Trim(),
                     row["bpo_purp_4"].ToString().Trim(),
                     row["bpo_purp_5"].ToString().Trim(),
                     row["bpo_purp_6"].ToString().Trim()
-                    };
-                }
-
-                var record = string.Empty;
-                record += SetDc(row["bpo_bank_code"].ToString().Trim()) + delimiter;    // 金融機関コード
-                record += SetDc(branchNo) + delimiter;                                  // 支店番号
-                record += SetDc(row["bpo_cust_no"].ToString().Trim()) + delimiter;      // 顧客番号
-                record += SetDc(caseNo) + delimiter;                                    // 案件毎番号
-                record += SetDc(answerDate) + delimiter;                                // 質問回答日
-                record += SetDc(row["bpo_cust_no"].ToString().Trim()) + delimiter;      // 顧客番号
-                record += SetDc(row["bpo_person_cd"].ToString().Trim()) + delimiter;    // 人格コード
-                record += SetDc(row["bpo_kana_name"].ToString().Trim()) + delimiter;    // カナ氏名（団体名）
-                record += SetDc(row["bpo_org_kanji"].ToString().Trim()) + delimiter;    // 漢字氏名（団体名）
-
-                string kanjiName = row["rep_name"].ToString().Trim();   // 代表者の漢字氏名
-                string kanaName = row["rep_kana"].ToString().Trim();    // 代表者のカナ氏名
-
-                // 代表者の漢字氏名が空の場合はBPOデータから取得
-                kanjiName = string.IsNullOrEmpty(kanjiName) ? row["bpo_rep_kanji"].ToString().Trim() : kanjiName;
-
-                record += SetDc(kanjiName) + delimiter; // 代表者の漢字氏名
-                record += SetDc(kanaName) + delimiter;  // 代表者のカナ氏名
-
-                string rep = row["rep_title"].ToString().Trim() + delimiter; // 代表者の役職
-                                                                             // 代表者の役職が空の場合はBPOデータから取得
-                rep = string.IsNullOrEmpty(rep) ? row["bpo_role_kanji"].ToString().Trim() : rep;
-
-                record += SetDc(rep) + delimiter; // 代表者の役職
-
-                for (int i = 0; i < 6; i++)
-                {
-                    // 取引目的コード
-                    record += SetDc(purpose.Length > i ? purpose[i] : "") + delimiter;
-                }
-
-                // 職業事業内容コード 000（その他）の場合はBPOデータから取得
-                record += SetDc(bussiness == "000" ? row["bpo_job_type_cd"].ToString().Trim() : bussiness) + delimiter;
-
-                record += SetDc(DateTime.Now.ToString("yyyyMMdd")) + delimiter;     // BPOの処理日
-                record += SetDc(row["staff_name"].ToString().Trim()) + delimiter;   // 取引担当者の氏名
-
-                // 職業　業種コードが000000（その他）の場合はnull
-                record += SetDc((industry == "000000" ? "" : industry)) + delimiter;
-                // 業種その他　業種コードが000000（その他）の場合は入力値を使用
-                record += SetDc((industry == "000000" ? row["biz_other"].ToString().Trim() : "")) + delimiter;
-                // 主な製品・サービス　業種コードが000000（その他）の場合は入力値を使用
-                record += SetDc((industry == "000000" ? row["product_srv"].ToString().Trim() : "")) + delimiter;
-
-                record += SetDc(DateTime.Now.ToString("yyyyMMdd")) + delimiter;    // BPOの処理日
-
-                dpDantai.AppendLine(record);
+                };
             }
+
+            var record = string.Empty;
+            record += SetDc(row["bpo_bank_code"].ToString().Trim()) + delimiter;    // 金融機関コード
+            record += SetDc(branchNo) + delimiter;                                  // 支店番号
+            record += SetDc(row["bpo_cust_no"].ToString().Trim()) + delimiter;      // 顧客番号
+            record += SetDc(caseNo) + delimiter;                                    // 案件毎番号
+            record += SetDc(answerDate) + delimiter;                                // 質問回答日
+            record += SetDc(row["bpo_cust_no"].ToString().Trim()) + delimiter;      // 顧客番号
+            record += SetDc(row["bpo_person_cd"].ToString().Trim()) + delimiter;    // 人格コード
+            record += SetDc(row["bpo_kana_name"].ToString().Trim()) + delimiter;    // カナ氏名（団体名）
+            record += SetDc(row["bpo_org_kanji"].ToString().Trim()) + delimiter;    // 漢字氏名（団体名）
+
+            string kanjiName = row["rep_name"].ToString().Trim();   // 代表者の漢字氏名
+            string kanaName = row["rep_kana"].ToString().Trim();    // 代表者のカナ氏名
+
+            // 代表者の漢字氏名が空の場合はBPOデータから取得
+            kanjiName = string.IsNullOrEmpty(kanjiName) ? row["bpo_rep_kanji"].ToString().Trim() : kanjiName;
+
+            record += SetDc(kanjiName) + delimiter; // 代表者の漢字氏名
+            record += SetDc(kanaName) + delimiter;  // 代表者のカナ氏名
+
+            string rep = row["rep_title"].ToString().Trim(); // 代表者の役職
+                                                                         // 代表者の役職が空の場合はBPOデータから取得
+            rep = string.IsNullOrEmpty(rep) ? row["bpo_role_kanji"].ToString().Trim() : rep;
+
+            record += SetDc(rep) + delimiter; // 代表者の役職
+
+            for (int i = 0; i < 6; i++)
+            {
+                // 取引目的コード
+                record += SetDc(purpose.Length > i ? purpose[i] : "") + delimiter;
+            }
+
+            // 職業事業内容コード 000（その他）の場合はBPOデータから取得
+            record += SetDc(bussiness == "000" ? row["bpo_job_type_cd"].ToString().Trim() : bussiness) + delimiter;
+
+            record += SetDc(DateTime.Now.ToString("yyyyMMdd")) + delimiter;     // BPOの処理日
+            record += SetDc(row["staff_name"].ToString().Trim()) + delimiter;   // 取引担当者の氏名
+
+            // 職業　業種コードが000000（その他）の場合はnull
+            record += SetDc((industry == "000000" ? "" : industry)) + delimiter;
+            // 業種その他　業種コードが000000（その他）の場合は入力値を使用
+            record += SetDc((industry == "000000" ? row["biz_other"].ToString().Trim() : "")) + delimiter;
+            // 主な製品・サービス　業種コードが000000（その他）の場合は入力値を使用
+            record += SetDc((industry == "000000" ? row["product_srv"].ToString().Trim() : "")) + delimiter;
+
+            record += SetDc(DateTime.Now.ToString("yyyyMMdd"));    // BPOの処理日
+
+            dpDantai.AppendLine(record);
+
         }
 
         /// <summary>
@@ -501,7 +510,7 @@ namespace MyTemplate.RoukinClass
             record += row["bpo_bank_code"].ToString() + delimiter;  // 金融機関コード
             record += brancNo + delimiter;  // 支店番号
             record += row["bpo_cust_no"].ToString() + delimiter;    // 顧客番号
-            record += Convert(kanaName, 30, ' ') + delimiter;       // カナ団体名
+            record += ReplaceSmallKanaWithLargeKana(Convert(kanaName, 30, ' ')) + delimiter;       // カナ団体名
             record += Convert(kanjiName, 30, '　') + delimiter;     // 漢字団体名
             record += Convert("", 8, '0') + delimiter;  // 本人確認日
             record += row["bpo_branch_no"].ToString() + delimiter;  // 顧客管理番号
@@ -681,7 +690,7 @@ namespace MyTemplate.RoukinClass
         /// <param name="branchNo"></param>
         /// <exception cref="Exception"></exception>
         private void SetKojin(MyDbData codeDb, EnumerableRowCollection<DataRow> kojinRows, StreamWriter customer, StreamWriter resuponse, StreamWriter answerImage, StreamWriter kojinBtl,
-                                                                    string branchNo, StringBuilder dpKojin, MyClass.MyCharValidator charValidator, int maxCount, ref int totalCount)
+                                                                    string branchNo, StringBuilder dpKojin, MyClass.MyCharValidator charValidator, int maxCount, ref int totalCount, ref int brancCount)
         {
             int recordNum = 0; // レコード番号
 
@@ -690,6 +699,14 @@ namespace MyTemplate.RoukinClass
 
             foreach (DataRow row in kojinRows)
             {
+                if (totalCount == maxCount)
+                {
+                    // 最大件数に達したら処理を終了
+                    break;
+                }
+
+                totalCount++;
+
                 recordNum++;
                 ProgressValue++;
 
@@ -784,37 +801,38 @@ namespace MyTemplate.RoukinClass
                     throw new Exception($"（個人）回答日が不正です {recordNum}行目: {row["answer_date"].ToString()}");
                 }
 
-                // 案件毎番号
-                string caseNo = $"{row["bpo_bank_code"].ToString()}-{branchNo}-{ProgressValue.ToString("0000")}";
-
                 // 個人の顧客情報変更データを取得
                 string customerInfo = GetCustomerInfoKojin(codeDb, row, parsedDate, industryEtc, industry, industryTxt, nationCode, purpose, purposeTxt, tel1st, tel3rd, job, jobTxt, charValidator, recordNum);
                 customer.WriteLine(customerInfo);
-                // 個人の回答結果顧客管理データを取得
-                string responseKojin = GetResuponseKojin(codeDb, row, branchNo, caseNo, parsedDate, ProgressValue, charValidator, recordNum);
-                resuponse.Write(responseKojin);
 
                 // 人格コードで回答結果イメージ管理データの種類を決定
                 int typeNum = HonkakuType(row["bpo_person_cd"].ToString().Trim());
-                for (int i = 1; i <= typeNum; i++)
-                {
-                    // 個人の回答結果イメージ管理データを取得
-                    string answerImageKojin = GetAnswerImageKojin(codeDb, row, branchNo, caseNo, parsedDate, i.ToString(), ProgressValue, recordNum);
-                    answerImage.Write(answerImageKojin);
-                }
 
-                // 本人確認記録書（個人）を作成
-                DpKojin(row, branchNo, caseNo, parsedDate.ToString("yyyyMMdd"), industry, job, purpose, dpKojin);
+                // 対象人格コードのみ回答結果顧客管理データ、回答結果イメージデータ、本人確認記録書用データを作成
+                if (typeNum != 0)
+                {
+                    brancCount++;
+
+                    // 案件毎番号
+                    string caseNo = $"{row["bpo_bank_code"].ToString()}-{branchNo}-{brancCount.ToString("0000")}";
+
+                    // 個人の回答結果顧客管理データを取得
+                    string responseKojin = GetResuponseKojin(codeDb, row, branchNo, caseNo, parsedDate, ProgressValue, charValidator, recordNum);
+                    resuponse.Write(responseKojin);
+
+                    for (int i = 1; i <= typeNum; i++)
+                    {
+                        // 個人の回答結果イメージ管理データを取得
+                        string answerImageKojin = GetAnswerImageKojin(codeDb, row, branchNo, caseNo, parsedDate, i.ToString(), i, recordNum);
+                        answerImage.Write(answerImageKojin);
+                    }
+
+                    // 本人確認記録書（個人）を作成
+                    DpKojin(row, branchNo, caseNo, parsedDate.ToString("yyyyMMdd"), industry, job, purpose, dpKojin);
+                }
 
                 // 個人の納品済みビートル用データを作成
                 kojinBtl.WriteLine(row["bpo_num"].ToString().Trim());
-
-                totalCount++;
-                if(totalCount == maxCount)
-                {
-                    // 最大件数に達したら処理を終了
-                    break;
-                }
             }
         }
 
@@ -831,42 +849,38 @@ namespace MyTemplate.RoukinClass
         /// <param name="dpKojin"></param>
         private void DpKojin(DataRow row, string branchNo, string caseNo, string parseDate, string industry, string job, string[] purpose, StringBuilder dpKojin)
         {
-            // 人格コードが12,22の場合のみ処理
-            if (new string[] { "11", "13" }.Contains(row["bpo_person_cd"].ToString().Trim()))
+            string delimiter = ",";
+
+            var record = string.Empty;
+            record += SetDc(row["bpo_bank_code"].ToString().Trim()) + delimiter;    // 金融機関コード
+            record += SetDc(branchNo) + delimiter;                                  // 支店番号
+            record += SetDc(row["bpo_cust_no"].ToString().Trim()) + delimiter;      // 顧客番号
+            record += SetDc(caseNo) + delimiter;                                    // 案件毎番号
+            record += SetDc(parseDate) + delimiter;                                // 質問回答日
+            record += SetDc(row["bpo_cust_no"].ToString().Trim()) + delimiter;      // 顧客番号
+            record += SetDc(row["bpo_person_cd"].ToString().Trim()) + delimiter;    // 人格コード
+            record += SetDc(row["bpo_kana_name"].ToString().Trim()) + delimiter;    // カナ氏名（団体名）
+            record += SetDc(row["bpo_org_kanji"].ToString().Trim()) + delimiter;    // 漢字氏名（団体名）
+
+            record += SetDc("") + delimiter;    // 代表者の漢字氏名
+            record += SetDc("") + delimiter;    // 代表者のカナ氏名
+            record += SetDc("") + delimiter;    // 代表者の役職
+
+            for (int i = 0; i < 6; i++)
             {
-                string delimiter = ",";
-
-                var record = string.Empty;
-                record += SetDc(row["bpo_bank_code"].ToString().Trim()) + delimiter;    // 金融機関コード
-                record += SetDc(branchNo) + delimiter;                                  // 支店番号
-                record += SetDc(row["bpo_cust_no"].ToString().Trim()) + delimiter;      // 顧客番号
-                record += SetDc(caseNo) + delimiter;                                    // 案件毎番号
-                record += SetDc(parseDate) + delimiter;                                // 質問回答日
-                record += SetDc(row["bpo_cust_no"].ToString().Trim()) + delimiter;      // 顧客番号
-                record += SetDc(row["bpo_person_cd"].ToString().Trim()) + delimiter;    // 人格コード
-                record += SetDc(row["bpo_kana_name"].ToString().Trim()) + delimiter;    // カナ氏名（団体名）
-                record += SetDc(row["bpo_org_kanji"].ToString().Trim()) + delimiter;    // 漢字氏名（団体名）
-
-                record += SetDc("") + delimiter;    // 代表者の漢字氏名
-                record += SetDc("") + delimiter;    // 代表者のカナ氏名
-                record += SetDc("") + delimiter;    // 代表者の役職
-
-                for (int i = 0; i < 6; i++)
-                {
-                    // 取引目的コード
-                    record += SetDc(purpose.Length > i ? purpose[i] : "") + delimiter;
-                }
-
-                record += SetDc(job) + delimiter;   // 職業事業内容コード
-                record += SetDc(DateTime.Now.ToString("yyyyMMdd")) + delimiter;  // BPOの処理日
-                record += SetDc("") + delimiter;        // 取引担当者の氏名
-                record += SetDc(industry) + delimiter;  // 業種
-                record += SetDc("") + delimiter;        // 業種その他の名称
-                record += SetDc("") + delimiter;        // 主な製品・サービス
-                record += SetDc(DateTime.Now.ToString("yyyyMMdd")) + delimiter;    // BPOの処理日
-
-                dpKojin.AppendLine(record);
+                // 取引目的コード
+                record += SetDc(purpose.Length > i ? purpose[i] : "") + delimiter;
             }
+
+            record += SetDc(job) + delimiter;   // 職業事業内容コード
+            record += SetDc(DateTime.Now.ToString("yyyyMMdd")) + delimiter;  // BPOの処理日
+            record += SetDc("") + delimiter;        // 取引担当者の氏名
+            record += SetDc(industry) + delimiter;  // 業種
+            record += SetDc("") + delimiter;        // 業種その他の名称
+            record += SetDc("") + delimiter;        // 主な製品・サービス
+            record += SetDc(DateTime.Now.ToString("yyyyMMdd"));    // BPOの処理日
+
+            dpKojin.AppendLine(record);
         }
 
         /// <summary>

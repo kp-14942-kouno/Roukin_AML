@@ -13,7 +13,12 @@
     <AssemblyName>RoukinAML</AssemblyName>
     <Version>1.0.0.0</Version>
     <AssemblyTitle>労働金庫連合会　AML業務</AssemblyTitle>
+    <ApplicationIcon>logo.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="logo.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.105.0" />

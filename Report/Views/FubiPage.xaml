@@ -65,7 +65,7 @@
             </StackPanel>
         </Grid>
 
-        <TextBlock Grid.Row="2" Text="≪不備内容等≫" Background="White" Margin="0,0.5cm,0,0"/>
+        <TextBlock Grid.Row="2" Text="≪不足内容等≫" Background="White" Margin="0,0.5cm,0,0"/>
 
         <Border Grid.Row="3" BorderThickness="1" BorderBrush="Black" Height="11cm">
             <ItemsControl x:Name="FubiList">

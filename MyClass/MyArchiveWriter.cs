@@ -41,10 +41,11 @@ namespace MyTemplate.MyClass
             // 親ストリームは閉じない（Disposeしない）
             // _innerStream.Dispose(); は呼ばない
         }
-
     }
 
-
+    /// <summary>
+    /// SharpZipLib を使用して ZIP ファイルを作成するクラス
+    /// </summary>
     public class MyArchiveWriter : IDisposable
     {
         private readonly bool _useZip;
@@ -60,7 +61,7 @@ namespace MyTemplate.MyClass
         /// <param name="outputPath"></param>
         /// <param name="useZip"></param>
         /// <param name="failIfExists"></param>
-        public MyArchiveWriter(string outputPath, bool useZip, bool failIfExists = true)
+        public MyArchiveWriter(string outputPath, bool useZip, bool failIfExists = true, int level = 9)
         {
             _useZip = useZip;
             _failIfExists = failIfExists;
@@ -70,7 +71,7 @@ namespace MyTemplate.MyClass
                 var mode = failIfExists ? FileMode.CreateNew : FileMode.Create;
                 _fileStream = new FileStream(outputPath, mode, FileAccess.Write);
                 _zipStream = new ZipOutputStream(_fileStream);
-                _zipStream.SetLevel(9); // 最高圧縮率
+                _zipStream.SetLevel(level); // 圧縮率
             }
             else
             {

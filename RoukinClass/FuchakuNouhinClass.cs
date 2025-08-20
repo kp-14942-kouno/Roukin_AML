@@ -67,7 +67,7 @@ namespace MyTemplate.RoukinClass
                     Run(codeDb);
 
                     // 結果メッセージ
-                    ResultMessage = $"{_msg}全：{_table.Rows.Count} 件の作成完了";
+                    ResultMessage = $"{_msg}全：{ProgressValue} 件の作成完了";
                     // 終了ログ出力
                     MyLogger.SetLogger(ResultMessage, MyEnum.LoggerType.Info, false);
 

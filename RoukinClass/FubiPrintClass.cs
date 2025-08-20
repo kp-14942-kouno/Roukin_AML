@@ -142,7 +142,7 @@ namespace MyTemplate.RoukinClass
                     // Dispatcher.Invokeを使用してUIスレッドで印刷処理を実行
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        Modules.FixedDocumentPrint(document, _printer, ParperSize.A4, PageOrientation.Portrait, Duplexing.OneSided, InputBin.AutoSelect);
+                        Modules.FixedDocumentPrint(document, _printer, ParperSize.A4, PageOrientation.Portrait, Duplexing.Unknown, InputBin.AutoSelect);
                     });
                 }
 

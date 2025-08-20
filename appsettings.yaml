@@ -84,6 +84,7 @@ roukin_setting:
     match_root_path: 'D:\03.案件\ら\02.労働金庫連合会\01.AML業務\04.テストデータ\01.自前テスト\マッチングデータ'
     siwake_root_path: 'D:\03.案件\ら\02.労働金庫連合会\01.AML業務\04.テストデータ\01.自前テスト\仕分データ'
     fubifuchaku_root_path: 'D:\03.案件\ら\02.労働金庫連合会\01.AML業務\04.テストデータ\01.自前テスト\不備状不着仕分データ'
+    img_dir: '画像' #申請書画像ディレクトリ
     fubi_img_dir: '不備画像'     #不備画像ディレクトリ        
     customer_info_name: 'KJOUHOUKOUSHINA'               #顧客情報変更データ
     customer_dir: '勘定系@ymd@'                         #勘定系用データのディレクトリ
@@ -99,8 +100,9 @@ roukin_setting:
 
     fubi_data_name: 'ANS_KOKYAKUKANRI_KINKOJIMU_@ymd@.txt'      #不備対象データ
     fubi_img_data_name: 'ANS_IMAGEKANRI_KINKOJIMU_@ymd@.txt'    #不備対象イメージ管理データ
+    fubi_nouhin_img_dir: '不備状画像' #不備状画像ディレクトリ'
     fubi_img_zip_name: 'ANS_IAMGE_KINKOJIMU_@ymd@.zip'          #不備対象イメージZIPファイル
-    fubi_call_zip_name: '不備データ_@ymd@.zip'          #不備対象コールZIPファイル
+    fubi_call_zip_name: '不備状画像_@ymd@.zip'          #不備対象コールZIPファイル
     fubi_call_zip_password: 'fubi' #不備対象コールZIPファイルのパスワード
 
     fuchaku_name: '還付データ_@ymd@_xxx.txt' #不着データ
