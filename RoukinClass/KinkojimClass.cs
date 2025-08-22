@@ -423,8 +423,8 @@ namespace MyTemplate.RoukinClass
 
             // 氏名変更有無（団体名変更有無）　漢字団体目に記入がなければ0、あれば1
             record += SetDc((string.IsNullOrEmpty(row["org_name_new"].ToString().Trim()) ? "0" : "1")) + delimiter;
-            record += SetDc(row["org_kana_new"].ToString().Trim()) + delimiter; // カナ氏名（団体名）
             record += SetDc(row["org_name_new"].ToString().Trim()) + delimiter; // 漢字氏名（団体名）
+            record += SetDc(row["org_kana_new"].ToString().Trim()) + delimiter; // カナ氏名（団体名）
 
             // 住所変更有無判定用
             StringBuilder addr = new StringBuilder();
@@ -850,8 +850,8 @@ namespace MyTemplate.RoukinClass
 
             // 氏名変更有無　WEBCASデータでは1・2 ⇒ 0・1 に置換え
             record += SetDc((row["namechg_flg"].ToString() == "1" ? "0" : "1")) + delimiter;
-            record += SetDc((row["namechg_flg"].ToString() == "2" ? row["fname_kana"].ToString() + " " + row["fname_kanji"].ToString() : "")) + delimiter; // カナ氏名
-            record += SetDc((row["namechg_flg"].ToString() == "2" ? row["lname_kanji"].ToString() + "　" + row["fname_kanji"].ToString() : "")) + delimiter; // 漢字氏名
+            record += SetDc((row["namechg_flg"].ToString() == "2" ? row["lname_kanji"].ToString() + "　" + row["fname_kanji"].ToString() : "")) + delimiter;    // 漢字氏名
+            record += SetDc((row["namechg_flg"].ToString() == "2" ? row["fname_kana"].ToString() + " " + row["fname_kanji"].ToString() : "")) + delimiter;      // カナ氏名
 
             // 住所変更有無　WEBCASデータでは1・2 ⇒ 0・1 に置換え
             record += SetDc((row["addrchg_flg"].ToString() == "1" ? "0" : "1")) + delimiter;
