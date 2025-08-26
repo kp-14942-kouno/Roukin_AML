@@ -103,7 +103,7 @@ roukin_setting:
     fubi_nouhin_img_dir: '不備状画像' #不備状画像ディレクトリ'
     fubi_img_zip_name: 'ANS_IAMGE_KINKOJIMU_@ymd@.zip'          #不備対象イメージZIPファイル
     fubi_call_zip_name: '不備状画像_@ymd@.zip'          #不備対象コールZIPファイル
-    fubi_call_zip_password: 'fubi' #不備対象コールZIPファイルのパスワード
+    fubi_call_zip_password: '' #不備対象コールZIPファイルのパスワード
 
     fuchaku_name: '還付データ_@ymd@_xxx.txt' #不着データ
 
@@ -112,8 +112,8 @@ roukin_setting:
     dp_file_dantai: '法人_本人確認記録書.txt'    #DP連携団体データ
 
     punch_img_dir: 'パンチ画像'   #パンチ画像ディレクトリ
-    punch_zip_name: 'PANCHIMAGES_@ymd@.zip' #パンチ画像連携ファイル名
-    punch_zip_password: 'panch' #パンチ画像連携ファイルのパスワード
+    punch_zip_name: '労働金庫連合会_パンチ用画像_@ymd@.zip' #パンチ画像連携ファイル名
+    punch_zip_password: '' #パンチ画像連携ファイルのパスワード
 
     match_name: '労金_不備状丁合_@ymd@_@hms@.txt' #マッチングデータ
     siwake_name: '労金_申請書仕分'  #申請書仕分データ

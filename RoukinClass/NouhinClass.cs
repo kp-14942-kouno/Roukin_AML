@@ -269,8 +269,8 @@ namespace MyTemplate.RoukinClass
                 // 空欄を除外
                 blz = blz.AsEnumerable().Where(blz => !string.IsNullOrEmpty(blz)).ToArray();
 
-                // その他以外
-                if (blz[0].ToString() != "13")
+                // その他以外 AND 人格コード12以外
+                if (blz[0].ToString() != "13" && row["bpo_person_cd"].ToString().Trim() != "12")
                 {
                     // 業種コード取得
                     var blzRow = codeDb.ExecuteQuery($"select * from t_business_code_organization where code='{blz[0].ToString()}';");
@@ -344,7 +344,7 @@ namespace MyTemplate.RoukinClass
 
                 // 団体の顧客情報変更データを取得
                 string customerInfo = GetCustomerInfoDantai(codeDb, row, answerDate, bussiness, industry, hqFlg, hqCode, purposeFlg, purpose, purposeTxt, charValidator, recordNum);
-                customer.WriteLine(customerInfo);
+                customer.Write(customerInfo);
 
                 // 人格コードで回答結果イメージ管理データの種類を決定
                 int typeNum = HonkakuType(row["bpo_person_cd"].ToString().Trim());
@@ -803,7 +803,7 @@ namespace MyTemplate.RoukinClass
 
                 // 個人の顧客情報変更データを取得
                 string customerInfo = GetCustomerInfoKojin(codeDb, row, parsedDate, industryEtc, industry, industryTxt, nationCode, purpose, purposeTxt, tel1st, tel3rd, job, jobTxt, charValidator, recordNum);
-                customer.WriteLine(customerInfo);
+                customer.Write(customerInfo);
 
                 // 人格コードで回答結果イメージ管理データの種類を決定
                 int typeNum = HonkakuType(row["bpo_person_cd"].ToString().Trim());
@@ -1178,7 +1178,7 @@ namespace MyTemplate.RoukinClass
             {
                 "11" or "13" => 1, // 個人・個人事業主
                 "12" or "22" => 2, // 社団・財団
-                "21" or "31" or "81" or "83" => 0, // 金融機関・国
+                "21" or "31" or "81" or "82" or "83" => 0, // 金融機関・国
                 _ => throw new Exception($"条件に無い人格コードが指定されています: {personCd}")
             };
             return typeNum;

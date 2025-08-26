@@ -116,20 +116,26 @@ namespace MyTemplate.RoukinClass
                 string[] person2 = GetPersonData(row, "ubo2");
                 string[] person3 = GetPersonData(row, "ubo3");
 
-                FubiCheck_01(row, fubiCode);
-                FubiCheck_02(row, fubiCode);
-                FubiCheck_03(row, fubiCode);
-                FubiCheck_04(row, fubiCode);
-                FubiCheck_05(row, fubiCode);
-                FubiCheck_06(row, fubiCode);
-                FubiCheck_07(row, fubiCode);
-                FubiCheck_08(row, fubiCode);
-                FubiCheck_09(row, fubiCode);
-                FubiCheck_10(row, fubiCode);
+                FubiCheck_01(row, fubiCode);    // 団体名
+                FubiCheck_02(row, fubiCode);    // 団体名カナ
+                FubiCheck_03(row, fubiCode);    // 団体種類
+                
+                // 人格コードが12以外がチェック対象
+                if(personCode != "12")
+                {
+                    FubiCheck_04(row, fubiCode);    // 事業内容
+                }
 
-                FubiCheck_12(row, fubiCode);
-                FubiCheck_13(row, fubiCode);
-                FubiCheck_14(row, fubiCode);
+                FubiCheck_05(row, fubiCode);    // 設立年月日
+                FubiCheck_06(row, fubiCode);    // 郵便番号
+                FubiCheck_07(row, fubiCode);    // 所在地
+                FubiCheck_08(row, fubiCode);    // 本店所在国
+                FubiCheck_09(row, fubiCode);    // 第一電話番号
+                FubiCheck_10(row, fubiCode);    // 取引目的
+
+                FubiCheck_12(row, fubiCode);    // 取引形態
+                FubiCheck_13(row, fubiCode);    // 取引頻度
+                FubiCheck_14(row, fubiCode);    // 1回あたりの取引金額
 
                 // 200万円超現金取引の頻度、金額、原資
                 string[] freq = {
@@ -164,50 +170,50 @@ namespace MyTemplate.RoukinClass
                     FubiCheck_17(row, src, fubiCode);
                 }
 
-                FubiCheck_18(row, fubiCode);
-                FubiCheck_19(row, fubiCode);
-                FubiCheck_20(row, fubiCode);
-                FubiCheck_21(row, fubiCode);
-                FubiCheck_22(row, fubiCode);
+                FubiCheck_18(row, fubiCode);    // 代表者の漢字氏名
+                FubiCheck_19(row, fubiCode);    // 代表者のカナ氏名
+                FubiCheck_20(row, fubiCode);    // 代表者の生年月日
+                FubiCheck_21(row, fubiCode);    // 代表者の役職
+                FubiCheck_22(row, fubiCode);    // 代表者の国籍
 
                 // 実質的支配者1のチェック
                 if (personCodes.Contains(personCode))
                 {
                     // 人格コードが対象の場合は必ずチェック
-                    FubiCheck_23(row, fubiCode, "ubo1", "23");
-                    FubiCheck_24(row, fubiCode, "ubo1", "24");
-                    FubiCheck_25(row, fubiCode, "ubo1", "25");
-                    FubiCheck_26(row, fubiCode, "ubo1", "26");
-                    FubiCheck_27(row, fubiCode, "ubo1", "27");
-                    FubiCheck_28(row, fubiCode, "ubo1", "28");
+                    FubiCheck_23(row, fubiCode, "ubo1", "23");  // 実質的支配者1の漢字氏名
+                    FubiCheck_24(row, fubiCode, "ubo1", "24");  // 実質的支配者1のカナ氏名
+                    FubiCheck_25(row, fubiCode, "ubo1", "25");  // 実質的支配者1の生年月日
+                    FubiCheck_26(row, fubiCode, "ubo1", "26");  // 実質的支配者1の団体との関係
+                    FubiCheck_27(row, fubiCode, "ubo1", "27");  // 実質的支配者1の職業・事業内容
+                    FubiCheck_28(row, fubiCode, "ubo1", "28");  // 実質的支配者1の国籍
                 }
 
                 // 実質的支配者2のチェック
                 if (personCodes.Contains(personCode) && person2.Count() > 0)
                 {
                     // 人格コードが対象で実質的支配者2のデータが存在する場合
-                    FubiCheck_23(row, fubiCode, "ubo2", "29");
-                    FubiCheck_24(row, fubiCode, "ubo2", "30");
-                    FubiCheck_25(row, fubiCode, "ubo2", "31");
-                    FubiCheck_26(row, fubiCode, "ubo2", "32");
-                    FubiCheck_27(row, fubiCode, "ubo2", "33");
-                    FubiCheck_28(row, fubiCode, "ubo2", "34");
+                    FubiCheck_23(row, fubiCode, "ubo2", "29");  // 実質的支配者2の漢字氏名
+                    FubiCheck_24(row, fubiCode, "ubo2", "30");  // 実質的支配者2のカナ氏名
+                    FubiCheck_25(row, fubiCode, "ubo2", "31");  // 実質的支配者2の生年月日
+                    FubiCheck_26(row, fubiCode, "ubo2", "32");  // 実質的支配者2の団体との関係
+                    FubiCheck_27(row, fubiCode, "ubo2", "33");  // 実質的支配者2の職業・事業内容
+                    FubiCheck_28(row, fubiCode, "ubo2", "34");  // 実質的支配者2の国籍
                 }
 
                 // 実質的支配者3のチェック
                 if (personCodes.Contains(personCode) && person3.Count() > 0)
                 {
                     // 人格コードが対象で実質的支配者3のデータが存在する場合
-                    FubiCheck_23(row, fubiCode, "ubo3", "35");
-                    FubiCheck_24(row, fubiCode, "ubo3", "36");
-                    FubiCheck_25(row, fubiCode, "ubo3", "37");
-                    FubiCheck_26(row, fubiCode, "ubo3", "38");
-                    FubiCheck_27(row, fubiCode, "ubo3", "39");
-                    FubiCheck_28(row, fubiCode, "ubo3", "40");
+                    FubiCheck_23(row, fubiCode, "ubo3", "35");  // 実質的支配者3の漢字氏名
+                    FubiCheck_24(row, fubiCode, "ubo3", "36");  // 実質的支配者3のカナ氏名
+                    FubiCheck_25(row, fubiCode, "ubo3", "37");  // 実質的支配者3の生年月日
+                    FubiCheck_26(row, fubiCode, "ubo3", "38");  // 実質的支配者3の団体との関係
+                    FubiCheck_27(row, fubiCode, "ubo3", "39");  // 実質的支配者3の職業・事業内容
+                    FubiCheck_28(row, fubiCode, "ubo3", "40");  // 実質的支配者3の国籍
                 }
 
-                FubiCheck_41(row, fubiCode);
-                FubiCheck_42(row, fubiCode);
+                FubiCheck_41(row, fubiCode);    // 取引担当者の漢字氏名
+                FubiCheck_42(row, fubiCode);    // 取引担当者の電話番号
 
                 // 不備コードが存在する場合は不備データに追加
                 if (fubiCode.Length == 0)

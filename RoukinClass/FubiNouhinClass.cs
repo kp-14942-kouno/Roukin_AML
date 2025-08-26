@@ -280,7 +280,7 @@ namespace MyTemplate.RoukinClass
             List<string> sourceFiles = new List<string>();
 
             // 申請書の画像ファイルのパスを作成
-            for (int x = 1; x <= imgCount; x++)
+            for (int x = 1; x <= 2; x++)
             {
                 // 画像ファイルのパスを作成
                 string sourceFile = Path.Combine(imgPath, imgDir, row["taba_num"].ToString(), $"{row["bpo_num"].ToString()}{(x == 1 ? "" : "_" + ( x - 1))}.jpg");

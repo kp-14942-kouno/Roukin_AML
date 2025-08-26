@@ -399,7 +399,7 @@ namespace MyTemplate
         {
 #if DEBUG
             {
-                string msg = "不備納品ファイルのZIP作成";
+                string msg = "金庫別納品ファイルのZIP作成";
                 // 開始ログ出力
                 MyLogger.SetLogger($"{msg}を開始", MyEnum.LoggerType.Info, false);
 
@@ -418,7 +418,7 @@ namespace MyTemplate
 #else
             try
             {
-                string msg = "不備納品ファイルのZIP作成";
+                string msg = "金庫別納品ファイルのZIP作成";
                 // 開始ログ出力
                 MyLogger.SetLogger($"{msg}を開始", MyEnum.LoggerType.Info, false);
 

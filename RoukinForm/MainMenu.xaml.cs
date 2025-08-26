@@ -204,7 +204,7 @@ namespace MyTemplate.RoukinForm
         private void bt_CreateZip_Click(object sender, RoutedEventArgs e)
         {
             // 確認
-            if (MyMessageBox.Show("不備納品ファイルをZIP化します。", "確認", MyEnum.MessageBoxButtons.YesNo, MyEnum.MessageBoxIcon.None) != MyEnum.MessageBoxResult.Yes) return;
+            if (MyMessageBox.Show("金庫別納品ファイルをZIP化します。", "確認", MyEnum.MessageBoxButtons.YesNo, MyEnum.MessageBoxIcon.None) != MyEnum.MessageBoxResult.Yes) return;
 
             // 出力先パス
             string expPath = MyUtilityModules.AppSetting("roukin_setting", "exp_root_path");

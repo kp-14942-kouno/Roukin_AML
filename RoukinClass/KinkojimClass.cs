@@ -133,6 +133,8 @@ namespace MyTemplate.RoukinClass
                 var kojin = _kojin.AsEnumerable()
                     .Where(row => row.Field<string>("bpo_bank_code") == bankCode);
 
+                ProgressBarType = MyEnum.MyProgressBarType.Percent;
+                ProcessName = "金庫事務用データ作成中";
                 ProgressMax = dantai.Count() + kojin.Count();
                 ProgressValue = 0;
 
@@ -270,10 +272,11 @@ namespace MyTemplate.RoukinClass
                 header += SetDc("変更前生年月日（設立年月日）") + ",";
                 header += SetDc("変更前漢字氏名２") + ",";
                 header += SetDc("変更前漢字役職名") + ",";
-                header += SetDc("変更前代表差の漢字氏名　※団体");
+                header += SetDc("変更前代表差の漢字氏名　※団体") + ",";
+                header += SetDc("顧客管理店番号");
 
                 // 金庫事務用データ
-                using(var fsBox = new FileStream(Path.Combine(bankDir, safeBoxFile), FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                using (var fsBox = new FileStream(Path.Combine(bankDir, safeBoxFile), FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 using (var safeBox = new StreamWriter(fsBox, MyUtilityModules.GetEncoding(MyEnum.MojiCode.Utf8Bom)))
                 {
                     // ヘッダー行を書き込む
@@ -313,8 +316,8 @@ namespace MyTemplate.RoukinClass
                 // 空欄を除外
                 blz = blz.AsEnumerable().Where(blz => !string.IsNullOrEmpty(blz)).ToArray();
 
-                // その他以外
-                if (blz[0].ToString() != "13")
+                // その他以外 AND 人格コードが12以外
+                if (blz[0].ToString() != "13" && row["bpo_person_cd"].ToString().Trim() != "12")
                 {
                     // 業種コード取得
                     var blzRow = codeDb.ExecuteQuery($"select * from t_business_code_organization where code='{blz[0].ToString()}';");
@@ -687,7 +690,8 @@ namespace MyTemplate.RoukinClass
             record += SetDc(row["bpo_birth_date"].ToString()) + delimiter; // 変更間生年月日（設立年月日）
             record += SetDc(row["bpo_kanji_2"].ToString()) + delimiter; // 変更前漢字氏名2
             record += SetDc(row["bpo_role_kanji"].ToString()) + delimiter; // 変更前漢字役職名
-            record += SetDc(row["bpo_rep_kanji"].ToString()); // 変更前代表者の漢字氏名
+            record += SetDc(row["bpo_rep_kanji"].ToString()) + delimiter; // 変更前代表者の漢字氏名
+            record += SetDc(row["bpo_branch_no"].ToString()); // BPO_顧客管理店番号
 
             return record;
         }
@@ -840,7 +844,7 @@ namespace MyTemplate.RoukinClass
 
             string record = string.Empty;
             record += SetDc(row["bpo_bank_code"].ToString()) + delimiter;  // 金融機関コード
-            record += SetDc(row["bpo_cust_no"].ToString()) + delimiter;  // 顧客番号
+            record += SetDc(row["bpo_cust_no"].ToString()) + delimiter;    // 顧客番号
             record += SetDc(row["bpo_member_no"].ToString()) + delimiter;  // 会員番号
             record += SetDc(row["bpo_person_cd"].ToString()) + delimiter;  // 人格コード
             record += SetDc(row["bpo_kana_name"].ToString()) + delimiter;  // カナ氏名
@@ -851,7 +855,7 @@ namespace MyTemplate.RoukinClass
             // 氏名変更有無　WEBCASデータでは1・2 ⇒ 0・1 に置換え
             record += SetDc((row["namechg_flg"].ToString() == "1" ? "0" : "1")) + delimiter;
             record += SetDc((row["namechg_flg"].ToString() == "2" ? row["lname_kanji"].ToString() + "　" + row["fname_kanji"].ToString() : "")) + delimiter;    // 漢字氏名
-            record += SetDc((row["namechg_flg"].ToString() == "2" ? row["fname_kana"].ToString() + " " + row["fname_kanji"].ToString() : "")) + delimiter;      // カナ氏名
+            record += SetDc((row["namechg_flg"].ToString() == "2" ? row["lname_kana"].ToString() + " " + row["fname_kana"].ToString() : "")) + delimiter;      // カナ氏名
 
             // 住所変更有無　WEBCASデータでは1・2 ⇒ 0・1 に置換え
             record += SetDc((row["addrchg_flg"].ToString() == "1" ? "0" : "1")) + delimiter;
@@ -1016,7 +1020,8 @@ namespace MyTemplate.RoukinClass
             record += SetDc(row["bpo_birth_date"].ToString()) + delimiter; // 変更間生年月日（設立年月日）
             record += SetDc(row["bpo_kanji_2"].ToString()) + delimiter; // 変更前漢字氏名2
             record += SetDc(row["bpo_role_kanji"].ToString()) + delimiter; // 変更前漢字役職名
-            record += SetDc(row["bpo_rep_kanji"].ToString()); // 変更前代表者の漢字氏名
+            record += SetDc(row["bpo_rep_kanji"].ToString()) + delimiter; // 変更前代表者の漢字氏名
+            record += SetDc(row["bpo_branch_no"].ToString()); // BPO_顧客管理店番号
 
             return record;
         }
